@@ -1,0 +1,50 @@
+import type { Metadata } from "next";
+import { getTranslations } from "@/lib/i18n";
+
+export const metadata: Metadata = {
+  title: "{{PROJECT_NAME}} | Privacy policy",
+  description: "Privacy policy for {{PROJECT_NAME}}",
+};
+
+export default function PrivacyPage() {
+  const t = getTranslations();
+  const pp = t.privacyPage as Record<string, string>;
+
+  return (
+    <main className="{{SECTION_PADDING}}">
+      <div className="mx-auto max-w-{{LAYOUT_MAX_WIDTH}} px-4 sm:px-6 lg:px-8">
+        <article className="prose prose-neutral mx-auto max-w-3xl dark:prose-invert">
+          <p className="text-sm text-muted-foreground">{pp.label}</p>
+          <h1>{pp.title}</h1>
+          <p className="text-sm text-muted-foreground">{pp.lastUpdated}</p>
+          <p>{pp.intro}</p>
+
+          <h2>{pp.dataController}</h2>
+          <p>{pp.dataControllerIntro}</p>
+
+          <h2>{pp.dataCollected}</h2>
+          <p>{pp.dataCollectedIntro}</p>
+
+          <h2>{pp.purposes}</h2>
+          <p>{pp.purposesIntro}</p>
+
+          <h2>{pp.legalBasis}</h2>
+          <p>{pp.legalBasisIntro}</p>
+
+          <h2>{pp.retention}</h2>
+          <p>{pp.retentionIntro}</p>
+
+          <h2>{pp.rights}</h2>
+          <p>{pp.rightsIntro}</p>
+          <p>{pp.rightsExercise}</p>
+
+          <h2>{pp.security}</h2>
+          <p>{pp.securityText}</p>
+
+          <h2>{pp.modification}</h2>
+          <p>{pp.modificationText}</p>
+        </article>
+      </div>
+    </main>
+  );
+}

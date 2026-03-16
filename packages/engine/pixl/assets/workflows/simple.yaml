@@ -1,0 +1,81 @@
+id: simple
+name: Simple Workflow
+description: Simplified plan-approve-implement with plugin-delegated sessions
+version: 1.0.0
+tags: [simple, fast]
+tier: orchestration
+workflow_format: v2
+session_mode: plugin
+routing:
+  auto_route: true
+  sub_invocable: false
+
+stages:
+  # Phase 1: Plan — analyze requirements, produce plan.md
+  - id: plan
+    name: Plan
+    type: task
+    max_turns: 80
+    prompt: |
+      Create a detailed implementation plan for the feature.
+      Save as `plan.md` artifact using `pixl artifact put`.
+
+      Include these sections:
+      - Summary: What we're building and why
+      - Tasks: Ordered, testable implementation steps (vertical slices preferred)
+      - Testing Strategy: What tests to write per task
+      - File Changes: Files to create or modify, grouped by task
+      - Risk Assessment: Flag uncertain or complex areas
+
+      If a step is unclear, mark it "[NEEDS CLARIFICATION]" rather than guessing.
+    outputs: [plan.md]
+    contract:
+      must_write: [plan.md]
+      must_include_sections:
+        plan.md: ["Summary", "Tasks|Implementation Tasks", "Testing|Testing Strategy"]
+
+  # Gate: Human approves plan
+  - id: approve-plan
+    name: Approve Plan
+    type: gate
+    timeout_minutes: 60
+    timeout_policy: reject
+    required_artifacts: [plan.md]
+    freeze_artifacts: [plan.md]
+    description: Review and approve the implementation plan before coding begins
+
+  # Phase 2: Implement — build the feature per approved plan
+  - id: implement
+    name: Implement
+    type: task
+    max_turns: 200
+    prompt: |
+      Implement the feature according to the approved plan.
+      1. Follow the plan's task ordering — do not skip or reorder
+      2. Write tests before implementation (TDD preferred)
+      3. Keep implementations minimal — no speculative features
+      4. Run all tests and lint checks
+      5. Commit your changes
+    required_artifacts: [plan.md]
+    contract:
+      detect_stubs: true
+
+  # Phase 3: Review & Finalize
+  - id: finalize
+    name: Review & Finalize
+    type: task
+    max_turns: 100
+    prompt: |
+      Review all changes, fix any issues, and prepare for PR.
+      1. Self-review all modified files for quality
+      2. Ensure tests pass and lint is clean
+      3. Create a PR with descriptive title and body using `gh pr create`
+    contract:
+      detect_stubs: true
+
+loops:
+  - id: fix-implementation
+    from: finalize
+    to: implement
+    trigger: failure
+    max_iterations: 2

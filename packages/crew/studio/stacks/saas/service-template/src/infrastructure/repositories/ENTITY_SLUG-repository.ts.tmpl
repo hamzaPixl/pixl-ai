@@ -1,0 +1,100 @@
+/**
+ * {{ENTITY_NAME}} repository - Infrastructure layer
+ *
+ * Prisma-based repository implementation
+ */
+
+import {
+  Prisma,
+  type PrismaClient,
+  type {{ENTITY_NAME}} as Prisma{{ENTITY_NAME}},
+} from '../../../prisma/generated/client';
+import { {{ENTITY_NAME}}, type {{ENTITY_NAME}}Props } from '../../domain/entities/{{ENTITY_SLUG}}';
+
+export interface I{{ENTITY_NAME}}Repository {
+  findById(id: string): Promise<{{ENTITY_NAME}} | null>;
+  findByTenant(
+    tenantId: string,
+    options?: { limit?: number; offset?: number },
+  ): Promise<{{ENTITY_NAME}}[]>;
+  save(entity: {{ENTITY_NAME}}, tx?: unknown): Promise<{{ENTITY_NAME}}>;
+  delete(id: string): Promise<void>;
+}
+
+function toDomain(record: Prisma{{ENTITY_NAME}}): {{ENTITY_NAME}} {
+  return {{ENTITY_NAME}}.fromPersistence({
+    id: record.id,
+    tenantId: record.tenantId,
+    // TODO: Map entity-specific fields
+    version: record.version,
+    createdBy: record.createdBy,
+    updatedBy: record.updatedBy,
+    createdAt: record.createdAt,
+    updatedAt: record.updatedAt,
+    deletedAt: record.deletedAt,
+  });
+}
+
+export class Prisma{{ENTITY_NAME}}Repository implements I{{ENTITY_NAME}}Repository {
+  constructor(private readonly prisma: PrismaClient) {}
+
+  async findById(id: string): Promise<{{ENTITY_NAME}} | null> {
+    const record = await this.prisma.{{ENTITY_SLUG}}.findUnique({
+      where: { id },
+    });
+
+    return record ? toDomain(record) : null;
+  }
+
+  async findByTenant(
+    tenantId: string,
+    options: { limit?: number; offset?: number } = {},
+  ): Promise<{{ENTITY_NAME}}[]> {
+    const records = await this.prisma.{{ENTITY_SLUG}}.findMany({
+      where: {
+        tenantId,
+        deletedAt: null,
+      },
+      take: options.limit ?? 100,
+      skip: options.offset ?? 0,
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return records.map(toDomain);
+  }
+
+  async save(entity: {{ENTITY_NAME}}, tx?: unknown): Promise<{{ENTITY_NAME}}> {
+    const client = (tx as PrismaClient) ?? this.prisma;
+    const data = entity.toPersistence();
+
+    const record = await client.{{ENTITY_SLUG}}.upsert({
+      where: { id: data.id },
+      create: {
+        id: data.id,
+        tenantId: data.tenantId,
+        // TODO: Map entity-specific create fields
+        version: data.version,
+        createdBy: data.createdBy,
+        updatedBy: data.updatedBy,
+        createdAt: data.createdAt,
+        updatedAt: data.updatedAt,
+        deletedAt: data.deletedAt,
+      },
+      update: {
+        // TODO: Map entity-specific update fields
+        version: data.version,
+        updatedBy: data.updatedBy,
+        updatedAt: data.updatedAt,
+        deletedAt: data.deletedAt,
+      },
+    });
+
+    return toDomain(record);
+  }
+
+  async delete(id: string): Promise<void> {
+    await this.prisma.{{ENTITY_SLUG}}.delete({
+      where: { id },
+    });
+  }
+}

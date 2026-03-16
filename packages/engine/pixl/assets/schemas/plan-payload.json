@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "pixl:plan-payload",
+  "title": "Plan Stage Payload",
+  "description": "Schema for the payload field of a planning stage output.",
+  "type": "object",
+  "required": ["tasks"],
+  "properties": {
+    "tasks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "title"],
+        "properties": {
+          "id": {
+            "type": ["integer", "string"],
+            "description": "Task identifier"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": {
+            "type": "string"
+          },
+          "test_first": {
+            "type": "string",
+            "description": "What test to write first for this task"
+          },
+          "files": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Files to create or modify"
+          },
+          "depends_on": {
+            "type": "array",
+            "items": { "type": ["integer", "string"] },
+            "description": "Task IDs this task depends on"
+          }
+        }
+      }
+    },
+    "testing_strategy": {
+      "type": "string",
+      "description": "Overall testing approach"
+    },
+    "file_changes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "path": { "type": "string" },
+          "action": {
+            "type": "string",
+            "enum": ["create", "modify", "delete"]
+          },
+          "task_id": { "type": ["integer", "string"] }
+        }
+      }
+    },
+    "risk_assessment": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "risk": { "type": "string" },
+          "severity": {
+            "type": "string",
+            "enum": ["low", "medium", "high"]
+          },
+          "mitigation": { "type": "string" }
+        }
+      }
+    }
+  },
+  "additionalProperties": true
+}

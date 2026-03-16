@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "pixl:roadmap-brief-payload",
+  "title": "Roadmap Brief Payload",
+  "description": "Schema for the payload field of a roadmap refinement stage output.",
+  "type": "object",
+  "required": ["vision"],
+  "properties": {
+    "vision": {
+      "type": "string",
+      "description": "One-paragraph description of the end state and why it matters"
+    },
+    "milestones": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "goal": { "type": "string" },
+          "epics": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "title": { "type": "string" },
+                "description": { "type": "string" }
+              }
+            }
+          },
+          "success_criteria": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      },
+      "description": "Milestones with goals, epics, and success criteria"
+    },
+    "sequencing": {
+      "type": "string",
+      "description": "Explanation of milestone ordering and dependencies"
+    },
+    "risk_assessment": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "risk": { "type": "string" },
+          "likelihood": { "type": "string" },
+          "impact": { "type": "string" },
+          "mitigation": { "type": "string" }
+        }
+      },
+      "description": "Identified risks with mitigation strategies"
+    },
+    "success_metrics": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Measurable outcomes for the roadmap"
+    }
+  },
+  "additionalProperties": true
+}

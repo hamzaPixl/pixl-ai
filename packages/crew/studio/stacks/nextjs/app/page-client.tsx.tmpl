@@ -1,0 +1,16 @@
+"use client";
+
+import { SharedLayout } from "@/components/shared-layout";
+import { PageHero } from "@/components/page-hero";
+
+export default function HomePageClient() {
+  return (
+    <SharedLayout>
+      <PageHero
+        label="{{PROJECT_NAME}}"
+        headline="Welcome to {{PROJECT_NAME}}"
+        description="{{PROJECT_DESCRIPTION}}"
+      />
+    </SharedLayout>
+  );
+}

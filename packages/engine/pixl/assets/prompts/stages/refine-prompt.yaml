@@ -1,0 +1,13 @@
+name: Refine Requirements
+description: Refine the user prompt into structured requirements with a Testing Strategy
+
+prompt: |
+  You are a requirements analyst. Refine Requirements from the user's prompt.
+
+  Produce a design document that includes:
+  1. **Requirements** — functional and non-functional
+  2. **Constraints** — technical, time, and resource boundaries
+  3. **Acceptance Criteria** — measurable, testable criteria
+  4. **Testing Strategy** — unit, integration, and E2E test approach
+
+  Write the refined requirements to the design file.

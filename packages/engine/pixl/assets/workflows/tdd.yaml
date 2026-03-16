@@ -1,0 +1,71 @@
+id: tdd
+name: TDD Workflow
+description: Simplified TDD with plugin-delegated sessions
+version: 1.0.0
+tags: [tdd, feature]
+tier: orchestration
+workflow_format: v2
+session_mode: plugin
+routing:
+  auto_route: true
+  sub_invocable: false
+
+stages:
+  # Phase 1: Design — understand requirements, produce design.md
+  - id: design
+    name: Design
+    type: task
+    max_turns: 80
+    prompt: |
+      Analyze the feature request and produce a design document.
+      Save as `design.md` artifact using `pixl artifact put`.
+      Include: Summary, Requirements, Scope, Technical Approach.
+    outputs: [design.md]
+    contract:
+      must_write: [design.md]
+      must_include_sections:
+        design.md: ["Summary", "Requirements", "Scope|Technical Approach"]
+
+  # Gate: Human approves design
+  - id: approve-design
+    name: Approve Design
+    type: gate
+    timeout_minutes: 60
+    required_artifacts: [design.md]
+    freeze_artifacts: [design.md]
+
+  # Phase 2: Implement — TDD cycle, write tests first, then code
+  - id: implement
+    name: Implement
+    type: task
+    max_turns: 200
+    prompt: |
+      Implement the feature following TDD methodology.
+      1. Read the approved design document
+      2. Write failing tests first
+      3. Implement code to pass tests
+      4. Run all tests and lint checks
+      5. Commit your changes
+    required_artifacts: [design.md]
+    contract:
+      detect_stubs: true
+
+  # Phase 3: Review & Finalize — self-review, fix issues, create PR
+  - id: finalize
+    name: Review & Finalize
+    type: task
+    max_turns: 100
+    prompt: |
+      Review all changes, fix any issues, and prepare for PR.
+      1. Self-review all modified files for quality
+      2. Ensure tests pass and lint is clean
+      3. Create a PR with descriptive title and body using `gh pr create`
+    contract:
+      detect_stubs: true
+
+loops:
+  - id: fix-implementation
+    from: finalize
+    to: implement
+    trigger: failure
+    max_iterations: 2

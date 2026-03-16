@@ -1,0 +1,23 @@
+/**
+ * Locale middleware — extracts locale from Accept-Language header
+ * and attaches it to the Fastify request for downstream use.
+ */
+
+import type { FastifyInstance } from 'fastify';
+import { parseAcceptLanguage } from '@saas-studio/contracts';
+
+declare module 'fastify' {
+  interface FastifyRequest {
+    locale: string;
+  }
+}
+
+export function registerLocaleMiddleware(fastify: FastifyInstance): void {
+  fastify.decorateRequest('locale', '');
+
+  fastify.addHook('onRequest', async (request) => {
+    request.locale = parseAcceptLanguage(
+      request.headers['accept-language'],
+    );
+  });
+}

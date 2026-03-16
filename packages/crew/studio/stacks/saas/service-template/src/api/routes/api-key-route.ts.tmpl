@@ -1,0 +1,48 @@
+/**
+ * API key-authenticated route template.
+ *
+ * Use for: machine-to-machine integrations, external service callbacks,
+ * partner API access. Requires a valid API key via the `apiKeyGuard`.
+ */
+
+import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import { z } from 'zod';
+import { apiKeyGuard } from '@saas-studio/identity/api-key';
+
+// ─── Request / Response Schemas ─────────────────────────────────────────
+
+const ApiKeyRequestSchema = z.object({
+  // TODO: Define your request body
+});
+
+type ApiKeyRequest = z.infer<typeof ApiKeyRequestSchema>;
+
+// ─── Route Registration ─────────────────────────────────────────────────
+
+export function registerApiKeyRoutes(
+  fastify: FastifyInstance,
+  deps: {
+    // TODO: Inject your repository or service
+  },
+): void {
+  /**
+   * Example route guarded by API key.
+   * The `apiKeyGuard` preHandler validates the `x-api-key` header
+   * against stored keys and injects the resolved tenant context.
+   */
+  fastify.post<{ Body: ApiKeyRequest }>(
+    '/api/v1/{{ENTITY_PLURAL_SLUG}}',
+    {
+      preHandler: [apiKeyGuard()],
+    },
+    async (request, reply) => {
+      const body = ApiKeyRequestSchema.parse(request.body);
+
+      // TODO: Process the request — tenant context is available via
+      // getTenantId() from @saas-studio/identity after apiKeyGuard resolves.
+
+      reply.status(201);
+      return { success: true };
+    },
+  );
+}

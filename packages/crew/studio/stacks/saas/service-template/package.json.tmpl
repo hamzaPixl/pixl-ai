@@ -1,0 +1,25 @@
+{
+  "name": "@saas-studio/{{SERVICE_NAME}}",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "dev": "bun --watch src/main.ts",
+    "start": "bun src/main.ts",
+    "test": "bun test",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:push": "prisma db push"
+  },
+  "dependencies": {
+    {{FOUNDATION_DEPS}}
+  },
+  "devDependencies": {
+    "prisma": "^6.6.0",
+    "typescript": "^5.9.3",
+    "@types/node": "^25.2.3"
+  }
+}

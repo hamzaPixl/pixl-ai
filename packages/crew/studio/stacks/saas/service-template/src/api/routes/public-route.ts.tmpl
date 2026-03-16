@@ -1,0 +1,136 @@
+/**
+ * Public route template — unauthenticated endpoints with rate limiting.
+ *
+ * Use for: contact forms, newsletter signups, public API reads, webhooks.
+ * No auth required. Rate limiting prevents abuse.
+ */
+
+import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import { z } from 'zod';
+
+// ─── Rate Limiting ──────────────────────────────────────────────────────
+
+interface RateLimitEntry {
+  count: number;
+  resetAt: number;
+}
+
+// NOTE: In-memory store — not shared across instances. For multi-instance
+// deployments, replace with Redis or a shared rate-limit service.
+const rateLimitStore = new Map<string, RateLimitEntry>();
+
+interface RateLimitConfig {
+  windowMs: number;
+  maxRequests: number;
+}
+
+const DEFAULT_RATE_LIMIT: RateLimitConfig = {
+  windowMs: 60_000, // 1 minute
+  maxRequests: 10,
+};
+
+function rateLimitGuard(config?: Partial<RateLimitConfig>) {
+  const { windowMs, maxRequests } = { ...DEFAULT_RATE_LIMIT, ...config };
+
+  return async (request: FastifyRequest, reply: FastifyReply) => {
+    const ip = request.ip;
+    const now = Date.now();
+    const entry = rateLimitStore.get(ip);
+
+    if (entry && entry.resetAt > now) {
+      if (entry.count >= maxRequests) {
+        reply.status(429).send({
+          error: 'Too many requests',
+          code: 'RATE_LIMIT_EXCEEDED',
+          retryAfter: Math.ceil((entry.resetAt - now) / 1000),
+        });
+        return;
+      }
+      entry.count++;
+    } else {
+      rateLimitStore.set(ip, { count: 1, resetAt: now + windowMs });
+    }
+
+    // Cleanup stale entries periodically
+    if (rateLimitStore.size > 10_000) {
+      for (const [key, val] of rateLimitStore) {
+        if (val.resetAt <= now) rateLimitStore.delete(key);
+      }
+    }
+  };
+}
+
+// ─── CAPTCHA Verification ───────────────────────────────────────────────
+//
+// TODO: Integrate a CAPTCHA provider (reCAPTCHA v3 or Cloudflare Turnstile).
+// Example stub:
+//
+// async function verifyCaptcha(token: string): Promise<boolean> {
+//   const res = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+//     method: 'POST',
+//     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+//     body: `secret=${process.env.TURNSTILE_SECRET}&response=${token}`,
+//   });
+//   const data = await res.json() as { success: boolean };
+//   return data.success;
+// }
+//
+// Then add to preHandler: verifyCaptcha(request.body.captchaToken)
+
+// ─── Spam Filtering ─────────────────────────────────────────────────────
+
+/**
+ * Basic honeypot spam detection.
+ * Add a hidden field to your form — bots fill it, humans don't.
+ */
+function isSpam(body: Record<string, unknown>): boolean {
+  // Honeypot field — if filled, it's a bot
+  if (body._honeypot && String(body._honeypot).length > 0) {
+    return true;
+  }
+  return false;
+}
+
+// ─── Public Submission Schema ───────────────────────────────────────────
+
+const PublicSubmissionSchema = z.object({
+  // TODO: Define your public submission fields
+  // Example for a contact form:
+  // name: z.string().min(1).max(200),
+  // email: z.string().email(),
+  // message: z.string().min(10).max(5000),
+  _honeypot: z.string().max(0).optional(), // Honeypot field — must be empty
+});
+
+type PublicSubmission = z.infer<typeof PublicSubmissionSchema>;
+
+// ─── Route Registration ─────────────────────────────────────────────────
+
+export function registerPublicRoutes(
+  fastify: FastifyInstance,
+  deps: {
+    // TODO: Inject your repository or service
+  },
+): void {
+  // Public submission (e.g., contact form)
+  fastify.post<{ Body: PublicSubmission }>(
+    '/public/submit',
+    {
+      preHandler: [rateLimitGuard({ windowMs: 60_000, maxRequests: 5 })],
+    },
+    async (request, reply) => {
+      const body = PublicSubmissionSchema.parse(request.body);
+
+      if (isSpam(body as Record<string, unknown>)) {
+        // Return 200 to not reveal detection to bots
+        return { success: true };
+      }
+
+      // TODO: Process the submission
+      // await deps.submissionRepository.save(submission);
+
+      reply.status(201);
+      return { success: true };
+    },
+  );
+}

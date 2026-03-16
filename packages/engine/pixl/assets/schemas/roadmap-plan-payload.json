@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "pixl:roadmap-plan-payload",
+  "title": "Roadmap Plan Payload",
+  "description": "Strict roadmap planning payload schema.",
+  "type": "object",
+  "required": ["milestones"],
+  "properties": {
+    "executive_summary": {
+      "type": "string",
+      "description": "One-paragraph summary of what, why, and timeline"
+    },
+    "milestones": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["name", "epics", "milestone_dependencies"],
+        "properties": {
+          "name": { "type": "string", "minLength": 1 },
+          "goal": { "type": "string" },
+          "milestone_dependencies": {
+            "type": "array",
+            "items": { "type": "string", "minLength": 1 }
+          },
+          "epics": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": ["title", "scope", "outcome", "kpis"],
+              "properties": {
+                "title": { "type": "string", "minLength": 1 },
+                "scope": { "type": "string", "minLength": 1 },
+                "outcome": { "type": "string", "minLength": 1 },
+                "est_features": { "type": "integer", "minimum": 1 },
+                "priority": { "type": "string" },
+                "kpis": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "type": "object",
+                    "required": ["name", "metric", "target"],
+                    "properties": {
+                      "name": { "type": "string", "minLength": 1 },
+                      "metric": { "type": "string", "minLength": 1 },
+                      "target": { "type": "string", "minLength": 1 }
+                    },
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "success_criteria": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "risks": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["risk", "mitigation"],
+              "properties": {
+                "risk": { "type": "string", "minLength": 1 },
+                "mitigation": { "type": "string", "minLength": 1 }
+              },
+              "additionalProperties": false
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "description": "Milestones with dependencies and epic quality requirements"
+    },
+    "sequencing": {
+      "type": "string",
+      "description": "Dependency map and execution order explanation"
+    },
+    "success_metrics": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Measurable outcomes for the roadmap plan"
+    }
+  },
+  "additionalProperties": true
+}

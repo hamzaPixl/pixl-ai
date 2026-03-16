@@ -1,0 +1,22 @@
+id: detect-context-roadmap
+name: Detect Roadmap Context Block
+description: Build structured project context for a roadmap
+version: 1.0.0
+variables:
+  context_file: "context.md"
+stages:
+  - id: detect-context
+    name: Detect Roadmap Context
+    agent: explorer
+    prompt_ref: stages/detect-context-roadmap
+    output_schema: context-payload.json
+    contract:
+      structured_output: true
+      must_write:
+        - "{{context_file}}"
+      must_include_sections:
+        "{{context_file}}":
+          - "Project Overview"
+          - "Current State"
+          - "Technical Debt"
+          - "Stakeholders"

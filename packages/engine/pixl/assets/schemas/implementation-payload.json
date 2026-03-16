@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "pixl:implementation-payload",
+  "title": "Implementation Stage Payload",
+  "description": "Schema for the payload field of an implementation stage output.",
+  "type": "object",
+  "properties": {
+    "files_created": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "New files created during implementation"
+    },
+    "files_modified": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Existing files modified during implementation"
+    },
+    "tests_added": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "file": { "type": "string" },
+          "test_names": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      },
+      "description": "Test files and test names added"
+    },
+    "commands_run": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "command": { "type": "string" },
+          "exit_code": { "type": "integer" },
+          "purpose": { "type": "string" }
+        }
+      },
+      "description": "Commands executed during implementation"
+    },
+    "task_id": {
+      "type": ["integer", "string"],
+      "description": "Plan task ID that was implemented"
+    }
+  },
+  "additionalProperties": true
+}

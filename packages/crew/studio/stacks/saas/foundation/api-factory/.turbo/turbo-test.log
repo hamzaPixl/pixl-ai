@@ -1,0 +1,11 @@
+$ vitest run
+
+ RUN  v2.1.9 /Users/hamzamounir/code/private/pixl/pixl-factory/saas-studio/foundation/api-factory
+
+ ✓ tests/response.test.ts (14 tests) 10ms
+
+ Test Files  1 passed (1)
+      Tests  14 passed (14)
+   Start at  12:23:17
+   Duration  2.35s (transform 239ms, setup 0ms, collect 214ms, tests 10ms, environment 0ms, prepare 623ms)
+

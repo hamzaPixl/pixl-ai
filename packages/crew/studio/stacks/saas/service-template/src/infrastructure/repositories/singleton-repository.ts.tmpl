@@ -1,0 +1,75 @@
+/**
+ * Singleton Repository — for content types with exactly one entry per tenant.
+ *
+ * Examples: site settings, homepage config, about page, global configuration.
+ * Provides findOrCreate + upsert semantics. No list or delete operations.
+ */
+
+import type { PrismaClient } from '../../../prisma/generated/client';
+
+export interface ISingletonRepository<TEntity> {
+  findByTenant(tenantId: string): Promise<TEntity | null>;
+  findOrCreate(tenantId: string, defaults: Partial<TEntity>): Promise<TEntity>;
+  upsert(tenantId: string, data: Partial<TEntity>): Promise<TEntity>;
+}
+
+/**
+ * Generic singleton repository implementation.
+ *
+ * Usage:
+ * ```typescript
+ * class SiteSettingsRepository extends SingletonRepository<SiteSettings> {
+ *   protected modelName = 'siteSettings';
+ *   protected toDomain(record: PrismaSiteSettings): SiteSettings { ... }
+ * }
+ * ```
+ */
+export abstract class SingletonRepository<TEntity> implements ISingletonRepository<TEntity> {
+  constructor(protected readonly prisma: PrismaClient) {}
+
+  protected abstract get modelName(): string;
+  protected abstract toDomain(record: unknown): TEntity;
+  protected abstract toCreateData(tenantId: string, defaults: Partial<TEntity>): Record<string, unknown>;
+  protected abstract toUpdateData(data: Partial<TEntity>): Record<string, unknown>;
+
+  async findByTenant(tenantId: string): Promise<TEntity | null> {
+    const model = (this.prisma as Record<string, unknown>)[this.modelName] as {
+      findFirst: (args: unknown) => Promise<unknown>;
+    };
+
+    const record = await model.findFirst({
+      where: { tenantId, deletedAt: null },
+    });
+
+    return record ? this.toDomain(record) : null;
+  }
+
+  async findOrCreate(tenantId: string, defaults: Partial<TEntity>): Promise<TEntity> {
+    const existing = await this.findByTenant(tenantId);
+    if (existing) return existing;
+
+    const model = (this.prisma as Record<string, unknown>)[this.modelName] as {
+      create: (args: unknown) => Promise<unknown>;
+    };
+
+    const record = await model.create({
+      data: this.toCreateData(tenantId, defaults),
+    });
+
+    return this.toDomain(record);
+  }
+
+  async upsert(tenantId: string, data: Partial<TEntity>): Promise<TEntity> {
+    const model = (this.prisma as Record<string, unknown>)[this.modelName] as {
+      upsert: (args: unknown) => Promise<unknown>;
+    };
+
+    const record = await model.upsert({
+      where: { tenantId },
+      create: this.toCreateData(tenantId, data),
+      update: this.toUpdateData(data),
+    });
+
+    return this.toDomain(record);
+  }
+}

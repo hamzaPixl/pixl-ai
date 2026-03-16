@@ -1,0 +1,155 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/session-start.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo 'Reminder: Use pixl-crew agents for delegation. Use /clear between tasks. Prefer skills over ad-hoc prompts. Check CLAUDE.md for conventions.'"
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/notification.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/run-with-flags.sh pre-compact critical ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/pre-compact.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/run-with-flags.sh block-destructive critical ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/block-destructive.sh",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "Agent",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/run-with-flags.sh validate-agent quality ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/validate-agent-selection.sh",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/run-with-flags.sh tdd-check quality ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/tdd-check.sh",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/run-with-flags.sh detect-secrets quality ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/detect-secrets.sh",
+            "timeout": 5
+          },
+          {
+            "type": "prompt",
+            "prompt": "Check the tool input below. If the file_path creates a new file inside a domain/, entities/, routes/, or infrastructure/ directory, determine whether this appears to be writing backend infrastructure from scratch. If so, block it — the pixl-crew plugin has studio/stacks/saas/ templates and skills (/saas-microservice, /ddd-pattern) that should be explored first. Tool input: $ARGUMENTS\n\nRespond with JSON: {\"ok\": true} if the file is not backend infrastructure or if exploration was already done, or {\"ok\": false, \"reason\": \"Stop — explore the plugin SaaS stack and skills before writing backend infrastructure from scratch. Use the orchestrator agent or /saas-microservice skill.\"} if blocking."
+          },
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/run-with-flags.sh enforce-skill quality ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/enforce-skill-first.sh",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/run-with-flags.sh quality-gate quality ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/quality-gate.sh",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/run-with-flags.sh typecheck advisory ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/post-edit-typecheck.sh",
+            "timeout": 15
+          }
+        ]
+      },
+      {
+        "matcher": "Skill",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/run-with-flags.sh track-skill quality ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/track-skill-invocation.sh",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/run-with-flags.sh observe-patterns advisory ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/observe-patterns.sh",
+            "timeout": 3
+          },
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/run-with-flags.sh suggest-compact advisory ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/suggest-compact.sh",
+            "timeout": 3
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/run-with-flags.sh log-pr-url advisory ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/log-pr-url.sh",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/stop-all.sh",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}

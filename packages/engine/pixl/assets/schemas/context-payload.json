@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "pixl:context-payload",
+  "title": "Context Stage Payload",
+  "description": "Schema for the payload field of a context/exploration stage output.",
+  "type": "object",
+  "properties": {
+    "project_type": {
+      "type": "string",
+      "description": "Detected project type (e.g., web-app, cli, library)"
+    },
+    "languages": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Programming languages detected"
+    },
+    "frameworks": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Frameworks and libraries detected"
+    },
+    "relevant_files": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "path": { "type": "string" },
+          "relevance": { "type": "string" },
+          "summary": { "type": "string" }
+        }
+      },
+      "description": "Files relevant to the feature being implemented"
+    },
+    "architecture_notes": {
+      "type": "string",
+      "description": "Key architectural observations"
+    },
+    "conventions": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Coding conventions observed in the project"
+    }
+  },
+  "additionalProperties": true
+}

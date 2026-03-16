@@ -1,0 +1,53 @@
+import type { Metadata } from "next";
+import { getTranslations } from "@/lib/i18n";
+
+export const metadata: Metadata = {
+  title: "{{PROJECT_NAME}} | Legal notice",
+  description: "Legal information for {{PROJECT_NAME}}",
+};
+
+export default function LegalPage() {
+  const t = getTranslations();
+  const lp = t.legalPage as Record<string, string>;
+
+  return (
+    <main className="{{SECTION_PADDING}}">
+      <div className="mx-auto max-w-{{LAYOUT_MAX_WIDTH}} px-4 sm:px-6 lg:px-8">
+        <article className="prose prose-neutral mx-auto max-w-3xl dark:prose-invert">
+          <p className="text-sm text-muted-foreground">{lp.label}</p>
+          <h1>{lp.title}</h1>
+          <p className="text-sm text-muted-foreground">{lp.lastUpdated}</p>
+
+          <h2>{lp.siteEditor}</h2>
+          <p>{lp.siteEditorIntro}</p>
+
+          <h2>{lp.hosting}</h2>
+          <p>{lp.hostingIntro}</p>
+
+          <h2>{lp.intellectualProperty}</h2>
+          <p>{lp.intellectualPropertyText}</p>
+
+          <h2>{lp.liability}</h2>
+          <p>{lp.liabilityText1}</p>
+          <p>{lp.liabilityText2}</p>
+
+          <h2>{lp.gdpr}</h2>
+          <p>{lp.gdprText1}</p>
+          <p>
+            {lp.gdprText2}{" "}
+            <a href="/privacy" className="underline">
+              {lp.privacyPolicyLink}
+            </a>
+            .
+          </p>
+
+          <h2>{lp.cookies}</h2>
+          <p>{lp.cookiesText}</p>
+
+          <h2>{lp.applicableLaw}</h2>
+          <p>{lp.applicableLawText}</p>
+        </article>
+      </div>
+    </main>
+  );
+}

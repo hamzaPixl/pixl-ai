@@ -1,0 +1,13 @@
+name: Detect Epic Context
+description: Explore the codebase and build structured project context for an Epic
+
+prompt: |
+  Detect project context for the given Epic.
+
+  Explore the codebase to identify:
+  - Project structure relevant to this epic
+  - Existing patterns to follow
+  - Dependencies and integration points
+  - Scope boundaries
+
+  Output a structured context payload.

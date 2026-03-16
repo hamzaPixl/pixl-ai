@@ -1,0 +1,97 @@
+name: saas
+version: 0.1.0
+description: SaaS microservice monorepo with DDD foundation, multi-tenancy, and transactional outbox
+
+tokens:
+  SERVICE_NAME:
+    type: string
+    description: Service name in kebab-case (e.g. "media-service")
+    required: true
+  SERVICE_NAME_PASCAL:
+    type: string
+    description: Service name in PascalCase (e.g. "MediaService")
+    required: true
+  SERVICE_PORT:
+    type: number
+    description: HTTP port for the service
+    required: true
+    default: 3000
+  ENTITY_NAME:
+    type: string
+    description: Primary entity name in PascalCase (e.g. "MediaFile")
+    required: true
+  ENTITY_SLUG:
+    type: string
+    description: Primary entity name in kebab-case (e.g. "media-file")
+    required: true
+  ENTITY_PLURAL:
+    type: string
+    description: Plural entity name in PascalCase (e.g. "MediaFiles")
+    required: true
+  ENTITY_PLURAL_SLUG:
+    type: string
+    description: Plural entity name in kebab-case (e.g. "media-files")
+    required: true
+  DATABASE_PROVIDER:
+    type: enum
+    description: Prisma database provider
+    enum: [postgresql, mysql, sqlite]
+    default: postgresql
+  ENTITIES:
+    type: string
+    description: Comma-separated list of entity names in PascalCase (e.g. "Article,Category,Tag"). First entity uses ENTITY_* tokens; additional entities are expanded by scaffold.sh.
+    required: false
+  FOUNDATION_DEPS:
+    type: string
+    description: >
+      Complete JSON dependencies block for package.json including @prisma/client, foundation packages,
+      and zod. Each line must be valid JSON key-value with trailing commas except the last entry.
+      Example: '"@prisma/client": "^6.6.0",\n    "@saas-studio/api-factory": "workspace:*",\n    "zod": "^3.24.3"'
+    required: true
+
+sections:
+  - id: foundation
+    type: copy
+    source: foundation/
+    description: All 18 foundation packages — copied as-is into the new project
+
+  - id: service_template
+    type: template
+    source: service-template/
+    description: 10 .tmpl files with {{TOKEN}} replacement to scaffold a new service
+
+pruning_rules:
+  strategy: dependency-graph
+  description: >
+    Foundation packages can be selectively included based on service requirements.
+    The dependency graph determines which packages are required transitively.
+  dependencies:
+    # Core layer (zero internal deps)
+    contracts: []
+    config: []
+    logger: []
+
+    # Domain layer
+    domain: [contracts]
+
+    # Identity & tenancy
+    identity: [contracts, config, logger]
+    tenancy: [contracts, config, logger]
+
+    # Infrastructure
+    db: [domain, identity, tenancy]
+    rbac: [domain, identity, tenancy]
+    audit: [domain, identity, tenancy]
+    outbox: [domain, identity, tenancy]
+    events: [domain, contracts]
+    jobs: [contracts, config, logger]
+
+    # Cross-cutting
+    observability: [contracts, config, logger]
+    realtime: [identity, contracts, config, logger]
+    notifications: [contracts, config, logger]
+    api-factory: [identity, tenancy, rbac, observability, config, logger]
+    media: [contracts, config]
+
+    # Shared config
+    eslint-tsconfig: []

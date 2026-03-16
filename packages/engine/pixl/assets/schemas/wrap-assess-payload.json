@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "pixl:wrap-assess-payload",
+  "title": "Wrap Assess Stage Payload",
+  "description": "Schema for the payload field of the wrap workflow assess-state stage output.",
+  "type": "object",
+  "properties": {
+    "branch_name": {
+      "type": "string",
+      "description": "Current feature branch name"
+    },
+    "base_branch": {
+      "type": "string",
+      "description": "Base branch this feature diverged from"
+    },
+    "commits_ahead": {
+      "type": "integer",
+      "description": "Number of commits ahead of the base branch"
+    },
+    "has_existing_pr": {
+      "type": "boolean",
+      "description": "Whether a PR already exists for this branch"
+    },
+    "pr_url": {
+      "type": ["string", "null"],
+      "description": "URL of existing PR, or null if none"
+    },
+    "uncommitted_files": {
+      "type": "integer",
+      "description": "Number of files with uncommitted changes (staged + unstaged)"
+    },
+    "untracked_files": {
+      "type": "integer",
+      "description": "Number of untracked files"
+    },
+    "tests_passing": {
+      "type": "integer",
+      "description": "Number of passing tests"
+    },
+    "tests_failing": {
+      "type": "integer",
+      "description": "Number of failing tests"
+    },
+    "todo_count": {
+      "type": "integer",
+      "description": "Number of TODO/FIXME/stub markers in changed files"
+    },
+    "lint_issues": {
+      "type": "integer",
+      "description": "Number of lint issues in changed files"
+    },
+    "type_errors": {
+      "type": "integer",
+      "description": "Number of type checker errors in changed files"
+    },
+    "files_changed": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "path": { "type": "string" },
+          "status": {
+            "type": "string",
+            "enum": ["added", "modified", "deleted", "renamed", "untracked"]
+          },
+          "lines_added": { "type": "integer" },
+          "lines_removed": { "type": "integer" }
+        }
+      },
+      "description": "All files changed on branch (committed + uncommitted)"
+    }
+  },
+  "additionalProperties": true
+}

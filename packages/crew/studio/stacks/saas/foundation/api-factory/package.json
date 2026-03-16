@@ -1,0 +1,46 @@
+{
+  "name": "@saas-studio/api-factory",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Fastify API factory with pre-configured middleware",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@saas-studio/contracts": "workspace:*",
+    "@saas-studio/config": "workspace:*",
+    "@saas-studio/logger": "workspace:*",
+    "@saas-studio/identity": "workspace:*",
+    "@saas-studio/tenancy": "workspace:*",
+    "@saas-studio/observability": "workspace:*",
+    "@fastify/cors": "^9.0.0",
+    "@fastify/helmet": "^11.0.0",
+    "@fastify/rate-limit": "^9.0.0",
+    "@fastify/sensible": "^5.0.0",
+    "@fastify/swagger": "^8.0.0",
+    "@fastify/swagger-ui": "^4.0.0",
+    "fastify": "^4.28.0",
+    "fastify-decorators": "^3.16.1",
+    "reflect-metadata": "^0.2.0",
+    "zod": "^3.22.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.4.0",
+    "vitest": "^2.0.0"
+  }
+}

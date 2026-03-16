@@ -1,0 +1,16 @@
+id: detect-context
+name: Detect Context Block
+description: Build structured project context for a feature
+version: 1.0.0
+variables:
+  context_file: "context.md"
+stages:
+  - id: detect-context
+    name: Detect Project Context
+    agent: explorer
+    prompt_ref: stages/detect-context
+    output_schema: context-payload.json
+    contract:
+      structured_output: true
+      must_write:
+        - "{{context_file}}"

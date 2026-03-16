@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "pixl:sync-scan-payload",
+  "title": "Sync Scan Payload",
+  "description": "Structured output from the scan-main stage of the sync workflow.",
+  "type": "object",
+  "required": ["merged_prs", "feature_actions", "uncorrelated_prs", "statistics"],
+  "properties": {
+    "merged_prs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["pr_number", "title", "branch", "merged_at", "url", "matched_feature_id"],
+        "properties": {
+          "pr_number": { "type": "integer", "minimum": 1 },
+          "title": { "type": "string", "minLength": 1 },
+          "branch": { "type": "string", "minLength": 1 },
+          "merged_at": { "type": "string", "minLength": 1 },
+          "url": { "type": "string", "minLength": 1 },
+          "matched_feature_id": {
+            "type": ["string", "null"],
+            "description": "Feature ID matched by branch name or PR title, null if no match"
+          }
+        },
+        "additionalProperties": false
+      },
+      "description": "All recently merged PRs with feature correlation"
+    },
+    "feature_actions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["feature_id", "current_status", "action"],
+        "properties": {
+          "feature_id": { "type": "string", "minLength": 1 },
+          "current_status": { "type": "string", "minLength": 1 },
+          "action": {
+            "type": "string",
+            "enum": ["mark_done", "already_done", "no_pr"]
+          },
+          "pr_number": { "type": ["integer", "null"] },
+          "pr_url": { "type": ["string", "null"] }
+        },
+        "additionalProperties": false
+      },
+      "description": "Per-feature actions based on merged PR correlation"
+    },
+    "uncorrelated_prs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["pr_number", "title", "branch", "url"],
+        "properties": {
+          "pr_number": { "type": "integer", "minimum": 1 },
+          "title": { "type": "string", "minLength": 1 },
+          "branch": { "type": "string", "minLength": 1 },
+          "url": { "type": "string", "minLength": 1 }
+        },
+        "additionalProperties": false
+      },
+      "description": "Merged PRs with no matching feature in the backlog"
+    },
+    "statistics": {
+      "type": "object",
+      "required": ["total_merged_prs", "features_to_mark_done", "already_done", "uncorrelated"],
+      "properties": {
+        "total_merged_prs": { "type": "integer", "minimum": 0 },
+        "features_to_mark_done": { "type": "integer", "minimum": 0 },
+        "already_done": { "type": "integer", "minimum": 0 },
+        "uncorrelated": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": true
+}

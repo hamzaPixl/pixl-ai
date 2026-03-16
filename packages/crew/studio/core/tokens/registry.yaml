@@ -1,0 +1,262 @@
+# Master Token Registry
+# All tokens used across studio stacks are defined here.
+# Tokens use {{TOKEN_NAME}} syntax in .tmpl files.
+
+namespaces:
+  universal:
+    description: Project-level tokens shared across all stacks
+    tokens:
+      PROJECT_NAME:
+        type: string
+        description: Human-readable project name
+        required: true
+        example: "My SaaS App"
+      PROJECT_SLUG:
+        type: string
+        description: URL-safe project identifier (lowercase, hyphens)
+        required: true
+        example: "my-saas-app"
+      PROJECT_DESCRIPTION:
+        type: string
+        description: One-line project description
+        required: true
+        example: "A multi-tenant SaaS platform for team collaboration"
+
+  frontend:
+    description: Next.js / React-specific tokens
+    tokens:
+      # ── Colors ──────────────────────────────────────────────
+      PRIMARY_COLOR_HSL:
+        type: string
+        description: Primary brand color in HSL format
+        default: "222.2 47.4% 11.2%"
+        example: "222.2 47.4% 11.2%"
+      SECONDARY_COLOR_HSL:
+        type: string
+        description: Secondary brand color in HSL format
+        default: "210 40% 96.1%"
+        example: "210 40% 96.1%"
+      ACCENT_COLOR_HSL:
+        type: string
+        description: Third accent color in HSL format
+        default: "210 40% 96%"
+        example: "250 60% 55%"
+      SURFACE_COLOR_HSL:
+        type: string
+        description: Primary-tinted neutral surface color in HSL format (light mode)
+        default: "0 0% 96%"
+        example: "222 10% 97%"
+
+      # ── Typography ──────────────────────────────────────────
+      FONT_SANS:
+        type: string
+        description: Sans-serif font family name (CSS class name)
+        default: "Inter"
+      FONT_SERIF:
+        type: string
+        description: Serif font family name (CSS class name)
+        required: false
+        default: "Merriweather"
+      FONT_SANS_IMPORT:
+        type: string
+        description: Exact next/font/google import name for sans font
+        default: "Inter"
+        example: "Plus_Jakarta_Sans"
+      FONT_SERIF_IMPORT:
+        type: string
+        description: Exact next/font/google import name for serif font
+        default: "Playfair_Display"
+        example: "Cormorant_Garamond"
+      FONT_SERIF_WEIGHT:
+        type: string
+        description: Quoted weight config for serif font constructor
+        default: '"400"'
+        example: '"400;700"'
+      HEADING_FONT:
+        type: string
+        description: Font family CSS variable for headings — "sans" or "serif"
+        default: "serif"
+        example: "sans"
+
+      # ── Shape & Shadow ──────────────────────────────────────
+      BORDER_RADIUS:
+        type: string
+        description: Base border radius CSS value
+        default: "8px"
+        example: "12px"
+      SHADOW_SM:
+        type: string
+        description: Small shadow — resolved CSS box-shadow value
+        default: "0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06)"
+        example: "none"
+      SHADOW_MD:
+        type: string
+        description: Medium shadow — resolved CSS box-shadow value
+        default: "0 4px 12px rgba(0, 0, 0, 0.08)"
+        example: "0 8px 24px rgba(0, 0, 0, 0.12)"
+      SHADOW_LG:
+        type: string
+        description: Large shadow — resolved CSS box-shadow value
+        default: "0 12px 24px rgba(0, 0, 0, 0.1)"
+        example: "0 20px 40px rgba(0, 0, 0, 0.16)"
+
+      # ── Animation ───────────────────────────────────────────
+      DURATION_MICRO:
+        type: string
+        description: Duration for micro-interactions (hover, focus)
+        default: "200ms"
+        example: "150ms"
+      DURATION_PAGE:
+        type: string
+        description: Duration for page-level transitions
+        default: "400ms"
+        example: "600ms"
+      DURATION_MICRO_MS:
+        type: number
+        description: Numeric milliseconds for micro-interactions (used in JS animations)
+        default: 200
+        example: 150
+      DURATION_PAGE_MS:
+        type: number
+        description: Numeric milliseconds for page transitions (used in JS animations)
+        default: 400
+        example: 600
+      ANIM_EASE:
+        type: string
+        description: Cubic bezier array for default easing
+        default: "[0.4, 0, 0.2, 1]"
+        example: "[0.16, 1, 0.3, 1]"
+      ANIM_DISTANCE:
+        type: string
+        description: Pixel distance for fade-in-up animations
+        default: "24"
+        example: "40"
+      ANIM_STAGGER:
+        type: string
+        description: Stagger delay between children in seconds
+        default: "0.08"
+        example: "0.12"
+
+      # ── Layout ──────────────────────────────────────────────
+      NAV_CLASSES:
+        type: string
+        description: CSS class string for nav bar variant
+        default: "bg-background/80 backdrop-blur-md border-b border-border"
+        example: "bg-white/90 backdrop-blur-xl border border-border shadow-lg rounded-full"
+      FOOTER_CLASSES:
+        type: string
+        description: CSS class string for footer variant
+        default: "bg-foreground text-background"
+        example: "bg-muted text-foreground border-t border-border"
+      SECTION_PADDING:
+        type: string
+        description: Tailwind padding classes for sections
+        default: "py-16 sm:py-24"
+        example: "py-24 sm:py-32"
+      LAYOUT_MAX_WIDTH:
+        type: string
+        description: Tailwind max-width suffix (5xl, 6xl, 7xl, full)
+        default: "7xl"
+        example: "6xl"
+      DESIGN_ARCHETYPE:
+        type: string
+        description: Name of the design archetype for runtime config
+        default: "corporate"
+        example: "minimal"
+
+      # ── Infrastructure ──────────────────────────────────────
+      BASE_URL:
+        type: string
+        description: Production base URL
+        required: true
+        example: "https://example.com"
+      CONTACT_EMAIL:
+        type: string
+        description: Contact email address
+        required: true
+        example: "hello@example.com"
+      CONTACT_PHONE:
+        type: string
+        description: Contact phone number (display format)
+        required: false
+        example: "+32 2 123 45 67"
+      CONTACT_PHONE_INTL:
+        type: string
+        description: Contact phone number in international tel: URI format (no spaces)
+        required: false
+        example: "+3221234567"
+      GA_ID:
+        type: string
+        description: Google Analytics measurement ID
+        required: false
+        example: "G-XXXXXXXXXX"
+      LAUNCH_YEAR:
+        type: string
+        description: Year of site launch (for legal page "Last updated" text)
+        default: "2025"
+        example: "2026"
+      FONT_MONO:
+        type: string
+        description: Monospace font family name (CSS class name)
+        required: false
+        default: "JetBrains Mono"
+      FONT_MONO_IMPORT:
+        type: string
+        description: Exact next/font/google import name for mono font
+        required: false
+        default: "JetBrains_Mono"
+      DARK_MODE_DEFAULT:
+        type: enum
+        description: Default color scheme preference
+        enum: [light, dark, system]
+        default: "system"
+      DEFAULT_LOCALE:
+        type: enum
+        description: Default locale for i18n
+        enum: [en, fr, nl]
+        default: "en"
+
+  backend:
+    description: Service-specific tokens for SaaS microservices
+    tokens:
+      SERVICE_NAME:
+        type: string
+        description: Service name in kebab-case
+        required: true
+        example: "user-service"
+      SERVICE_NAME_PASCAL:
+        type: string
+        description: Service name in PascalCase
+        required: true
+        example: "UserService"
+      SERVICE_PORT:
+        type: number
+        description: HTTP port for the service
+        required: true
+        default: 3000
+        example: 3001
+      ENTITY_NAME:
+        type: string
+        description: Primary entity name in PascalCase
+        required: true
+        example: "MediaFile"
+      ENTITY_SLUG:
+        type: string
+        description: Primary entity name in kebab-case
+        required: true
+        example: "media-file"
+      ENTITY_PLURAL:
+        type: string
+        description: Plural entity name in PascalCase
+        required: true
+        example: "MediaFiles"
+      ENTITY_PLURAL_SLUG:
+        type: string
+        description: Plural entity name in kebab-case
+        required: true
+        example: "media-files"
+      DATABASE_PROVIDER:
+        type: enum
+        description: Prisma database provider
+        enum: [postgresql, mysql, sqlite]
+        default: "postgresql"

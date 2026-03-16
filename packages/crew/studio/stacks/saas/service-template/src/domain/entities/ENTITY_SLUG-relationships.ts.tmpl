@@ -1,0 +1,73 @@
+/**
+ * {{ENTITY_NAME}} relationship types
+ *
+ * Define foreign key relationships between entities.
+ * Import into entity files and repository mappers as needed.
+ */
+
+/**
+ * Relationship descriptor for code generation and documentation.
+ * Not used at runtime — serves as a template for adding FK fields.
+ *
+ * To add a relationship:
+ * 1. Add the FK field to the entity's Props interface
+ * 2. Add the FK column to the Prisma schema
+ * 3. Update repository toDomain/toPersistence mappers
+ * 4. Add the field to Zod schemas (create/update/response)
+ *
+ * Example — {{ENTITY_NAME}} belongs to a parent entity:
+ *
+ * ```typescript
+ * // In {{ENTITY_SLUG}}.ts Props interface:
+ * parentId: string;
+ *
+ * // In schema.prisma:
+ * parentId String @map("parent_id")
+ * parent   Parent @relation(fields: [parentId], references: [id])
+ *
+ * // In {{ENTITY_SLUG}}-schemas.ts:
+ * parentId: z.string().uuid()
+ * ```
+ */
+/**
+ * Prisma join query examples:
+ *
+ * ```typescript
+ * // Eager-load parent (belongsTo)
+ * const result = await prisma.{{ENTITY_SLUG}}.findUnique({
+ *   where: { id },
+ *   include: { parent: true },
+ * });
+ *
+ * // Selective fields (reduce payload)
+ * const result = await prisma.{{ENTITY_SLUG}}.findMany({
+ *   where: { tenantId },
+ *   select: {
+ *     id: true,
+ *     name: true,
+ *     parent: { select: { id: true, name: true } },
+ *   },
+ * });
+ *
+ * // Nested hasMany with filtering
+ * const result = await prisma.parent.findUnique({
+ *   where: { id: parentId },
+ *   include: {
+ *     {{ENTITY_PLURAL_SLUG}}: {
+ *       where: { deletedAt: null },
+ *       orderBy: { createdAt: 'desc' },
+ *       take: 20,
+ *     },
+ *   },
+ * });
+ * ```
+ */
+
+export type RelationshipType = 'belongsTo' | 'hasMany' | 'hasOne' | 'manyToMany';
+
+export interface EntityRelationship {
+  type: RelationshipType;
+  target: string;
+  foreignKey: string;
+  optional: boolean;
+}

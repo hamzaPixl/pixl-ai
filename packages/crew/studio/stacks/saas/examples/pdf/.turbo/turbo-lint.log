@@ -1,0 +1,14 @@
+
+
+> @saas-studio/pdf-service@0.1.0 lint /Users/hamzamounir/code/private/pixl/pixl-factory/saas-studio/services/pdf
+> eslint src/
+
+
+Oops! Something went wrong! :(
+
+ESLint: 8.57.1
+
+No files matching the pattern "src/" were found.
+Please check for typing mistakes in the pattern.
+
+[41m[30m ELIFECYCLE [39m[49m [31mCommand failed with exit code 2.[39m

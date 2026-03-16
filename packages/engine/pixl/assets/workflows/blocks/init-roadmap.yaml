@@ -1,0 +1,21 @@
+id: init-roadmap
+name: Roadmap Initialization Block
+description: Refine roadmap prompt into a structured brief
+version: 1.0.0
+variables:
+  roadmap_brief_file: "roadmap-brief.md"
+stages:
+  - id: refine-roadmap
+    name: Refine Roadmap
+    agent: default
+    prompt_ref: stages/refine-roadmap
+    contract:
+      must_write:
+        - "{{roadmap_brief_file}}"
+      must_include_sections:
+        "{{roadmap_brief_file}}":
+          - "Vision"
+          - "Milestones"
+          - "Sequencing"
+          - "Risk Assessment"
+          - "Success Metrics"

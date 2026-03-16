@@ -1,0 +1,11 @@
+$ vitest run
+
+ RUN  v2.1.9 /Users/hamzamounir/code/private/pixl/pixl-factory/saas-studio/foundation/db
+
+ ✓ tests/filter.test.ts (25 tests) 5ms
+
+ Test Files  1 passed (1)
+      Tests  25 passed (25)
+   Start at  12:23:17
+   Duration  2.42s (transform 155ms, setup 0ms, collect 223ms, tests 5ms, environment 0ms, prepare 603ms)
+

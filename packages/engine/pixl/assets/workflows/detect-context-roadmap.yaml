@@ -1,0 +1,22 @@
+id: detect-context-roadmap
+name: Detect Roadmap Context
+description: Build structured project context for a roadmap
+version: 2.0.0
+tier: utility
+workflow_format: v2
+session_mode: plugin
+routing:
+  auto_route: false
+  sub_invocable: true
+  category: general
+
+stages:
+  - id: detect-context-roadmap
+    name: Detect Roadmap Context
+    type: task
+    max_turns: 30
+    prompt: |
+      Explore the codebase and build structured project context for a roadmap.
+      Identify relevant files, patterns, architecture, and strategic considerations.
+    contract:
+      structured_output: true

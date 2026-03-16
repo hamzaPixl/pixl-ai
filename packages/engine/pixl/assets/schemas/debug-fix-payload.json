@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "pixl:debug-fix-payload",
+  "title": "Debug Fix Payload",
+  "description": "Schema for the FIX (minimal patch) stage output payload.",
+  "type": "object",
+  "required": ["fix_description", "files_changed"],
+  "properties": {
+    "fix_description": {
+      "type": "string",
+      "description": "Description of the fix applied"
+    },
+    "files_changed": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Files modified by the fix"
+    },
+    "regression_test": {
+      "type": "string",
+      "description": "Path to the regression test added"
+    },
+    "feature_flag": {
+      "type": "boolean",
+      "description": "Whether a feature flag was used for safe rollback"
+    }
+  },
+  "additionalProperties": true
+}

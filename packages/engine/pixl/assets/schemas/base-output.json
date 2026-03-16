@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "pixl:base-output",
+  "title": "Pixl Stage Output Envelope",
+  "description": "Base schema for the common StageOutput envelope. All stage outputs must conform to this.",
+  "type": "object",
+  "required": ["schema_version", "stage_id", "status", "summary"],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "stage_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "status": {
+      "type": "string",
+      "enum": ["ok", "error"]
+    },
+    "summary": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 1,
+      "maxItems": 10
+    },
+    "artifacts_written": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["path", "purpose"],
+        "properties": {
+          "path": { "type": "string" },
+          "sha256": { "type": "string" },
+          "purpose": { "type": "string" }
+        }
+      }
+    },
+    "included_sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["artifact_id", "reason"],
+        "properties": {
+          "artifact_id": { "type": "string" },
+          "sha256": { "type": "string" },
+          "reason": { "type": "string" }
+        }
+      }
+    },
+    "next": {
+      "type": "object",
+      "properties": {
+        "recommended_stage": { "type": "string" },
+        "inputs_needed": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "error": {
+      "type": "object",
+      "properties": {
+        "code": { "type": "string" },
+        "message": { "type": "string" },
+        "recoverable": { "type": "boolean" },
+        "details": { "type": "object" }
+      }
+    },
+    "payload": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": false
+}

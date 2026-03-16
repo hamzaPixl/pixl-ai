@@ -1,0 +1,58 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "./generated/client"
+}
+
+datasource db {
+  provider = "{{DATABASE_PROVIDER}}"
+  url      = env("DATABASE_URL")
+}
+
+model {{ENTITY_NAME}} {
+  id          String    @id @default(uuid())
+  tenantId    String    @map("tenant_id")
+  // TODO: Add entity-specific fields
+  version     Int       @default(0)
+  createdBy   String?   @map("created_by")
+  updatedBy   String?   @map("updated_by")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
+
+  @@index([tenantId])
+  @@map("{{ENTITY_PLURAL_SLUG}}")
+}
+
+model AuditLog {
+  id            String   @id @default(uuid())
+  tenantId      String?  @map("tenant_id")
+  aggregateType String   @map("aggregate_type")
+  aggregateId   String   @map("aggregate_id")
+  action        String
+  actorId       String?  @map("actor_id")
+  actorType     String?  @map("actor_type")
+  before        Json?
+  after         Json?
+  metadata      Json?
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@index([tenantId])
+  @@index([aggregateType, aggregateId])
+  @@map("audit_log")
+}
+
+model Outbox {
+  id            String   @id @default(uuid())
+  aggregateType String   @map("aggregate_type")
+  aggregateId   String   @map("aggregate_id")
+  eventType     String   @map("event_type")
+  payload       Json
+  status        String   @default("pending")
+  retries       Int      @default(0)
+  lastError     String?  @map("last_error")
+  createdAt     DateTime @default(now()) @map("created_at")
+  processedAt   DateTime? @map("processed_at")
+
+  @@index([status, createdAt])
+  @@map("outbox")
+}

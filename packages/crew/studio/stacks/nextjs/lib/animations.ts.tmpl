@@ -1,0 +1,44 @@
+export const fadeInUp = {
+  hidden: { opacity: 0, y: {{ANIM_DISTANCE}} },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: {{DURATION_PAGE_MS}} / 1000, ease: {{ANIM_EASE}} },
+  },
+};
+
+export const staggerContainer = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: {{ANIM_STAGGER}} },
+  },
+};
+
+export const fadeInScale = {
+  hidden: { opacity: 0, y: Math.round({{ANIM_DISTANCE}} * 0.8), scale: 0.97 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: { duration: {{DURATION_PAGE_MS}} / 1000, ease: {{ANIM_EASE}} },
+  },
+};
+
+export const fadeInLeft = {
+  hidden: { opacity: 0, x: -Math.round({{ANIM_DISTANCE}} * 0.4) },
+  visible: {
+    opacity: 1,
+    x: 0,
+    transition: { duration: {{DURATION_PAGE_MS}} / 1000 * 0.8, ease: {{ANIM_EASE}} },
+  },
+};
+
+export const sectionVariants = {
+  hidden: { opacity: 0, y: Math.round({{ANIM_DISTANCE}} * 0.8) },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: {{DURATION_PAGE_MS}} / 1000, ease: {{ANIM_EASE}} },
+  },
+};

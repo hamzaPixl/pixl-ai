@@ -1,0 +1,13 @@
+name: Detect Project Context
+description: Explore the codebase and build structured project context
+
+prompt: |
+  Detect Project Context by exploring the codebase.
+
+  Identify:
+  - Project structure and architecture
+  - Key files and patterns
+  - Dependencies and integrations
+  - Relevant code for the current task
+
+  Output a structured context payload.

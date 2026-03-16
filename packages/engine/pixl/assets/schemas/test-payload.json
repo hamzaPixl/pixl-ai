@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "pixl:test-payload",
+  "title": "Test Stage Payload",
+  "description": "Schema for the payload field of a write-test stage output.",
+  "type": "object",
+  "properties": {
+    "test_file": {
+      "type": "string",
+      "description": "Path to the test file created or modified"
+    },
+    "test_names": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Names of test functions/methods written"
+    },
+    "expected_failures": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "test_name": { "type": "string" },
+          "failure_reason": { "type": "string" }
+        }
+      },
+      "description": "Tests that are expected to fail (RED phase of TDD)"
+    },
+    "commands_run": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "command": { "type": "string" },
+          "exit_code": { "type": "integer" },
+          "purpose": { "type": "string" }
+        }
+      },
+      "description": "Commands executed during test writing"
+    }
+  },
+  "additionalProperties": true
+}

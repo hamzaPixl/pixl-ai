@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "pixl:debug-snapshot-payload",
+  "title": "Debug Snapshot Payload",
+  "description": "Schema for the debug snapshot stage output payload.",
+  "type": "object",
+  "required": ["symptom", "expected_behavior"],
+  "properties": {
+    "symptom": {
+      "type": "string",
+      "description": "Observed incorrect behavior"
+    },
+    "expected_behavior": {
+      "type": "string",
+      "description": "What should happen instead"
+    },
+    "scope_guess": {
+      "type": "string",
+      "enum": ["routing", "state", "api", "rendering", "build", "other"],
+      "description": "Initial guess of bug category"
+    },
+    "reproduction_steps": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Steps to reproduce the bug"
+    },
+    "evidence": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Logs, traces, error messages"
+    },
+    "last_known_good": {
+      "type": "string",
+      "description": "Last known good commit or branch"
+    }
+  },
+  "additionalProperties": true
+}

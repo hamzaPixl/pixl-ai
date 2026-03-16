@@ -1,0 +1,36 @@
+{
+  "name": "@saas-studio/identity",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Authentication and actor context management",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@saas-studio/contracts": "workspace:*",
+    "@saas-studio/config": "workspace:*",
+    "@fastify/jwt": "^8.0.0",
+    "argon2": "^0.40.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "fastify": "^4.28.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.4.0"
+  },
+  "peerDependencies": {
+    "fastify": "^4.0.0"
+  }
+}

@@ -1,0 +1,68 @@
+# JSON Schema for validating stack manifests
+# Each stack (nextjs, saas) has a manifest.yaml that must conform to this schema
+
+type: object
+required: [name, version, description, tokens, sections]
+properties:
+  name:
+    type: string
+    description: Stack identifier (e.g. "nextjs", "saas")
+  version:
+    type: string
+    pattern: '^\d+\.\d+\.\d+$'
+  description:
+    type: string
+  tokens:
+    type: object
+    description: Token definitions for template replacement
+    additionalProperties:
+      type: object
+      required: [type, description]
+      properties:
+        type:
+          type: string
+          enum: [string, number, boolean, enum]
+        description:
+          type: string
+        default:
+          description: Default value if not provided
+        required:
+          type: boolean
+          default: true
+        enum:
+          type: array
+          items:
+            type: string
+          description: Valid values when type is enum
+  sections:
+    type: array
+    description: Ordered list of stack sections to process
+    items:
+      type: object
+      required: [id, type, source]
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [copy, template]
+          description: "'copy' copies files as-is, 'template' applies token replacement"
+        source:
+          type: string
+          description: Relative path to source directory
+        description:
+          type: string
+  pruning_rules:
+    type: object
+    description: Rules for excluding unused components
+    properties:
+      strategy:
+        type: string
+        enum: [dependency-graph, explicit]
+      dependencies:
+        type: object
+        description: Dependency graph for intelligent pruning
+        additionalProperties:
+          type: array
+          items:
+            type: string

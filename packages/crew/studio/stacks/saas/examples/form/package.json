@@ -1,0 +1,46 @@
+{
+  "name": "@saas-studio/form-service",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Form service for dynamic form creation, validation, and submission handling",
+  "main": "./dist/main.js",
+  "scripts": {
+    "build": "tsup src/main.ts --format esm",
+    "dev": "bun --watch src/main.ts",
+    "start": "bun dist/main.js",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome lint src",
+    "test": "vitest run --passWithNoTests",
+    "test:watch": "vitest",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:migrate": "prisma migrate dev",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@saas-studio/api-factory": "workspace:*",
+    "@saas-studio/audit": "workspace:*",
+    "@saas-studio/config": "workspace:*",
+    "@saas-studio/contracts": "workspace:*",
+    "@saas-studio/identity": "workspace:*",
+    "@saas-studio/jobs": "workspace:*",
+    "@saas-studio/logger": "workspace:*",
+    "@saas-studio/observability": "workspace:*",
+    "@saas-studio/outbox": "workspace:*",
+    "@saas-studio/rbac": "workspace:*",
+    "@saas-studio/tenancy": "workspace:*",
+    "@prisma/client": "^5.18.0",
+    "ioredis": "^5.4.0",
+    "zod": "^3.22.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "fastify": "^4.28.0",
+    "prisma": "^5.18.0",
+    "tsup": "^8.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.4.0",
+    "vitest": "^2.0.0"
+  }
+}

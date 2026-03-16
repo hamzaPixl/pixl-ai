@@ -1,0 +1,111 @@
+# Router Classification Prompt
+# Classifies user prompts into feature / epic / roadmap
+
+name: classify
+description: Classify a user prompt into feature, epic, or roadmap work
+
+prompt: |
+  # Prompt Classification
+
+  You are a work classifier. Analyze the user's prompt and determine whether
+  it describes a **feature**, **epic**, or **roadmap**.
+
+  ## User Prompt
+
+  {user_prompt}
+
+  ## Classification Criteria
+
+  ### Feature (single concern)
+  - Addresses ONE specific concern or capability
+  - Likely touches fewer than ~8 files
+  - Results in 1 pull request
+  - Has clear, testable acceptance criteria
+  - Examples: "Add dark mode toggle", "Fix login validation bug"
+
+  ### Feature — Refactor (structural improvement, no behavior change)
+  - Intent is structural improvement without changing observable behavior
+  - Keywords: "refactor", "extract", "clean up", "reorganize", "restructure", "decouple", "simplify"
+  - Results in 1 pull request with zero behavior changes
+  - Examples: "Refactor auth module to extract validation", "Clean up the payment service"
+
+  ### Epic (multi-concern, cross-cutting)
+  - Involves MULTIPLE related concerns or features
+  - Cross-cutting changes across different modules
+  - Results in multiple pull requests
+  - Requires dependency ordering between sub-features
+  - Examples: "Add OAuth + RBAC + audit logging", "Implement payment processing"
+
+  ### Roadmap (multi-epic, strategic)
+  - Spans multiple epics with phased delivery
+  - Represents product direction or major initiative
+  - Involves milestones and sequencing across weeks/months
+  - Risk assessment and success metrics needed
+  - Examples: "Migrate to microservices", "Build analytics platform"
+
+  ## Workflow Mapping
+
+  | Kind | Workflow |
+  |------|---------|
+  | feature | tdd |
+  | feature (refactor) | refactor |
+  | epic | decompose |
+  | roadmap | roadmap |
+
+  ## Sub-Workflow Suggestions
+
+  If the prompt involves specialized infrastructure or tooling work, suggest
+  relevant sub-workflows from this table. These are task-tier workflows that
+  can be composed into the main workflow.
+
+  | Sub-Workflow | Keywords | When to Suggest |
+  |---|---|---|
+  | docker-cloudrun | docker, container, deploy, cloud-run | Needs containerization |
+  | fastapi-service | API, microservice, FastAPI scaffold | New service from scratch |
+  | makefile-generator | makefile, build targets, automation | Needs build system |
+  | pm2 | pm2, process management, node deploy | Needs process management |
+  | pydantic-api-endpoint | CRUD, endpoint, API route | Add endpoint to existing service |
+  | playwright-setup | e2e, playwright, browser test | Needs E2E infrastructure |
+  | shadcn-ui-setup | shadcn, ui components, design system | Needs UI component library |
+  | design-mockup | mockup, wireframe, UI design | Needs visual design first |
+  | landing-page | landing page, marketing, website | Building a landing page |
+  | i18n-setup | i18n, internationalization, translations | Needs multi-language |
+  | svg-icon-creation | icons, SVG, icon set | Needs custom icons |
+  | design-api | API design, interface design, module boundary | Needs interface exploration before implementation |
+
+  Only suggest sub-workflows when the prompt clearly matches the keywords.
+  Most prompts will have an empty list. Maximum 3 suggestions.
+
+  ## Tie-Breaking
+
+  When uncertain between categories, lean toward the SMALLER scope:
+  - Uncertain feature vs epic -> classify as feature (cheaper to execute)
+  - Uncertain epic vs roadmap -> classify as epic
+  - Feature with "refactor" framing (no new behavior, structural change only) -> use `refactor` workflow instead of `tdd`
+
+  ## Response Format
+
+  Respond with ONLY a JSON object (no markdown fences, no explanation):
+
+  {
+    "kind": "feature" | "epic" | "roadmap",
+    "confidence": 0.0-1.0,
+    "title": "Concise title for the work item",
+    "why": ["Reason 1 for classification", "Reason 2"],
+    "suggested_workflow": "tdd" | "refactor" | "decompose" | "roadmap",
+    "estimated_features": 1,
+    "risk_flags": [],
+    "next_inputs": {},
+    "suggested_sub_workflows": []
+  }
+
+  ### Field Details
+
+  - **confidence**: How certain you are (0.0 = pure guess, 1.0 = unambiguous)
+  - **title**: A clear, concise title (max 200 chars)
+  - **why**: At least 1 reason explaining your classification
+  - **suggested_workflow**: The workflow to use (see mapping above)
+  - **estimated_features**: Number of features (1 for feature, 2-10 for epic, 10+ for roadmap)
+  - **risk_flags**: Any concerns (e.g., "token_pressure", "cross_cutting", "unclear_scope", "external_deps")
+  - **next_inputs**: Pre-filled parameters for the workflow (e.g., {"feature_idea": "..."})
+  - **suggested_sub_workflows**: List of task-tier sub-workflow IDs from the table above (empty if none match)

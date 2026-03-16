@@ -1,0 +1,164 @@
+id: consolidate
+name: Consolidation Workflow
+description: Merge feature branches from a completed chain into the base branch
+version: 2.0.0
+tags:
+  - consolidation
+  - git
+  - chain
+
+tier: utility
+workflow_format: v2
+session_mode: plugin
+routing:
+  auto_route: false
+  sub_invocable: false
+  category: general
+
+stages:
+  - id: inventory-branches
+    name: Inventory Branches
+    type: task
+    max_turns: 20
+    contract:
+      structured_output: true
+    prompt: |
+      Inventory all feature branches created by this chain execution.
+
+      ## Steps
+
+      1. Run `git fetch --all` to get the latest remote state.
+      2. List all branches matching the pattern `pixl/*` (or the chain's branch prefix).
+      3. For each branch, report:
+         - Branch name
+         - Number of commits ahead/behind the base branch
+         - Files modified (from `git diff --name-only <base>..<branch>`)
+         - Any conflict zones with other branches (overlapping files)
+      4. Write the inventory to {{artifacts_dir}}/branch-inventory.md
+
+      ## Output
+
+      Include a summary table with columns: Branch | Ahead | Behind | Files | Conflicts
+    outputs:
+      - branch-inventory.md
+
+  - id: detect-conflicts
+    name: Detect Conflicts
+    type: task
+    max_turns: 30
+    required_artifacts:
+      - branch-inventory.md
+    contract:
+      structured_output: true
+    prompt: |
+      Analyze the branch inventory for cross-branch conflicts and recommend a merge order.
+
+      ## Steps
+
+      1. Read the branch inventory from the prior stage.
+      2. For each pair of branches with overlapping files:
+         - Classify conflict severity: none, low (same file, different sections),
+           medium (same file, adjacent lines), high (same lines)
+         - Note which files are affected
+      3. Recommend a merge order that minimizes conflicts:
+         - Branches with no conflicts first
+         - Branches with the fewest file overlaps next
+         - Most conflicting branches last
+      4. Write the merge plan to {{artifacts_dir}}/merge-plan.md
+
+      ## Output
+
+      Include:
+      - Conflict matrix (which branches conflict with which)
+      - Recommended merge order with rationale
+      - Risk assessment for each merge step
+    outputs:
+      - merge-plan.md
+
+  - id: approve-merge-plan
+    name: Approve Merge Plan
+    type: gate
+    timeout_minutes: 120
+    timeout_policy: reject
+    required_artifacts:
+      - branch-inventory.md
+      - merge-plan.md
+    description: Review and approve the branch merge plan before consolidation proceeds
+
+  - id: sequential-merge
+    name: Sequential Merge
+    type: task
+    max_turns: 50
+    required_artifacts:
+      - merge-plan.md
+    contract:
+      structured_output: true
+    prompt: |
+      Execute the approved merge plan by merging each feature branch into the base branch.
+
+      ## Steps
+
+      For each branch in the recommended merge order:
+
+      1. Fetch the latest base branch: `git fetch origin <base_branch>`
+      2. Checkout the feature branch and rebase onto the updated base:
+         `git rebase origin/<base_branch>`
+      3. If rebase has conflicts:
+         - Attempt automatic resolution
+         - If unresolvable, abort the rebase and skip this branch (report it as failed)
+      4. Run the test suite to verify the rebased branch is green
+      5. If tests pass, squash-merge into the base branch:
+         `git checkout <base_branch> && git merge --squash <feature_branch>`
+      6. Create a conventional commit: `feat: <feature title>`
+      7. Push the updated base branch to origin
+
+      ## Per-Merge Test Checkpoint (CRITICAL)
+
+      After EACH branch merge (step 5-6), run the full test suite before proceeding
+      to the next branch. If tests fail after a merge:
+      - Abort the remaining merges immediately
+      - Report which branch caused the failure
+      - Include the test output and failing test names
+      - Do NOT attempt to fix the failure — report it for human review
+
+      This prevents cascading failures where merge N+1 builds on a broken base.
+
+      ## Important
+
+      - Process branches one at a time in the recommended order
+      - After each merge, the base branch has changed — subsequent branches must rebase onto it
+      - If a branch fails to merge cleanly, skip it and continue with the next
+      - Report all results: merged, skipped (with reason), failed (with error)
+
+      Write results to {{artifacts_dir}}/merge-results.md
+    outputs:
+      - merge-results.md
+
+  - id: post-merge-verify
+    name: Post-Merge Verification
+    type: task
+    max_turns: 30
+    required_artifacts:
+      - merge-results.md
+    contract:
+      structured_output: true
+    prompt: |
+      Verify the consolidated codebase after all merges are complete.
+
+      ## Checks
+
+      1. Run the full test suite and report results
+      2. Run linter checks (if configured)
+      3. Run type checks (if configured)
+      4. Search for conflict markers (`<<<<<<<`, `=======`, `>>>>>>>`) — there should be none
+      5. Verify no regression from the merge process
+
+      ## Report
+
+      Write a verification report to {{artifacts_dir}}/consolidation-report.md with:
+      - Test results summary
+      - Lint/type check results
+      - Any issues found
+      - Overall pass/fail verdict
+    outputs:
+      - consolidation-report.md

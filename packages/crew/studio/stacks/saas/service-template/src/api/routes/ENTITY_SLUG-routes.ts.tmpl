@@ -1,0 +1,192 @@
+/**
+ * {{ENTITY_NAME}} API routes
+ */
+
+import type { FastifyInstance } from 'fastify';
+import { NotFoundError } from '@saas-studio/contracts';
+import { requireAuth, withRequestContext, type RequestContext } from '@saas-studio/identity';
+import { permissionGuard, permission } from '@saas-studio/rbac';
+import type { UnitOfWork } from '@saas-studio/outbox';
+import type { I{{ENTITY_NAME}}Repository } from '../../infrastructure/repositories/{{ENTITY_SLUG}}-repository';
+import {
+  Create{{ENTITY_NAME}}RequestSchema,
+  Update{{ENTITY_NAME}}RequestSchema,
+  List{{ENTITY_PLURAL}}QuerySchema,
+  {{ENTITY_NAME}}IdParamSchema,
+  type Create{{ENTITY_NAME}}Request,
+  type Update{{ENTITY_NAME}}Request,
+  type List{{ENTITY_PLURAL}}Query,
+  type {{ENTITY_NAME}}IdParam,
+  type {{ENTITY_NAME}}Response,
+} from '../schemas/{{ENTITY_SLUG}}-schemas';
+import { {{ENTITY_NAME}} } from '../../domain/entities/{{ENTITY_SLUG}}';
+
+function toResponse(entity: {{ENTITY_NAME}}): {{ENTITY_NAME}}Response {
+  const data = entity.toPersistence();
+  return {
+    id: data.id,
+    tenantId: data.tenantId,
+    // TODO: Map entity-specific fields
+    version: data.version,
+    createdBy: data.createdBy,
+    updatedBy: data.updatedBy,
+    createdAt: data.createdAt.toISOString(),
+    updatedAt: data.updatedAt.toISOString(),
+  };
+}
+
+export function register{{ENTITY_NAME}}Routes(
+  fastify: FastifyInstance,
+  deps: {
+    {{ENTITY_SLUG}}Repository: I{{ENTITY_NAME}}Repository;
+    unitOfWork: UnitOfWork;
+  },
+): void {
+  const { {{ENTITY_SLUG}}Repository, unitOfWork } = deps;
+
+  // LIST
+  fastify.get<{ Querystring: List{{ENTITY_PLURAL}}Query }>(
+    '/{{ENTITY_PLURAL_SLUG}}',
+    {
+      preHandler: [permissionGuard(permission('{{ENTITY_SLUG}}', 'list'))],
+    },
+    async (request) => {
+      requireAuth(request);
+
+      return withRequestContext(request, async (ctx: RequestContext) => {
+        const query = List{{ENTITY_PLURAL}}QuerySchema.parse(request.query);
+        const items = await {{ENTITY_SLUG}}Repository.findByTenant(ctx.actor.tenantId, {
+          limit: query.limit,
+          offset: query.offset,
+        });
+
+        return { data: items.map(toResponse) };
+      });
+    },
+  );
+
+  // GET BY ID
+  fastify.get<{ Params: {{ENTITY_NAME}}IdParam }>(
+    '/{{ENTITY_PLURAL_SLUG}}/:id',
+    {
+      preHandler: [permissionGuard(permission('{{ENTITY_SLUG}}', 'read'))],
+    },
+    async (request) => {
+      requireAuth(request);
+
+      return withRequestContext(request, async () => {
+        const { id } = {{ENTITY_NAME}}IdParamSchema.parse(request.params);
+        const entity = await {{ENTITY_SLUG}}Repository.findById(id);
+
+        if (!entity) {
+          throw new NotFoundError('{{ENTITY_NAME}}', id);
+        }
+
+        return { data: toResponse(entity) };
+      });
+    },
+  );
+
+  // CREATE
+  fastify.post<{ Body: Create{{ENTITY_NAME}}Request }>(
+    '/{{ENTITY_PLURAL_SLUG}}',
+    {
+      preHandler: [permissionGuard(permission('{{ENTITY_SLUG}}', 'create'))],
+    },
+    async (request, reply) => {
+      requireAuth(request);
+
+      return withRequestContext(request, async (ctx: RequestContext) => {
+        const body = Create{{ENTITY_NAME}}RequestSchema.parse(request.body);
+
+        const entity = {{ENTITY_NAME}}.create({
+          tenantId: ctx.actor.tenantId,
+          // TODO: Map body fields
+          createdBy: ctx.actor.id,
+        });
+
+        const saved = await unitOfWork.execute(async (tx) => {
+          const result = await {{ENTITY_SLUG}}Repository.save(entity, tx);
+          return {
+            result,
+            auditEntries: [],
+            outboxEntries: [],
+          };
+        });
+
+        reply.status(201);
+        return { data: toResponse(saved) };
+      });
+    },
+  );
+
+  // UPDATE
+  fastify.patch<{ Params: {{ENTITY_NAME}}IdParam; Body: Update{{ENTITY_NAME}}Request }>(
+    '/{{ENTITY_PLURAL_SLUG}}/:id',
+    {
+      preHandler: [permissionGuard(permission('{{ENTITY_SLUG}}', 'update'))],
+    },
+    async (request) => {
+      requireAuth(request);
+
+      return withRequestContext(request, async (ctx: RequestContext) => {
+        const { id } = {{ENTITY_NAME}}IdParamSchema.parse(request.params);
+        const body = Update{{ENTITY_NAME}}RequestSchema.parse(request.body);
+
+        const entity = await {{ENTITY_SLUG}}Repository.findById(id);
+        if (!entity) {
+          throw new NotFoundError('{{ENTITY_NAME}}', id);
+        }
+
+        const updated = entity.update({
+          // TODO: Map body fields
+          updatedBy: ctx.actor.id,
+        });
+
+        const saved = await unitOfWork.execute(async (tx) => {
+          const result = await {{ENTITY_SLUG}}Repository.save(updated, tx);
+          return {
+            result,
+            auditEntries: [],
+            outboxEntries: [],
+          };
+        });
+
+        return { data: toResponse(saved) };
+      });
+    },
+  );
+
+  // DELETE
+  fastify.delete<{ Params: {{ENTITY_NAME}}IdParam }>(
+    '/{{ENTITY_PLURAL_SLUG}}/:id',
+    {
+      preHandler: [permissionGuard(permission('{{ENTITY_SLUG}}', 'delete'))],
+    },
+    async (request, reply) => {
+      requireAuth(request);
+
+      return withRequestContext(request, async (ctx: RequestContext) => {
+        const { id } = {{ENTITY_NAME}}IdParamSchema.parse(request.params);
+
+        const entity = await {{ENTITY_SLUG}}Repository.findById(id);
+        if (!entity) {
+          throw new NotFoundError('{{ENTITY_NAME}}', id);
+        }
+
+        const deleted = entity.delete(ctx.actor.id);
+
+        await unitOfWork.execute(async (tx) => {
+          await {{ENTITY_SLUG}}Repository.save(deleted, tx);
+          return {
+            result: undefined,
+            auditEntries: [],
+            outboxEntries: [],
+          };
+        });
+
+        reply.status(204);
+      });
+    },
+  );
+}

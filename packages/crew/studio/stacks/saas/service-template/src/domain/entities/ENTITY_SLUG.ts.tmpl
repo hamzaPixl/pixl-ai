@@ -1,0 +1,115 @@
+/**
+ * {{ENTITY_NAME}} domain entity
+ *
+ * Domain layer - extends foundation TenantAggregateRoot for domain events + versioning
+ */
+
+import {
+  TenantAggregateRoot,
+  type TenantEntityProps,
+} from '@saas-studio/domain';
+
+import { {{ENTITY_NAME}}Events } from '../events/{{ENTITY_SLUG}}-events';
+
+export interface {{ENTITY_NAME}}Props extends TenantEntityProps {
+  // TODO: Add entity-specific properties
+}
+
+export interface Create{{ENTITY_NAME}}Input {
+  tenantId: string;
+  // TODO: Add creation input fields
+  createdBy?: string;
+}
+
+export interface Update{{ENTITY_NAME}}Input {
+  // TODO: Add update input fields
+  updatedBy?: string;
+}
+
+export class {{ENTITY_NAME}} extends TenantAggregateRoot<{{ENTITY_NAME}}Props> {
+  private constructor(props: {{ENTITY_NAME}}Props) {
+    super(props);
+  }
+
+  static create(input: Create{{ENTITY_NAME}}Input): {{ENTITY_NAME}} {
+    const now = new Date();
+
+    const entity = new {{ENTITY_NAME}}({
+      id: {{ENTITY_NAME}}.generateId(),
+      tenantId: input.tenantId,
+      // TODO: Map creation input fields
+      createdBy: input.createdBy ?? null,
+      updatedBy: null,
+      createdAt: now,
+      updatedAt: now,
+      deletedAt: null,
+    });
+
+    entity.addDomainEvent({
+      eventType: {{ENTITY_NAME}}Events.CREATED,
+      aggregateId: entity.id,
+      payload: { tenantId: input.tenantId },
+      occurredAt: now,
+    });
+
+    return entity;
+  }
+
+  static fromPersistence(props: {{ENTITY_NAME}}Props, version: number): {{ENTITY_NAME}} {
+    const entity = new {{ENTITY_NAME}}(props);
+    entity.setVersion(version);
+    return entity;
+  }
+
+  update(input: Update{{ENTITY_NAME}}Input): {{ENTITY_NAME}} {
+    if (this.isDeleted) {
+      throw new Error('Cannot update deleted entity');
+    }
+
+    const updated = new {{ENTITY_NAME}}({
+      ...this.props,
+      // TODO: Map update input fields
+      updatedBy: input.updatedBy ?? this.props.updatedBy,
+      updatedAt: new Date(),
+    });
+
+    updated.setVersion(this.version);
+    updated.incrementVersion();
+    updated.addDomainEvent({
+      eventType: {{ENTITY_NAME}}Events.UPDATED,
+      aggregateId: this.id,
+      payload: {},
+      occurredAt: new Date(),
+    });
+
+    return updated;
+  }
+
+  delete(deletedBy?: string): {{ENTITY_NAME}} {
+    if (this.isDeleted) {
+      throw new Error('Entity is already deleted');
+    }
+
+    const deleted = new {{ENTITY_NAME}}({
+      ...this.props,
+      deletedAt: new Date(),
+      updatedBy: deletedBy ?? this.props.updatedBy,
+      updatedAt: new Date(),
+    });
+
+    deleted.setVersion(this.version);
+    deleted.incrementVersion();
+    deleted.addDomainEvent({
+      eventType: {{ENTITY_NAME}}Events.DELETED,
+      aggregateId: this.id,
+      payload: {},
+      occurredAt: new Date(),
+    });
+
+    return deleted;
+  }
+
+  toPersistence(): {{ENTITY_NAME}}Props {
+    return { ...this.props };
+  }
+}

@@ -1,0 +1,13 @@
+$ vitest run
+
+ RUN  v2.1.9 /Users/hamzamounir/code/private/pixl/pixl-factory/saas-studio/foundation/contracts
+
+ ✓ tests/filter.test.ts (19 tests) 39ms
+ ✓ tests/response.test.ts (10 tests) 5ms
+ ✓ tests/bulk.test.ts (15 tests) 17ms
+
+ Test Files  3 passed (3)
+      Tests  44 passed (44)
+   Start at  12:23:17
+   Duration  2.48s (transform 576ms, setup 0ms, collect 1.01s, tests 61ms, environment 0ms, prepare 1.02s)
+

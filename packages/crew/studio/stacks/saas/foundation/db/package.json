@@ -1,0 +1,36 @@
+{
+  "name": "@saas-studio/db",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Prisma database client with repository patterns",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@saas-studio/contracts": "workspace:*",
+    "@saas-studio/logger": "workspace:*",
+    "@saas-studio/identity": "workspace:*",
+    "@saas-studio/tenancy": "workspace:*",
+    "@prisma/client": "^5.18.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "prisma": "^5.18.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.4.0",
+    "vitest": "^2.0.0"
+  }
+}

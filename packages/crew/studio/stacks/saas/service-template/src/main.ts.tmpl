@@ -1,0 +1,87 @@
+/**
+ * {{SERVICE_NAME_PASCAL}} service entry point
+ */
+
+import { PrismaClient } from '../prisma/generated/client';
+import { createApiFactory } from '@saas-studio/api-factory';
+import { createUnitOfWork } from '@saas-studio/outbox';
+import { createTenantScopeExtension } from '@saas-studio/tenancy';
+import { permissionRegistry, crudPermissions, roleRegistry } from '@saas-studio/rbac';
+import { Prisma{{ENTITY_NAME}}Repository } from './infrastructure/repositories/{{ENTITY_SLUG}}-repository';
+import { register{{ENTITY_NAME}}Routes } from './api/routes/{{ENTITY_SLUG}}-routes';
+
+async function bootstrap(): Promise<void> {
+  const prisma = new PrismaClient().$extends(
+    createTenantScopeExtension({
+      excludedModels: ['Tenant', 'AuditLog', 'Outbox'],
+    }),
+  ) as unknown as PrismaClient;
+
+  permissionRegistry.registerCrud('{{ENTITY_SLUG}}');
+
+  roleRegistry.register({
+    name: 'admin',
+    description: 'Administrator with full access',
+    permissions: crudPermissions('{{ENTITY_SLUG}}'),
+  });
+
+  roleRegistry.register({
+    name: 'member',
+    description: 'Regular member',
+    permissions: ['{{ENTITY_SLUG}}:list', '{{ENTITY_SLUG}}:read', '{{ENTITY_SLUG}}:create', '{{ENTITY_SLUG}}:update'] as ReturnType<
+      typeof crudPermissions
+    >,
+    inherits: [],
+  });
+
+  roleRegistry.register({
+    name: 'viewer',
+    description: 'Read-only access',
+    permissions: ['{{ENTITY_SLUG}}:list', '{{ENTITY_SLUG}}:read'] as ReturnType<typeof crudPermissions>,
+  });
+
+  const { app, logger, start } = await createApiFactory({
+    name: '{{SERVICE_NAME}}',
+    version: '0.1.0',
+    port: Number(process.env['PORT']) || {{SERVICE_PORT}},
+    logLevel: (process.env['LOG_LEVEL'] as 'info') || 'info',
+    logPretty: process.env['NODE_ENV'] !== 'production',
+    jwt: {
+      secret: process.env['JWT_SECRET'] || 'development-secret-change-in-production',
+    },
+    cors: {
+      origins: (process.env['CORS_ORIGINS'] || '*').split(','),
+    },
+    swagger: {
+      title: '{{SERVICE_NAME_PASCAL}} API',
+      description: '{{SERVICE_NAME_PASCAL}} service',
+      version: '0.1.0',
+      tags: [{ name: '{{ENTITY_SLUG}}', description: '{{ENTITY_NAME}} management' }],
+    },
+    healthChecks: {
+      readyChecks: {
+        database: async () => {
+          await prisma.$queryRaw`SELECT 1`;
+          return true;
+        },
+      },
+    },
+  });
+
+  const unitOfWork = createUnitOfWork(prisma);
+  const {{ENTITY_SLUG}}Repository = new Prisma{{ENTITY_NAME}}Repository(prisma);
+
+  register{{ENTITY_NAME}}Routes(app, { {{ENTITY_SLUG}}Repository, unitOfWork });
+
+  app.addHook('onClose', async () => {
+    await prisma.$disconnect();
+    logger.info('Database disconnected');
+  });
+
+  await start();
+}
+
+bootstrap().catch((error) => {
+  console.error('Failed to start service:', error);
+  process.exit(1);
+});

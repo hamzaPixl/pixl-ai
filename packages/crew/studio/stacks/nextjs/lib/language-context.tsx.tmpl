@@ -1,0 +1,74 @@
+"use client";
+
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  type ReactNode,
+} from "react";
+
+export type Locale = "fr" | "nl" | "en";
+
+const SUPPORTED_LOCALES: Locale[] = ["fr", "nl", "en"];
+const DEFAULT_LOCALE: Locale = "{{DEFAULT_LOCALE}}";
+const STORAGE_KEY = "{{PROJECT_SLUG}}-language";
+
+interface LanguageContextValue {
+  currentLanguage: Locale;
+  setLanguage: (locale: Locale) => void;
+  isInitialized: boolean;
+}
+
+const LanguageContext = createContext<LanguageContextValue>({
+  currentLanguage: DEFAULT_LOCALE,
+  setLanguage: () => {},
+  isInitialized: false,
+});
+
+function detectBrowserLocale(): Locale {
+  if (typeof navigator === "undefined") return DEFAULT_LOCALE;
+  const langs = navigator.languages ?? [navigator.language];
+  for (const lang of langs) {
+    const code = lang.slice(0, 2).toLowerCase();
+    if (SUPPORTED_LOCALES.includes(code as Locale)) return code as Locale;
+  }
+  return DEFAULT_LOCALE;
+}
+
+export function LanguageProvider({ children }: { children: ReactNode }) {
+  const [currentLanguage, setCurrentLanguage] = useState<Locale>(DEFAULT_LOCALE);
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  useEffect(() => {
+    const stored = localStorage.getItem(STORAGE_KEY) as Locale | null;
+    if (stored && SUPPORTED_LOCALES.includes(stored)) {
+      setCurrentLanguage(stored);
+    } else {
+      setCurrentLanguage(detectBrowserLocale());
+    }
+    setIsInitialized(true);
+  }, []);
+
+  useEffect(() => {
+    document.documentElement.lang = currentLanguage;
+  }, [currentLanguage]);
+
+  const setLanguage = useCallback((locale: Locale) => {
+    setCurrentLanguage(locale);
+    localStorage.setItem(STORAGE_KEY, locale);
+  }, []);
+
+  return (
+    <LanguageContext.Provider
+      value={{ currentLanguage, setLanguage, isInitialized }}
+    >
+      {children}
+    </LanguageContext.Provider>
+  );
+}
+
+export function useLanguage() {
+  return useContext(LanguageContext);
+}

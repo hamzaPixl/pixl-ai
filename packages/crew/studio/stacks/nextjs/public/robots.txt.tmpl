@@ -1,0 +1,32 @@
+# {{PROJECT_NAME}} - robots.txt
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /_next/
+Allow: /_next/static/
+
+# AI Crawlers - Welcome
+User-agent: GPTBot
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: Perplexity-User
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+# SEO Crawlers - Crawl delay
+User-agent: AhrefsBot
+Crawl-delay: 10
+
+User-agent: SemrushBot
+Crawl-delay: 10
+
+# Sitemap
+Sitemap: {{BASE_URL}}/sitemap.xml

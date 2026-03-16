@@ -1,0 +1,179 @@
+id: roadmap
+name: Roadmap Planning Workflow
+description: Create a strategic roadmap with milestones and epic breakdown
+version: 2.0.0
+tags:
+  - roadmap
+  - strategic
+  - planning
+
+tier: planning
+workflow_format: v2
+session_mode: plugin
+routing:
+  auto_route: true
+  sub_invocable: false
+  category: general
+
+variables:
+  roadmaps_dir: roadmaps
+  plan_file: "roadmap-plan.md"
+  roadmap_brief_file: "roadmap-brief.md"
+
+stages:
+  - id: refine-roadmap
+    name: Refine Roadmap Vision
+    type: task
+    max_turns: 30
+    prompt: |
+      Analyze the roadmap request and produce a structured brief.
+      Save as `roadmap-brief.md` artifact using `pixl artifact put`.
+
+      Include these sections:
+      - Vision: What the roadmap achieves
+      - Milestones: Key delivery milestones
+      - Sequencing: Order of execution
+      - Risk Assessment: Potential blockers and mitigations
+      - Success Metrics: How to measure progress
+    outputs:
+      - "{{roadmap_brief_file}}"
+    output_schema: roadmap-brief-payload.json
+    contract:
+      structured_output: true
+      must_write:
+        - "{{roadmap_brief_file}}"
+      must_include_sections:
+        "{{roadmap_brief_file}}":
+          - "Vision"
+          - "Milestones"
+          - "Sequencing"
+          - "Risk Assessment"
+          - "Success Metrics"
+
+  - id: plan-milestones
+    name: Plan Milestones and Epics
+    type: task
+    max_turns: 80
+    required_artifacts:
+      - "{{roadmap_brief_file}}"
+    transitions:
+      on_complete: { status: planned, note: "Roadmap milestones planned" }
+    prompt: |
+      # Plan Roadmap Milestones and Epics
+
+      ## Inputs
+      - **Roadmap brief:** provided above via the structured context system
+      - **Project context:** provided above via the structured context system
+
+      ## Task
+
+      Create a detailed execution plan with milestones and epics.
+      Each epic should be decomposable into 2-10 features later.
+
+      ### Rules
+      1. At least 2 milestones
+      2. Each milestone has at least 1 epic
+      3. Milestones must have clear success criteria
+      4. Sequencing must respect technical dependencies
+      5. Include risk mitigation for each milestone
+
+      ## Output
+
+      Write to {artifacts_dir}/{plan_file} with this structure:
+
+      ```markdown
+      # Roadmap Plan: {roadmap_id}
+
+      ## Executive Summary
+      One paragraph: what, why, and timeline.
+
+      ## Milestone 1: [Name]
+
+      ### Goal
+      What this milestone delivers.
+
+      ### Epics
+      | # | Epic Title | Scope | Est. Features | Priority |
+      |---|-----------|-------|---------------|----------|
+      | 1 | ... | Brief scope | ~N | P0/P1/P2/P3 |
+
+      ### Success Criteria
+      - SC-1: [Measurable outcome]
+
+      ### Risks
+      - Risk: ... | Mitigation: ...
+
+      ## Milestone 2: [Name]
+      ...
+
+      ## Sequencing
+
+      ### Dependency Map
+      ```
+      M1.E1 ──> M1.E2 ──> M2.E1
+                           │
+                M1.E3 ────┘
+      ```
+
+      ### Execution Order
+      | Phase | Epic | Milestone | Dependencies |
+      |-------|------|-----------|-------------|
+      | 1 | Epic Title | M1 | none |
+      | 2 | Epic Title | M1 | Phase 1 |
+
+      ## Resource Considerations
+      Key dependencies, skills needed, external blockers.
+
+      ## Success Metrics
+      - Metric 1: [How to measure]
+      ```
+    outputs:
+      - "{{plan_file}}"
+    output_schema: roadmap-plan-payload.json
+    contract:
+      structured_output: true
+      must_write:
+        - "{{plan_file}}"
+      must_include_sections:
+        "{{plan_file}}":
+          - "Executive Summary|Summary"
+          - "Milestone"
+          - "Sequencing"
+          - "Success Metrics"
+
+  - id: approve-roadmap
+    name: Approve Roadmap Plan
+    type: gate
+    description: |
+      Review the roadmap plan before creating epics.
+      - Are milestones achievable and well-scoped?
+      - Is the sequencing logical?
+      - Are risks identified and mitigated?
+      - Are success metrics measurable?
+    timeout_minutes: 180
+    timeout_policy: reject
+    required_artifacts:
+      - roadmap-plan.md
+    freeze_artifacts:
+      - roadmap-plan.md
+
+  - id: materialize-roadmap-plan
+    name: Materialize Roadmap Plan
+    type: hook
+    hook: materialize-roadmap-plan
+    hook_params:
+      source_node_id: plan-milestones
+    required_artifacts:
+      - "{{plan_file}}"
+
+loops:
+  - id: revise-roadmap
+    from: approve-roadmap
+    to: plan-milestones
+    trigger: failure
+    max_iterations: 3
+
+edges:
+  refine-roadmap: [plan-milestones]
+  plan-milestones: [approve-roadmap]
+  approve-roadmap: [materialize-roadmap-plan]

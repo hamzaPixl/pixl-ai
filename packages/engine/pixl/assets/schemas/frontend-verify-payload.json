@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "pixl:frontend-verify-payload",
+  "title": "Frontend Verify Stage Payload",
+  "type": "object",
+  "required": ["recommendation"],
+  "properties": {
+    "recommendation": {
+      "type": "string",
+      "enum": ["approve", "request_changes"],
+      "description": "approve if all pages load without errors, request_changes if issues remain"
+    },
+    "routes_checked": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["route", "status"],
+        "properties": {
+          "route": { "type": "string" },
+          "status": { "type": "string", "enum": ["pass", "fail", "skip"] },
+          "error": { "type": "string" }
+        }
+      }
+    },
+    "issues_fixed": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "issues_remaining": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  },
+  "additionalProperties": true
+}

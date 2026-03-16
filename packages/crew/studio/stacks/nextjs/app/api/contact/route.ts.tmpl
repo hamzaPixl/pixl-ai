@@ -1,0 +1,88 @@
+import { NextResponse } from "next/server";
+import { contactSchema } from "@/lib/schemas/contact";
+import { rateLimit } from "@/lib/rate-limit";
+
+export async function POST(request: Request) {
+  try {
+    // Rate limiting
+    const forwarded = request.headers.get("x-forwarded-for");
+    const ip = forwarded?.split(",")[0]?.trim() ?? "unknown";
+    const { success } = rateLimit(`contact:${ip}`, {
+      maxTokens: 5,
+      refillInterval: 60_000,
+    });
+    if (!success) {
+      return NextResponse.json(
+        { error: "Too many requests. Please try again later." },
+        { status: 429 }
+      );
+    }
+
+    // Parse and validate
+    const body = await request.json();
+    const result = contactSchema.safeParse(body);
+    if (!result.success) {
+      return NextResponse.json(
+        { error: "Validation failed", details: result.error.flatten() },
+        { status: 400 }
+      );
+    }
+
+    const { name, email, phone, company, service, message } = result.data;
+
+    // If RESEND_API_KEY is configured, send email
+    if (process.env.RESEND_API_KEY) {
+      try {
+        const res = await fetch("https://api.resend.com/emails", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            from: process.env.EMAIL_FROM || "{{PROJECT_NAME}} <noreply@{{PROJECT_SLUG}}.com>",
+            to: [process.env.EMAIL_TO || "{{CONTACT_EMAIL}}"],
+            subject: `New message from ${name}${service ? ` - ${service}` : ""}`,
+            html: `
+              <h2>New message from {{PROJECT_NAME}}</h2>
+              <p><strong>Name:</strong> ${name}</p>
+              <p><strong>Email:</strong> ${email}</p>
+              ${phone ? `<p><strong>Phone:</strong> ${phone}</p>` : ""}
+              ${company ? `<p><strong>Company:</strong> ${company}</p>` : ""}
+              ${service ? `<p><strong>Service:</strong> ${service}</p>` : ""}
+              <p><strong>Message:</strong></p>
+              <p>${message.replace(/\n/g, "<br>")}</p>
+            `,
+          }),
+        });
+
+        if (!res.ok) {
+          console.error("[API] Resend email failed:", await res.text());
+        }
+      } catch (emailError) {
+        console.error("[API] Email sending error:", emailError);
+        // Don't fail the request if email fails
+      }
+    } else {
+      console.log("[API] No RESEND_API_KEY configured, skipping email send");
+    }
+
+    // Log the contact submission
+    console.log("[API] Contact form submission:", {
+      name,
+      email,
+      phone,
+      company,
+      service,
+      timestamp: new Date().toISOString(),
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("[API] POST /api/contact error:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}

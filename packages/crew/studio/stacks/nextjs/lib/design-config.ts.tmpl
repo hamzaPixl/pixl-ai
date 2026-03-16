@@ -1,0 +1,40 @@
+/**
+ * Design configuration — resolved values from the design system.
+ * Generated from the {{DESIGN_ARCHETYPE}} archetype.
+ * Import this to make layout/style decisions at runtime.
+ */
+
+export const designConfig = {
+  archetype: "{{DESIGN_ARCHETYPE}}",
+
+  typography: {
+    headingFont: "{{HEADING_FONT}}" as "sans" | "serif",
+  },
+
+  layout: {
+    navClasses: "{{NAV_CLASSES}}",
+    footerClasses: "{{FOOTER_CLASSES}}",
+    sectionPadding: "{{SECTION_PADDING}}",
+    maxWidth: "{{LAYOUT_MAX_WIDTH}}",
+  },
+
+  shape: {
+    borderRadius: "{{BORDER_RADIUS}}",
+  },
+
+  shadows: {
+    sm: "{{SHADOW_SM}}",
+    md: "{{SHADOW_MD}}",
+    lg: "{{SHADOW_LG}}",
+  },
+
+  motion: {
+    durationMicro: {{DURATION_MICRO}},
+    durationPage: {{DURATION_PAGE}},
+    ease: {{ANIM_EASE}},
+    distance: {{ANIM_DISTANCE}},
+    stagger: {{ANIM_STAGGER}},
+  },
+} as const;
+
+export type DesignConfig = typeof designConfig;

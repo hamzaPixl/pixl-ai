@@ -1,0 +1,153 @@
+import { baseUrl } from "@/lib/config";
+import type { Locale } from "@/lib/language-context";
+
+interface PageSeo {
+  title: string;
+  description: string;
+  keywords: string[];
+}
+
+type PageKey = "home" | "contact" | "legal" | "privacy" | "about" | "services" | "blog" | "faq";
+
+const seoData: Record<Locale, Record<PageKey, PageSeo>> = {
+  en: {
+    home: {
+      title: "{{PROJECT_NAME}} | {{PROJECT_DESCRIPTION}}",
+      description: "{{PROJECT_DESCRIPTION}}",
+      keywords: ["{{PROJECT_SLUG}}"],
+    },
+    about: {
+      title: "About | {{PROJECT_NAME}}",
+      description: "Learn more about {{PROJECT_NAME}}. Discover our team, mission, and values.",
+      keywords: ["about {{PROJECT_SLUG}}", "{{PROJECT_SLUG}} team"],
+    },
+    services: {
+      title: "Services | {{PROJECT_NAME}}",
+      description: "Explore the services offered by {{PROJECT_NAME}}. {{PROJECT_DESCRIPTION}}",
+      keywords: ["{{PROJECT_SLUG}} services"],
+    },
+    blog: {
+      title: "Blog | {{PROJECT_NAME}}",
+      description: "Insights, news, and articles from {{PROJECT_NAME}}.",
+      keywords: ["{{PROJECT_SLUG}} blog", "{{PROJECT_SLUG}} articles"],
+    },
+    faq: {
+      title: "FAQ | {{PROJECT_NAME}}",
+      description: "Frequently asked questions about {{PROJECT_NAME}} and our services.",
+      keywords: ["{{PROJECT_SLUG}} faq", "{{PROJECT_SLUG}} questions"],
+    },
+    contact: {
+      title: "Contact | {{PROJECT_NAME}}",
+      description: "Get in touch with {{PROJECT_NAME}}. We would love to hear from you.",
+      keywords: ["contact {{PROJECT_SLUG}}"],
+    },
+    legal: {
+      title: "Legal Notice | {{PROJECT_NAME}}",
+      description: "Legal notice of {{PROJECT_NAME}}.",
+      keywords: [],
+    },
+    privacy: {
+      title: "Privacy Policy | {{PROJECT_NAME}}",
+      description: "Privacy policy and data protection of {{PROJECT_NAME}}.",
+      keywords: [],
+    },
+  },
+  fr: {
+    home: {
+      title: "{{PROJECT_NAME}} | {{PROJECT_DESCRIPTION}}",
+      description: "{{PROJECT_DESCRIPTION}}",
+      keywords: ["{{PROJECT_SLUG}}"],
+    },
+    about: {
+      title: "A propos | {{PROJECT_NAME}}",
+      description: "Decouvrez {{PROJECT_NAME}}. Notre equipe, notre mission et nos valeurs.",
+      keywords: ["a propos {{PROJECT_SLUG}}", "equipe {{PROJECT_SLUG}}"],
+    },
+    services: {
+      title: "Services | {{PROJECT_NAME}}",
+      description: "Decouvrez les services proposes par {{PROJECT_NAME}}. {{PROJECT_DESCRIPTION}}",
+      keywords: ["services {{PROJECT_SLUG}}"],
+    },
+    blog: {
+      title: "Blog | {{PROJECT_NAME}}",
+      description: "Conseils, actualites et articles de {{PROJECT_NAME}}.",
+      keywords: ["blog {{PROJECT_SLUG}}", "articles {{PROJECT_SLUG}}"],
+    },
+    faq: {
+      title: "FAQ | {{PROJECT_NAME}}",
+      description: "Questions frequemment posees sur {{PROJECT_NAME}} et nos services.",
+      keywords: ["faq {{PROJECT_SLUG}}", "questions {{PROJECT_SLUG}}"],
+    },
+    contact: {
+      title: "Contact | {{PROJECT_NAME}}",
+      description: "Contactez {{PROJECT_NAME}}. Nous serions ravis de vous entendre.",
+      keywords: ["contact {{PROJECT_SLUG}}"],
+    },
+    legal: {
+      title: "Mentions legales | {{PROJECT_NAME}}",
+      description: "Mentions legales de {{PROJECT_NAME}}.",
+      keywords: [],
+    },
+    privacy: {
+      title: "Politique de confidentialite | {{PROJECT_NAME}}",
+      description: "Politique de confidentialite et protection des donnees de {{PROJECT_NAME}}.",
+      keywords: [],
+    },
+  },
+  nl: {
+    home: {
+      title: "{{PROJECT_NAME}} | {{PROJECT_DESCRIPTION}}",
+      description: "{{PROJECT_DESCRIPTION}}",
+      keywords: ["{{PROJECT_SLUG}}"],
+    },
+    about: {
+      title: "Over ons | {{PROJECT_NAME}}",
+      description: "Ontdek {{PROJECT_NAME}}. Ons team, onze missie en onze waarden.",
+      keywords: ["over {{PROJECT_SLUG}}", "team {{PROJECT_SLUG}}"],
+    },
+    services: {
+      title: "Diensten | {{PROJECT_NAME}}",
+      description: "Ontdek de diensten van {{PROJECT_NAME}}. {{PROJECT_DESCRIPTION}}",
+      keywords: ["diensten {{PROJECT_SLUG}}"],
+    },
+    blog: {
+      title: "Blog | {{PROJECT_NAME}}",
+      description: "Inzichten, nieuws en artikelen van {{PROJECT_NAME}}.",
+      keywords: ["blog {{PROJECT_SLUG}}", "artikelen {{PROJECT_SLUG}}"],
+    },
+    faq: {
+      title: "FAQ | {{PROJECT_NAME}}",
+      description: "Veelgestelde vragen over {{PROJECT_NAME}} en onze diensten.",
+      keywords: ["faq {{PROJECT_SLUG}}", "vragen {{PROJECT_SLUG}}"],
+    },
+    contact: {
+      title: "Contact | {{PROJECT_NAME}}",
+      description: "Neem contact op met {{PROJECT_NAME}}. We horen graag van u.",
+      keywords: ["contact {{PROJECT_SLUG}}"],
+    },
+    legal: {
+      title: "Juridische vermeldingen | {{PROJECT_NAME}}",
+      description: "Juridische vermeldingen van {{PROJECT_NAME}}.",
+      keywords: [],
+    },
+    privacy: {
+      title: "Privacybeleid | {{PROJECT_NAME}}",
+      description: "Privacybeleid en gegevensbescherming van {{PROJECT_NAME}}.",
+      keywords: [],
+    },
+  },
+};
+
+export function getLocalizedMetadata(locale: Locale, page: PageKey): PageSeo {
+  return seoData[locale]?.[page] ?? seoData.en[page];
+}
+
+export function getAlternateUrls(path: string) {
+  const cleanPath = path === "/" ? "" : path;
+  return {
+    "en": `${baseUrl}${cleanPath}`,
+    "fr": `${baseUrl}${cleanPath}`,
+    "nl": `${baseUrl}${cleanPath}`,
+    "x-default": `${baseUrl}${cleanPath}`,
+  };
+}

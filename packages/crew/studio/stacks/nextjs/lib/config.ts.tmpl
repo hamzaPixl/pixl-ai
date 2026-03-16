@@ -1,0 +1,20 @@
+// Static site configuration -- values that don't change and don't need i18n.
+// These are used by client components that can't call server-side services.
+
+export const baseUrl = "{{BASE_URL}}";
+
+export const identity = {
+  name: "{{PROJECT_NAME}}",
+  shortName: "{{PROJECT_SLUG}}",
+  url: "{{BASE_URL}}",
+  logo: "/logo.svg",
+  contactEmail: "{{CONTACT_EMAIL}}",
+  phone: "{{CONTACT_PHONE}}",
+  phoneIntl: "{{CONTACT_PHONE_INTL}}",
+  address: {
+    street: "",
+    city: "",
+    country: "",
+    full: "",
+  },
+};

@@ -1,0 +1,45 @@
+"use client";
+
+import { motion } from "motion/react";
+
+/**
+ * Page hero — PLACEHOLDER.
+ *
+ * IMPORTANT FOR AGENTS: This template is a minimal scaffold.
+ * You MUST rewrite this component to match the selected hero variant
+ * from `references/frontend/component-variants.md`.
+ *
+ * Available variants: centered, split, fullscreen, bento, statement, asymmetric.
+ * Each has a completely different HTML structure — do NOT use this default for every project.
+ */
+
+interface PageHeroProps {
+  label: string;
+  headline: string;
+  description: string;
+  children?: React.ReactNode;
+}
+
+export function PageHero({ label, headline, description, children }: PageHeroProps) {
+  return (
+    <section className="hero-gradient {{SECTION_PADDING}}">
+      <div className="max-w-{{LAYOUT_MAX_WIDTH}} mx-auto px-4 sm:px-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: {{DURATION_PAGE}} / 1000 }}
+          className="max-w-3xl"
+        >
+          <p className="section-label">{label}</p>
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground tracking-tight mb-4">
+            {headline}
+          </h1>
+          <p className="text-base sm:text-lg text-muted-foreground leading-relaxed">
+            {description}
+          </p>
+          {children}
+        </motion.div>
+      </div>
+    </section>
+  );
+}

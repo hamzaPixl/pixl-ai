@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "pixl:debug-reproduce-payload",
+  "title": "Debug Reproduce Payload",
+  "description": "Schema for the RED (reproduce) stage output payload.",
+  "type": "object",
+  "required": ["reproduced"],
+  "properties": {
+    "reproduced": {
+      "type": "boolean",
+      "description": "Whether the bug was successfully reproduced"
+    },
+    "instrumentation_added": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Debug instrumentation added (logs, assertions, etc.)"
+    },
+    "error_summary": {
+      "type": "string",
+      "description": "Summary of observed errors"
+    },
+    "console_errors": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Captured console error messages"
+    },
+    "test_results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "test": { "type": "string" },
+          "result": { "type": "string", "enum": ["pass", "fail", "error", "skip"] }
+        }
+      }
+    }
+  },
+  "additionalProperties": true
+}

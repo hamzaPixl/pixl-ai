@@ -1,0 +1,37 @@
+{
+  "name": "@saas-studio/realtime",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "WebSocket gateway for real-time event streaming",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@saas-studio/contracts": "workspace:*",
+    "@saas-studio/identity": "workspace:*",
+    "@saas-studio/logger": "workspace:*",
+    "@fastify/websocket": "^10.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/ws": "^8.0.0",
+    "fastify": "^4.28.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.4.0",
+    "ws": "^8.18.0"
+  },
+  "peerDependencies": {
+    "fastify": "^4.0.0"
+  }
+}

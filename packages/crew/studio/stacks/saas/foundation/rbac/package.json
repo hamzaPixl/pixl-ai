@@ -1,0 +1,33 @@
+{
+  "name": "@saas-studio/rbac",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Role-based access control with permissions and policies",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@saas-studio/contracts": "workspace:*",
+    "@saas-studio/identity": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "fastify": "^4.28.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.4.0"
+  },
+  "peerDependencies": {
+    "fastify": "^4.0.0"
+  }
+}

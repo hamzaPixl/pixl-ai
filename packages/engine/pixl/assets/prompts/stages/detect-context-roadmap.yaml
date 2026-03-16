@@ -1,0 +1,14 @@
+name: Detect Roadmap Context
+description: Explore the codebase and build structured project context for a Roadmap
+
+prompt: |
+  Detect project context for the given Roadmap.
+
+  Explore the codebase to identify:
+  - Overall project architecture
+  - Current state and health
+  - Technical debt areas
+  - Stakeholder requirements
+  - Strategic considerations
+
+  Output a structured context payload.

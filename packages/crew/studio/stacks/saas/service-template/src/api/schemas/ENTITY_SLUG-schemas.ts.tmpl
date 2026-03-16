@@ -1,0 +1,38 @@
+/**
+ * {{ENTITY_NAME}} API schemas
+ */
+
+import { z } from 'zod';
+
+export const Create{{ENTITY_NAME}}RequestSchema = z.object({
+  // TODO: Add creation fields
+});
+
+export const Update{{ENTITY_NAME}}RequestSchema = z.object({
+  // TODO: Add update fields (all optional)
+});
+
+export const List{{ENTITY_PLURAL}}QuerySchema = z.object({
+  limit: z.coerce.number().int().min(1).max(100).optional(),
+  offset: z.coerce.number().int().min(0).optional(),
+});
+
+export const {{ENTITY_NAME}}IdParamSchema = z.object({
+  id: z.string().uuid(),
+});
+
+export type Create{{ENTITY_NAME}}Request = z.infer<typeof Create{{ENTITY_NAME}}RequestSchema>;
+export type Update{{ENTITY_NAME}}Request = z.infer<typeof Update{{ENTITY_NAME}}RequestSchema>;
+export type List{{ENTITY_PLURAL}}Query = z.infer<typeof List{{ENTITY_PLURAL}}QuerySchema>;
+export type {{ENTITY_NAME}}IdParam = z.infer<typeof {{ENTITY_NAME}}IdParamSchema>;
+
+export interface {{ENTITY_NAME}}Response {
+  id: string;
+  tenantId: string;
+  // TODO: Add entity-specific response fields
+  version: number;
+  createdBy: string | null;
+  updatedBy: string | null;
+  createdAt: string;
+  updatedAt: string;
+}

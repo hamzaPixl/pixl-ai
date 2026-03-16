@@ -1,0 +1,20 @@
+$ tsup src/index.ts src/tracing/index.ts src/metrics/index.ts src/fastify/index.ts --format esm --dts
+CLI Building entry: src/index.ts, src/fastify/index.ts, src/metrics/index.ts, src/tracing/index.ts
+CLI Using tsconfig: tsconfig.json
+CLI tsup v8.5.1
+CLI Target: es2022
+ESM Build start
+ESM dist/chunk-NW7MLNJB.js 2.78 KB
+ESM dist/tracing/index.js  430.00 B
+ESM dist/chunk-TEU33IOX.js 2.96 KB
+ESM dist/metrics/index.js  204.00 B
+ESM dist/index.js          3.34 KB
+ESM dist/fastify/index.js  258.00 B
+ESM dist/chunk-URMRXA6F.js 3.23 KB
+ESM ⚡️ Build success in 60ms
+DTS Build start
+DTS ⚡️ Build success in 5534ms
+DTS dist/index.d.ts         1.71 KB
+DTS dist/fastify/index.d.ts 954.00 B
+DTS dist/metrics/index.d.ts 1.05 KB
+DTS dist/tracing/index.d.ts 1.14 KB

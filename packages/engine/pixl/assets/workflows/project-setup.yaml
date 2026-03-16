@@ -1,0 +1,176 @@
+id: project-setup
+name: Project Setup
+description: Initialize a pixl project
+version: 3.0.0
+tags:
+  - init
+  - setup
+
+tier: utility
+workflow_format: v2
+session_mode: plugin
+routing:
+  auto_route: false
+  sub_invocable: false
+  category: general
+
+parameters:
+  - id: project_name
+    type: string
+    label: "Project name"
+    default: "{{directory_name}}"
+    required: true
+
+  - id: project_description
+    type: text
+    label: "Project description"
+    required: true
+
+variables:
+  docs_dir: "{artifacts_dir}/docs"
+
+stages:
+  - id: detect-tech-stack
+    name: Detect Tech Stack
+    type: task
+    max_turns: 15
+    output_schema: context-payload.json
+    contract:
+      structured_output: true
+    prompt: |
+      Analyze the project at {{project_root}} and detect:
+      1. Programming language(s)
+      2. Frameworks and libraries
+      3. Build tools and package managers
+      4. Testing frameworks
+      5. Existing documentation
+
+      IMPORTANT: Restrict your analysis to files inside {{project_root}} ONLY.
+      Do NOT explore parent directories, sibling projects, or tools used to manage
+      this project (e.g. pixl, saas-studio). Document what THIS project is, not
+      the tooling around it.
+
+      Report a structured summary of findings.
+
+  - id: ensure-registry
+    name: Ensure Project Registry & Database
+    type: task
+    max_turns: 15
+    contract:
+      structured_output: true
+    prompt: |
+      The project has already been registered and the database initialized.
+
+      Complete the remaining setup:
+      1. Verify git is initialized (run `git init` if not)
+      2. Verify .agent/ directory was scaffolded (it should already exist)
+      3. Update .gitignore with pixl entries
+
+      Do NOT run `pixl init`, `pixl storage verify`, or any pixl CLI commands
+      that would re-register the project.
+
+      Report what was created vs what already existed.
+
+  - id: generate-docs
+    name: Generate Documentation
+    type: task
+    max_turns: 50
+    contract:
+      structured_output: true
+    prompt: |
+      Generate project documentation for: {{project_name}}
+      Description: {{project_description}}
+
+      Use the tech stack detection results from the previous stage.
+
+      IMPORTANT: Document ONLY the target project at {{project_root}}.
+      Do not mention pixl, saas-studio, or other tooling as part of this project's
+      tech stack or architecture. The documentation should describe what this
+      project IS, not the tools used to manage or scaffold it.
+
+      Create or update:
+      1. CLAUDE.md - Comprehensive project guide for AI assistants
+      2. README.md - Project readme
+
+      CONSTRAINTS for CLAUDE.md:
+      - MUST be under 40,000 characters
+      - Be concise: bullet points > paragraphs
+      - Essential sections: overview, tech stack, architecture, patterns, commands
+      - Use tables for density
+
+      Also generate an initial feature roadmap with 5-10 features.
+      Create backlog items using:
+      ```bash
+      pixl add "Feature title" --description "Description with acceptance criteria" --priority P0|P1|P2|P3
+      ```
+
+      Assign a priority to each feature based on its importance:
+      - **P0**: Core functionality blocking project setup (auth, database, critical infrastructure)
+      - **P1**: Important for MVP or immediate user value
+      - **P2**: Enhancements, standard features
+      - **P3**: Future optimizations, polish, non-essential
+
+      After creating features, list them:
+      ```bash
+      pixl list
+      ```
+
+      Commit all changes:
+      ```bash
+      git add -A && git commit -m "chore: pixl init - project documentation and roadmap"
+      ```
+
+  - id: build-knowledge
+    name: Build Knowledge Index
+    type: task
+    max_turns: 15
+    contract:
+      structured_output: true
+    prompt: |
+      Build the knowledge index from project documentation.
+
+      Run:
+      ```bash
+      pixl knowledge build
+      ```
+
+      Report the number of chunks indexed and files processed.
+
+  - id: verify-ready
+    name: Verify Project Ready
+    type: task
+    max_turns: 10
+    contract:
+      structured_output: true
+    prompt: |
+      Verify the project is fully initialized and ready to use:
+
+      1. Check SQLite schema is valid:
+         ```bash
+         pixl storage verify
+         ```
+      2. Test knowledge search works:
+         ```bash
+         pixl knowledge search "project overview"
+         ```
+      3. Verify backlog has features:
+         ```bash
+         pixl list
+         ```
+      4. Verify CLAUDE.md exists and is under 40K chars
+      5. Verify README.md exists
+
+      Report: READY or list what's missing/broken.
+
+edges:
+  detect-tech-stack: [ensure-registry]
+  ensure-registry: [generate-docs]
+  generate-docs: [build-knowledge]
+  build-knowledge: [verify-ready]
+
+loops:
+  - id: doc-retry
+    from: generate-docs
+    to: generate-docs
+    trigger: failure
+    max_iterations: 2

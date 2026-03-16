@@ -1,0 +1,133 @@
+id: knowledge-build
+name: Knowledge Build Workflow
+description: Build and maintain project knowledge base for RAG
+version: 3.0.0
+tags:
+  - knowledge
+  - documentation
+  - indexing
+  - rag
+
+tier: utility
+workflow_format: v2
+session_mode: plugin
+routing:
+  auto_route: false
+  sub_invocable: false
+  category: general
+
+stages:
+  - id: analyze
+    name: Analyze Project Structure
+    type: task
+    max_turns: 30
+    contract:
+      structured_output: true
+    outputs:
+      - knowledge/project-structure.md
+    prompt: |
+      Analyze project structure to determine knowledge sources.
+      - Identify documentation directories
+      - Find key documentation files
+      - Determine code organization
+      - Recommend indexing strategy
+
+  - id: build-index
+    name: Build Knowledge Index
+    type: task
+    max_turns: 50
+    contract:
+      structured_output: true
+    outputs:
+      - "{{pixl_dir}}/pixl.db"
+      - knowledge/build-stats.json
+    prompt: |
+      Build the knowledge index from project files.
+      - Scan project docs and root files
+      - Chunk content by semantic structure
+      - Extract keywords and metadata
+      - Store in searchable format
+
+  - id: status
+    name: Generate Status Report
+    type: task
+    max_turns: 20
+    contract:
+      structured_output: true
+    outputs:
+      - knowledge/status.md
+    prompt: |
+      Generate comprehensive knowledge base status report.
+      - Chunk counts by type and source
+      - Build duration and timing
+      - File processing summary
+      - Index statistics
+
+  - id: validate
+    name: Validate Index Quality
+    type: task
+    max_turns: 30
+    contract:
+      structured_output: true
+    outputs:
+      - knowledge/validation.md
+    prompt: |
+      Validate knowledge index quality and completeness.
+      - Check for broken references
+      - Verify chunk quality
+      - Test search queries
+      - Identify gaps
+
+  - id: test-queries
+    name: Test Knowledge Queries
+    type: task
+    max_turns: 20
+    contract:
+      structured_output: true
+    outputs:
+      - knowledge/test-queries.md
+    prompt: |
+      Run test queries to validate index functionality.
+      - Test common project questions
+      - Verify search relevance
+      - Check context building
+      - Document example queries
+
+  - id: approve
+    name: Approve Knowledge Base
+    type: gate
+    timeout_minutes: 30
+    timeout_policy: reject
+    required_artifacts:
+      - knowledge/status.md
+      - knowledge/validation.md
+      - knowledge/test-queries.md
+    description: |
+      Review knowledge base quality and approve for use.
+      - Check chunk coverage
+      - Verify search relevance
+      - Confirm completeness
+
+  - id: cleanup
+    name: Finalize Documentation
+    type: task
+    max_turns: 20
+    contract:
+      structured_output: true
+    outputs:
+      - knowledge/summary.md
+      - knowledge/usage-guide.md
+    prompt: |
+      Create final documentation for knowledge base usage.
+      - How to query the knowledge base
+      - Example queries and use cases
+      - Maintenance guide
+      - Integration with other workflows
+
+edges:
+  analyze: [build-index]
+  build-index: [status]
+  status: [validate]
+  validate: [test-queries]
+  test-queries: [approve]
+  approve: [cleanup]

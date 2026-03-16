@@ -1,0 +1,29 @@
+{
+  "name": "@saas-studio/events",
+  "version": "0.1.0",
+  "description": "Event bus abstraction and implementations",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@saas-studio/contracts": "workspace:*",
+    "@saas-studio/domain": "workspace:*",
+    "@saas-studio/logger": "workspace:*",
+    "nats": "^2.19.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.0"
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "pixl:wrap-triage-payload",
+  "title": "Wrap Triage Stage Payload",
+  "description": "Schema for the payload field of the wrap workflow triage-plan stage output.",
+  "type": "object",
+  "required": ["action_type"],
+  "properties": {
+    "action_type": {
+      "type": "string",
+      "enum": ["wrap_only", "finish_and_wrap"],
+      "description": "Triage verdict — whether the feature just needs wrapping or requires more work"
+    },
+    "verdict_reason": {
+      "type": "string",
+      "description": "One-sentence explanation of the verdict"
+    },
+    "completed_items": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "List of completed work items"
+    },
+    "remaining_items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["what", "where", "why", "verification"],
+        "properties": {
+          "what": {
+            "type": "string",
+            "description": "Precise change description"
+          },
+          "where": {
+            "type": "string",
+            "description": "File path(s) affected"
+          },
+          "why": {
+            "type": "string",
+            "description": "What breaks without this change"
+          },
+          "verification": {
+            "type": "string",
+            "description": "How to confirm the fix (test name, command)"
+          }
+        }
+      },
+      "description": "Ordered list of remaining work items (empty for wrap_only)"
+    },
+    "estimated_scope": {
+      "type": "string",
+      "enum": ["small", "medium", "large"],
+      "description": "Estimated scope of remaining work"
+    }
+  },
+  "additionalProperties": true
+}

@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "pixl:debug-prove-payload",
+  "title": "Debug Prove Payload",
+  "description": "Schema for the PROVE (validation) stage output payload.",
+  "type": "object",
+  "required": ["tests_pass", "root_cause_explanation"],
+  "properties": {
+    "tests_pass": {
+      "type": "boolean",
+      "description": "Whether all tests pass after the fix"
+    },
+    "test_results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "test": { "type": "string" },
+          "result": { "type": "string", "enum": ["pass", "fail", "skip"] }
+        }
+      },
+      "description": "Individual test results"
+    },
+    "root_cause_explanation": {
+      "type": "string",
+      "description": "3-5 line root cause explanation"
+    },
+    "non_regression_proof": {
+      "type": "string",
+      "description": "Why this bug won't regress (link to test or invariant)"
+    },
+    "before_after_evidence": {
+      "type": "string",
+      "description": "Before/after comparison evidence"
+    }
+  },
+  "additionalProperties": true
+}

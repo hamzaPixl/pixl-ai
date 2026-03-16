@@ -1,0 +1,37 @@
+{
+  "name": "@saas-studio/jobs",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Background job processing with BullMQ",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@saas-studio/config": "workspace:*",
+    "@saas-studio/logger": "workspace:*",
+    "@saas-studio/contracts": "workspace:*",
+    "bullmq": "^5.12.0",
+    "ioredis": "^5.4.0",
+    "zod": "^3.22.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "fastify": "^4.28.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.4.0"
+  },
+  "peerDependencies": {
+    "fastify": "^4.0.0"
+  }
+}

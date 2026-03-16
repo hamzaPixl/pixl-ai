@@ -1,0 +1,187 @@
+id: decompose
+name: Epic Decomposition Workflow
+description: Break an epic into ordered features and create them in the backlog
+version: 2.0.0
+tags:
+  - epic
+  - decomposition
+  - planning
+
+tier: planning
+workflow_format: v2
+session_mode: plugin
+routing:
+  auto_route: true
+  sub_invocable: false
+  category: general
+
+variables:
+  epics_dir: epics
+  decomposition_file: "epic-decomposition.md"
+  epic_brief_file: "epic-brief.md"
+
+stages:
+  - id: refine-epic
+    name: Refine Epic Requirements
+    type: task
+    max_turns: 30
+    prompt: |
+      Analyze the epic request and produce a structured brief.
+      Save as `epic-brief.md` artifact using `pixl artifact put`.
+
+      Include these sections:
+      - Objective: What the epic achieves
+      - Constraints: Technical and business constraints
+      - Acceptance Criteria: High-level success criteria
+      - Scope Boundaries: What's in/out of scope
+      - Decomposition Hints: Suggested feature boundaries
+    outputs:
+      - "{{epic_brief_file}}"
+    output_schema: epic-brief-payload.json
+    contract:
+      structured_output: true
+      must_write:
+        - "{{epic_brief_file}}"
+      must_include_sections:
+        "{{epic_brief_file}}":
+          - "Objective"
+          - "Constraints"
+          - "Acceptance Criteria"
+          - "Scope Boundaries"
+          - "Decomposition Hints"
+
+  - id: decompose
+    name: Decompose into Features
+    type: task
+    max_turns: 60
+    required_artifacts:
+      - "{{epic_brief_file}}"
+    transitions:
+      on_complete: { status: decomposed, note: "Epic decomposed into features" }
+    prompt: |
+      # Decompose Epic into Features
+
+      ## Inputs
+      - **Epic brief:** provided above via the structured context system
+      - **Project context:** provided above via the structured context system
+
+      ## Task
+
+      Break this epic into concrete, implementable features.
+      Each feature should be a single pull request.
+
+      ### Rules
+      1. Each feature must be independently testable
+      2. Each feature must cut through ALL layers it touches (DB → Service → API → UI → Tests).
+         Never decompose by layer (e.g., "create schema" then "build service" then "add API").
+         Each feature is a vertical slice of user-visible behavior.
+      3. The FIRST feature must be a walking skeleton — the minimal end-to-end path that proves
+         the architecture works. Test: "Can you demo this without saying 'this part isn't wired up yet'?"
+      4. Features must follow dependency ordering (no cycles)
+      5. Target 2-10 features per epic
+      6. Each feature should touch no more than ~8 files
+      7. Include acceptance criteria for each feature
+      8. Assign a priority to each feature:
+         - Features with no dependencies that block others → higher priority (P0/P1)
+         - Foundational infrastructure → P0/P1
+         - Dependent features building on foundations → P1/P2
+         - Polish, optimizations, non-essential → P3
+      7. Choose the most appropriate workflow for each feature:
+         - `tdd` — Features requiring new code with tests (default)
+         - `simple` — Documentation, config changes, or trivial additions
+         - `debug` — Bug fixes or issues with existing behavior
+      8. If a feature has estimate_points >= 8 or touches more than 8 files,
+         set `"needs_refinement": true`. The chain runner will decompose it
+         further before execution.
+
+      ## Output
+
+      Use `pixl artifact put` to save `{{decomposition_file}}` with this structure:
+
+      ```markdown
+      # Epic Decomposition: {epic_id}
+
+      ## Features
+
+      ### Feature 1: [Title]
+      **Description:** What this feature does
+      **Priority:** P0|P1|P2|P3
+      **Acceptance Criteria:**
+      - AC-1: ...
+      **Dependencies:** none
+      **Estimated Files:** ~N
+      **Layers Touched:** [DB, Service, API, UI, Tests — check all that apply]
+      **Walking Skeleton:** yes | no
+      **Suggested Workflow:** tdd | simple | debug
+
+      ### Feature 2: [Title]
+      **Description:** ...
+      **Priority:** P0|P1|P2|P3
+      **Acceptance Criteria:**
+      - AC-1: ...
+      **Dependencies:** Feature 1
+      **Estimated Files:** ~N
+      **Layers Touched:** [DB, Service, API, UI, Tests — check all that apply]
+      **Walking Skeleton:** yes | no
+      **Suggested Workflow:** tdd | simple | debug
+
+      ## Dependency Graph
+      ```
+      F1 ──> F2 ──> F4
+             │
+             └──> F3
+      ```
+
+      ## Implementation Order
+      1. Feature 1 (no dependencies)
+      2. Feature 2 (depends on 1)
+      3. Feature 3 (depends on 2)
+      ```
+    outputs:
+      - "{{decomposition_file}}"
+    output_schema: decompose-payload.json
+    contract:
+      structured_output: true
+      must_write:
+        - "{{decomposition_file}}"
+      must_include_sections:
+        "{{decomposition_file}}":
+          - "Features"
+          - "Dependency Graph|Dependencies"
+          - "Implementation Order"
+
+  - id: approve-decomposition
+    name: Approve Feature Decomposition
+    type: gate
+    description: |
+      Review the epic decomposition before creating features.
+      - Are features small enough for single PRs?
+      - Is the dependency ordering correct?
+      - Are acceptance criteria clear and testable?
+    timeout_minutes: 120
+    timeout_policy: reject
+    required_artifacts:
+      - epic-decomposition.md
+    freeze_artifacts:
+      - epic-decomposition.md
+
+  - id: materialize-chain-plan
+    name: Materialize Chain Plan
+    type: hook
+    hook: materialize-chain-plan
+    hook_params:
+      source_node_id: decompose
+    required_artifacts:
+      - "{{decomposition_file}}"
+
+loops:
+  - id: revise-decomposition
+    from: approve-decomposition
+    to: decompose
+    trigger: failure
+    max_iterations: 3
+
+edges:
+  refine-epic: [decompose]
+  decompose: [approve-decomposition]
+  approve-decomposition: [materialize-chain-plan]

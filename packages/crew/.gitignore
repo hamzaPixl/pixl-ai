@@ -1,0 +1,4 @@
+# Runtime session data (project-specific, not plugin code)
+.claude/memory/sessions/
+.claude/memory/decisions.jsonl
+

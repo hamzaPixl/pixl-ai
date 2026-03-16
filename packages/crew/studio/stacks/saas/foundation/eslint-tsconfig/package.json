@@ -1,0 +1,24 @@
+{
+  "name": "@saas-studio/eslint-tsconfig",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Shared ESLint, TypeScript, Biome, and Prettier configs with architecture fitness functions",
+  "exports": {
+    "./tsconfig/base": "./tsconfig/base.json",
+    "./tsconfig/library": "./tsconfig/library.json",
+    "./tsconfig/service": "./tsconfig/service.json",
+    "./eslint/base": "./eslint/base.cjs",
+    "./eslint/architecture": "./eslint/architecture.cjs",
+    "./biome": "./biome.json",
+    "./prettier": "./prettier.config.mjs"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.0",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "eslint": "^8.57.0",
+    "eslint-plugin-import": "^2.29.0",
+    "prettier": "^3.2.0"
+  }
+}

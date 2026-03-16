@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "pixl:review-payload",
+  "title": "Review Stage Payload",
+  "description": "Schema for the payload field of a review stage output.",
+  "type": "object",
+  "required": ["recommendation"],
+  "properties": {
+    "recommendation": {
+      "type": "string",
+      "enum": ["approve", "request_changes", "reject"],
+      "description": "Overall review recommendation"
+    },
+    "issues": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["severity", "description"],
+        "properties": {
+          "severity": {
+            "type": "string",
+            "enum": ["info", "low", "medium", "high", "critical"]
+          },
+          "description": {
+            "type": "string"
+          },
+          "file": {
+            "type": "string"
+          },
+          "line": {
+            "type": "integer"
+          },
+          "suggestion": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "plan_compliance": {
+      "type": "object",
+      "properties": {
+        "tasks_completed": {
+          "type": "integer"
+        },
+        "tasks_total": {
+          "type": "integer"
+        },
+        "missing_items": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "test_coverage": {
+      "type": "object",
+      "properties": {
+        "has_tests": { "type": "boolean" },
+        "coverage_pct": { "type": "number" },
+        "untested_areas": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    }
+  },
+  "additionalProperties": true
+}

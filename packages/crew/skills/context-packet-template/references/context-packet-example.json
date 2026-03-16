@@ -1,0 +1,82 @@
+{
+  "type": "design",
+  "version": "1.0",
+  "metadata": {
+    "skill": "website",
+    "project": "acme-landing",
+    "created_at": "2026-02-26T10:00:00Z"
+  },
+  "payload": {
+    "archetype": "minimal",
+    "tokens": {
+      "colors": {
+        "primary_hsl": "217 91% 60%",
+        "secondary_hsl": "187 70% 50%",
+        "accent_hsl": "217 40% 96%",
+        "surface_hsl": "217 10% 97%"
+      },
+      "typography": {
+        "font_sans": "Inter",
+        "font_serif": "Playfair_Display",
+        "font_sans_import": "Inter",
+        "font_serif_import": "Playfair_Display",
+        "font_serif_weight": "400;700",
+        "heading_font": "serif"
+      },
+      "shape": {
+        "border_radius": "6px"
+      },
+      "shadows": {
+        "sm": "none",
+        "md": "0 1px 2px rgba(0, 0, 0, 0.04)",
+        "lg": "0 4px 12px rgba(0, 0, 0, 0.06)"
+      },
+      "motion": {
+        "duration_micro": "150ms",
+        "duration_page": "300ms",
+        "ease": "[0.25, 0.1, 0.25, 1]",
+        "distance": "16",
+        "stagger": "0.06"
+      },
+      "layout": {
+        "nav_classes": "bg-background/80 backdrop-blur-md border-b border-border",
+        "footer_classes": "bg-muted text-foreground border-t border-border",
+        "section_padding": "py-16 sm:py-20",
+        "max_width": "6xl"
+      }
+    },
+    "variants": {
+      "hero": "split",
+      "nav": "bar",
+      "footer": "4-column",
+      "features": "alternating-rows",
+      "testimonials": "single-spotlight",
+      "cta": "banner",
+      "pricing": "tier-cards"
+    },
+    "content": {
+      "hero_headline": "Build faster with Acme",
+      "hero_subhead": "The platform for modern teams",
+      "features": [
+        {
+          "title": "Lightning Fast",
+          "description": "Sub-second response times"
+        },
+        {
+          "title": "Secure by Default",
+          "description": "Enterprise-grade security"
+        },
+        {
+          "title": "Scale Infinitely",
+          "description": "Handles millions of requests"
+        }
+      ],
+      "cta_text": "Get Started Free"
+    },
+    "constraints": [
+      "WCAG 2.1 AA contrast ratios required",
+      "Use CSS variables for shadows, durations, easing",
+      "Never hardcode py-16, max-w-7xl, rounded-xl, or shadow values"
+    ]
+  }
+}

@@ -1,0 +1,29 @@
+# Multi-stage Bun build for {{SERVICE_NAME_PASCAL}}
+
+FROM oven/bun:1 AS base
+WORKDIR /app
+
+# Install dependencies
+FROM base AS deps
+COPY package.json bun.lock ./
+COPY prisma ./prisma/
+RUN bun install --frozen-lockfile
+RUN bunx prisma generate
+
+# Build
+FROM base AS build
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/prisma ./prisma
+COPY . .
+RUN bun run build
+
+# Production
+FROM base AS production
+ENV NODE_ENV=production
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/prisma ./prisma
+COPY --from=build /app/dist ./dist
+COPY package.json ./
+
+EXPOSE {{SERVICE_PORT}}
+CMD ["bun", "dist/main.js"]

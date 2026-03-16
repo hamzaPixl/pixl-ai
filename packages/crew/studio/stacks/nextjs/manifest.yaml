@@ -1,0 +1,564 @@
+# Studio Manifest — single source of truth for the scaffold skill.
+# Update this file whenever templates are added, removed, or renamed.
+#
+# The scaffold reads ONLY this file to know what to copy, which tokens
+# to replace, which files to skip, and which dependencies to prune.
+# It never enumerates the studio/ directory.
+
+name: website-builder-studio
+version: "1.0"
+
+# ─── Token Registry ───────────────────────────────────────────────
+# All 12 tokens that appear in .tmpl files. The scaffold resolves
+# each token once from discovery/design output, then applies it
+# across every file that references it.
+#
+# Fields:
+#   source    – dot-path into discovery/design output
+#   transform – optional conversion (slugify, hex_to_hsl)
+#   fallback  – default when source is missing or empty
+#   example   – sample value for documentation
+
+token_registry:
+  # ── Identity ──────────────────────────────────────────────
+  PROJECT_NAME:
+    source: discovery.output.identity.name
+    example: "Acme Corp"
+  PROJECT_SLUG:
+    source: discovery.output.identity.name
+    transform: slugify
+    example: "acme-corp"
+  PROJECT_DESCRIPTION:
+    source: discovery.output.identity.description
+    example: "Modern solutions for growing businesses"
+
+  # ── Colors ────────────────────────────────────────────────
+  PRIMARY_COLOR_HSL:
+    source: design.output.colors.primary_hsl
+    fallback: "222.2 47.4% 11.2%"
+    example: "217 91% 60%"
+  SECONDARY_COLOR_HSL:
+    source: design.output.colors.secondary_hsl
+    fallback: "210 40% 96.1%"
+    example: "0 100% 67%"
+  ACCENT_COLOR_HSL:
+    source: design.output.colors.accent_hsl
+    fallback: "210 40% 96%"
+    example: "250 60% 55%"
+  SURFACE_COLOR_HSL:
+    source: design.output.colors.surface_hsl
+    fallback: "0 0% 96%"
+    example: "222 10% 97%"
+
+  # ── Typography ────────────────────────────────────────────
+  FONT_SANS:
+    source: design.output.typography.font_sans
+    fallback: "Inter"
+    example: "Plus_Jakarta_Sans"
+  FONT_SERIF:
+    source: design.output.typography.font_serif
+    fallback: "Playfair_Display"
+    example: "Playfair_Display"
+  FONT_SANS_IMPORT:
+    source: design.output.typography.font_sans_import
+    fallback: "Inter"
+    example: "Plus_Jakarta_Sans"
+  FONT_SERIF_IMPORT:
+    source: design.output.typography.font_serif_import
+    fallback: "Playfair_Display"
+    example: "Cormorant_Garamond"
+  FONT_SERIF_WEIGHT:
+    source: design.output.typography.font_serif_weight
+    fallback: '"400"'
+    example: '"400;700"'
+  HEADING_FONT:
+    source: design.output.typography.heading_font
+    fallback: "serif"
+    example: "sans"
+
+  # ── Shape & Shadow ────────────────────────────────────────
+  BORDER_RADIUS:
+    source: design.output.shape.border_radius
+    fallback: "8px"
+    example: "12px"
+  SHADOW_SM:
+    source: design.output.shadows.sm
+    fallback: "0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06)"
+    example: "none"
+  SHADOW_MD:
+    source: design.output.shadows.md
+    fallback: "0 4px 12px rgba(0, 0, 0, 0.08)"
+    example: "0 8px 24px rgba(0, 0, 0, 0.12)"
+  SHADOW_LG:
+    source: design.output.shadows.lg
+    fallback: "0 12px 24px rgba(0, 0, 0, 0.1)"
+    example: "0 20px 40px rgba(0, 0, 0, 0.16)"
+
+  # ── Animation ─────────────────────────────────────────────
+  DURATION_MICRO:
+    source: design.output.motion.duration_micro
+    fallback: "200ms"
+    example: "150ms"
+  DURATION_PAGE:
+    source: design.output.motion.duration_page
+    fallback: "400ms"
+    example: "600ms"
+  ANIM_EASE:
+    source: design.output.motion.ease
+    fallback: "[0.4, 0, 0.2, 1]"
+    example: "[0.16, 1, 0.3, 1]"
+  ANIM_DISTANCE:
+    source: design.output.motion.distance
+    fallback: "24"
+    example: "40"
+  ANIM_STAGGER:
+    source: design.output.motion.stagger
+    fallback: "0.08"
+    example: "0.12"
+
+  # ── Layout ────────────────────────────────────────────────
+  NAV_CLASSES:
+    source: design.output.layout.nav_classes
+    fallback: "bg-background/80 backdrop-blur-md border-b border-border"
+    example: "bg-white/90 backdrop-blur-xl border border-border shadow-lg rounded-full"
+  FOOTER_CLASSES:
+    source: design.output.layout.footer_classes
+    fallback: "bg-foreground text-background"
+    example: "bg-muted text-foreground border-t border-border"
+  SECTION_PADDING:
+    source: design.output.layout.section_padding
+    fallback: "py-16 sm:py-24"
+    example: "py-24 sm:py-32"
+  LAYOUT_MAX_WIDTH:
+    source: design.output.layout.max_width
+    fallback: "7xl"
+    example: "6xl"
+  DESIGN_ARCHETYPE:
+    source: design.output.archetype
+    fallback: "corporate"
+    example: "minimal"
+
+  # ── Infrastructure ────────────────────────────────────────
+  BASE_URL:
+    source: discovery.output.infrastructure.base_url
+    example: "https://acme.com"
+  CONTACT_EMAIL:
+    source: discovery.output.infrastructure.contact_email
+    example: "hello@acme.com"
+  CONTACT_PHONE:
+    source: discovery.output.infrastructure.contact_phone
+    fallback: ""
+    example: "+1234567890"
+  GA_ID:
+    source: discovery.output.infrastructure.ga_id
+    fallback: "G-XXXXXXXXXX"
+    example: "G-XXXXXXXXXX"
+  DEFAULT_LOCALE:
+    source: discovery.output.features.i18n.default_locale
+    fallback: "en"
+    example: "en"
+
+# ─── Dependency Pruning ───────────────────────────────────────────
+# After writing package.json, remove these packages when the
+# corresponding feature is disabled.
+
+dependency_pruning:
+  - condition: features.supabase != true
+    packages:
+      - "@supabase/ssr"
+      - "@supabase/supabase-js"
+  - condition: features.stripe != true
+    packages:
+      - "stripe"
+  - condition: features.blog != true
+    packages:
+      - "@mdx-js/loader"
+      - "@mdx-js/react"
+      - "@next/mdx"
+      - "gray-matter"
+      - "@types/mdx"
+
+# ─── File List ────────────────────────────────────────────────────
+# Every file the scaffold processes (75 entries). Grouped by output
+# directory for readability.
+#
+# Fields:
+#   source    – path relative to studio/
+#   target    – output path in the project (base/ files map to root)
+#   template  – true for .tmpl files (token replacement + ext strip)
+#   tokens    – quick-reference list of tokens used (omitted when empty)
+#   condition – optional; file is skipped when expression is false
+
+files:
+
+  # ── Project root (from base/) ──────────────────────────────────
+
+  - source: base/.gitignore
+    target: .gitignore
+    template: false
+
+  - source: base/.prettierrc
+    target: .prettierrc
+    template: false
+
+  - source: base/components.json
+    target: components.json
+    template: false
+
+  - source: base/eslint.config.mjs
+    target: eslint.config.mjs
+    template: false
+
+  - source: base/postcss.config.mjs
+    target: postcss.config.mjs
+    template: false
+
+  - source: base/tailwind.config.ts
+    target: tailwind.config.ts
+    template: false
+
+  - source: base/tsconfig.json
+    target: tsconfig.json
+    template: false
+
+  - source: base/.env.example.tmpl
+    target: .env.example
+    template: true
+    tokens: [PROJECT_NAME, PROJECT_SLUG, CONTACT_EMAIL, GA_ID]
+
+  - source: base/next.config.ts.tmpl
+    target: next.config.ts
+    template: true
+    tokens: [BASE_URL]
+
+  - source: base/package.json.tmpl
+    target: package.json
+    template: true
+    tokens: [PROJECT_SLUG]
+
+  # ── app/ ────────────────────────────────────────────────────────
+
+  - source: app/error.tsx
+    target: app/error.tsx
+    template: false
+
+  - source: app/loading.tsx
+    target: app/loading.tsx
+    template: false
+
+  - source: app/not-found.tsx
+    target: app/not-found.tsx
+    template: false
+
+  - source: app/globals.css.tmpl
+    target: app/globals.css
+    template: true
+    tokens: [PRIMARY_COLOR_HSL, SECONDARY_COLOR_HSL, ACCENT_COLOR_HSL, SURFACE_COLOR_HSL, BORDER_RADIUS, SHADOW_SM, SHADOW_MD, SHADOW_LG, DURATION_MICRO, DURATION_PAGE, ANIM_EASE, ANIM_DISTANCE, HEADING_FONT]
+
+  - source: app/layout.tsx.tmpl
+    target: app/layout.tsx
+    template: true
+    tokens: [FONT_SANS, FONT_SERIF, FONT_SANS_IMPORT, FONT_SERIF_IMPORT, FONT_SERIF_WEIGHT, BASE_URL, PROJECT_NAME, PROJECT_DESCRIPTION, PROJECT_SLUG, DEFAULT_LOCALE]
+
+  - source: app/opengraph-image.tsx.tmpl
+    target: app/opengraph-image.tsx
+    template: true
+    tokens: [PROJECT_NAME, PROJECT_DESCRIPTION]
+
+  - source: app/page.tsx.tmpl
+    target: app/page.tsx
+    template: true
+    tokens: [PROJECT_NAME, PROJECT_DESCRIPTION]
+
+  - source: app/page-client.tsx.tmpl
+    target: app/page-client.tsx
+    template: true
+    tokens: [PROJECT_NAME, PROJECT_DESCRIPTION]
+
+  - source: app/sitemap.ts.tmpl
+    target: app/sitemap.ts
+    template: true
+    tokens: [BASE_URL, DEFAULT_LOCALE]
+
+  # ── app/api/ ────────────────────────────────────────────────────
+
+  - source: app/api/contact/route.ts.tmpl
+    target: app/api/contact/route.ts
+    template: true
+    tokens: [PROJECT_NAME, PROJECT_SLUG, CONTACT_EMAIL]
+    condition: features.contact_form == true
+
+  - source: app/api/checkout/route.ts.tmpl
+    target: app/api/checkout/route.ts
+    template: true
+    tokens: [BASE_URL]
+    condition: features.stripe == true
+
+  - source: app/api/webhook/route.ts.tmpl
+    target: app/api/webhook/route.ts
+    template: true
+    tokens: []
+    condition: features.stripe == true
+
+  # ── components/ ─────────────────────────────────────────────────
+
+  - source: components/analytics.tsx
+    target: components/analytics.tsx
+    template: false
+
+  - source: components/breadcrumb-schema.tsx
+    target: components/breadcrumb-schema.tsx
+    template: false
+
+  - source: components/cookie-banner.tsx
+    target: components/cookie-banner.tsx
+    template: false
+
+  - source: components/language-switcher.tsx
+    target: components/language-switcher.tsx
+    template: false
+
+  - source: components/page-hero.tsx.tmpl
+    target: components/page-hero.tsx
+    template: true
+    tokens: [SECTION_PADDING, LAYOUT_MAX_WIDTH, DURATION_PAGE]
+
+  - source: components/scroll-progress.tsx
+    target: components/scroll-progress.tsx
+    template: false
+
+  - source: components/structured-data.tsx
+    target: components/structured-data.tsx
+    template: false
+
+  - source: components/theme-provider.tsx
+    target: components/theme-provider.tsx
+    template: false
+
+  - source: components/theme-toggle.tsx
+    target: components/theme-toggle.tsx
+    template: false
+
+  - source: components/wave-divider.tsx
+    target: components/wave-divider.tsx
+    template: false
+
+  - source: components/shared-layout.tsx.tmpl
+    target: components/shared-layout.tsx
+    template: true
+    tokens: [PROJECT_NAME, NAV_CLASSES, FOOTER_CLASSES, LAYOUT_MAX_WIDTH]
+
+  - source: components/contact-form.tsx
+    target: components/contact-form.tsx
+    template: false
+    condition: features.contact_form == true
+
+  # ── components/blog/ ────────────────────────────────────────────
+
+  - source: components/blog/mdx-components.tsx
+    target: components/blog/mdx-components.tsx
+    template: false
+    condition: features.blog == true
+
+  - source: components/blog/post-card.tsx
+    target: components/blog/post-card.tsx
+    template: false
+    condition: features.blog == true
+
+  - source: components/blog/post-header.tsx
+    target: components/blog/post-header.tsx
+    template: false
+    condition: features.blog == true
+
+  # ── components/ui/ ──────────────────────────────────────────────
+
+  - source: components/ui/accordion.tsx
+    target: components/ui/accordion.tsx
+    template: false
+
+  - source: components/ui/badge.tsx
+    target: components/ui/badge.tsx
+    template: false
+
+  - source: components/ui/button.tsx
+    target: components/ui/button.tsx
+    template: false
+
+  - source: components/ui/card.tsx
+    target: components/ui/card.tsx
+    template: false
+
+  - source: components/ui/dialog.tsx
+    target: components/ui/dialog.tsx
+    template: false
+
+  - source: components/ui/dropdown-menu.tsx
+    target: components/ui/dropdown-menu.tsx
+    template: false
+
+  - source: components/ui/input.tsx
+    target: components/ui/input.tsx
+    template: false
+
+  - source: components/ui/label.tsx
+    target: components/ui/label.tsx
+    template: false
+
+  - source: components/ui/separator.tsx
+    target: components/ui/separator.tsx
+    template: false
+
+  - source: components/ui/sheet.tsx
+    target: components/ui/sheet.tsx
+    template: false
+
+  - source: components/ui/tabs.tsx
+    target: components/ui/tabs.tsx
+    template: false
+
+  - source: components/ui/textarea.tsx
+    target: components/ui/textarea.tsx
+    template: false
+
+  # ── hooks/ ──────────────────────────────────────────────────────
+
+  - source: hooks/useCounter.ts
+    target: hooks/useCounter.ts
+    template: false
+
+  - source: hooks/useTranslate.ts
+    target: hooks/useTranslate.ts
+    template: false
+
+  # ── lib/ ────────────────────────────────────────────────────────
+
+  - source: lib/animations.ts.tmpl
+    target: lib/animations.ts
+    template: true
+    tokens: [DURATION_PAGE, ANIM_EASE, ANIM_DISTANCE, ANIM_STAGGER]
+
+  - source: lib/analytics.ts
+    target: lib/analytics.ts
+    template: false
+
+  - source: lib/i18n.ts
+    target: lib/i18n.ts
+    template: false
+
+  - source: lib/rate-limit.ts
+    target: lib/rate-limit.ts
+    template: false
+
+  - source: lib/utils.ts
+    target: lib/utils.ts
+    template: false
+
+  - source: lib/design-config.ts.tmpl
+    target: lib/design-config.ts
+    template: true
+    tokens: [DESIGN_ARCHETYPE, HEADING_FONT, NAV_CLASSES, FOOTER_CLASSES, SECTION_PADDING, LAYOUT_MAX_WIDTH, BORDER_RADIUS, SHADOW_SM, SHADOW_MD, SHADOW_LG, DURATION_MICRO, DURATION_PAGE, ANIM_EASE, ANIM_DISTANCE, ANIM_STAGGER]
+
+  - source: lib/config.ts.tmpl
+    target: lib/config.ts
+    template: true
+    tokens: [BASE_URL, PROJECT_NAME, PROJECT_SLUG, CONTACT_EMAIL, CONTACT_PHONE]
+
+  - source: lib/language-context.tsx.tmpl
+    target: lib/language-context.tsx
+    template: true
+    tokens: [DEFAULT_LOCALE, PROJECT_SLUG]
+
+  - source: lib/seo-config.ts.tmpl
+    target: lib/seo-config.ts
+    template: true
+    tokens: [PROJECT_NAME, PROJECT_DESCRIPTION, PROJECT_SLUG]
+
+  - source: lib/blog.ts
+    target: lib/blog.ts
+    template: false
+    condition: features.blog == true
+
+  - source: lib/stripe.ts
+    target: lib/stripe.ts
+    template: false
+    condition: features.stripe == true
+
+  # ── lib/types/ ──────────────────────────────────────────────────
+
+  - source: lib/types/index.ts
+    target: lib/types/index.ts
+    template: false
+
+  # ── lib/schemas/ ────────────────────────────────────────────────
+
+  - source: lib/schemas/contact.ts
+    target: lib/schemas/contact.ts
+    template: false
+
+  # ── lib/translations/ ──────────────────────────────────────────
+
+  - source: lib/translations/en.ts.tmpl
+    target: lib/translations/en.ts
+    template: true
+    tokens: [PROJECT_NAME, PROJECT_DESCRIPTION]
+
+  - source: lib/translations/fr.ts.tmpl
+    target: lib/translations/fr.ts
+    template: true
+    tokens: [PROJECT_NAME, PROJECT_DESCRIPTION]
+
+  - source: lib/translations/nl.ts.tmpl
+    target: lib/translations/nl.ts
+    template: true
+    tokens: [PROJECT_NAME, PROJECT_DESCRIPTION]
+
+  # ── lib/supabase/ ──────────────────────────────────────────────
+
+  - source: lib/supabase/client.ts
+    target: lib/supabase/client.ts
+    template: false
+    condition: features.supabase == true
+
+  - source: lib/supabase/server.ts
+    target: lib/supabase/server.ts
+    template: false
+    condition: features.supabase == true
+
+  # ── lib/ scaffolding dirs ──────────────────────────────────────
+
+  - source: lib/mappers/.gitkeep
+    target: lib/mappers/.gitkeep
+    template: false
+
+  - source: lib/repositories/.gitkeep
+    target: lib/repositories/.gitkeep
+    template: false
+
+  - source: lib/services/.gitkeep
+    target: lib/services/.gitkeep
+    template: false
+
+  # ── content/ ───────────────────────────────────────────────────
+
+  - source: content/blog/.gitkeep
+    target: content/blog/.gitkeep
+    template: false
+    condition: features.blog == true
+
+  # ── public/ ────────────────────────────────────────────────────
+
+  - source: public/robots.txt.tmpl
+    target: public/robots.txt
+    template: true
+    tokens: [PROJECT_NAME, BASE_URL]
+
+  - source: public/site.webmanifest.tmpl
+    target: public/site.webmanifest
+    template: true
+    tokens: [PROJECT_NAME, PROJECT_SLUG, DEFAULT_LOCALE]
+
+  # ── deploy/ ────────────────────────────────────────────────────
+
+  - source: deploy/netlify.toml
+    target: deploy/netlify.toml
+    template: false

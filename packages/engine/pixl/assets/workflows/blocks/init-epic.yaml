@@ -1,0 +1,21 @@
+id: init-epic
+name: Epic Initialization Block
+description: Refine epic prompt into a structured brief
+version: 1.0.0
+variables:
+  epic_brief_file: "epic-brief.md"
+stages:
+  - id: refine-epic
+    name: Refine Epic
+    agent: default
+    prompt_ref: stages/refine-epic
+    contract:
+      must_write:
+        - "{{epic_brief_file}}"
+      must_include_sections:
+        "{{epic_brief_file}}":
+          - "Objective"
+          - "Constraints"
+          - "Acceptance Criteria"
+          - "Scope Boundaries"
+          - "Decomposition Hints"

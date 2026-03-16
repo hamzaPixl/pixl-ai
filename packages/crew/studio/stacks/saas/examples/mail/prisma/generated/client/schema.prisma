@@ -1,0 +1,105 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "./generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model EmailTemplate {
+  id        String    @id @default(uuid())
+  tenantId  String    @map("tenant_id")
+  name      String
+  subject   String
+  htmlBody  String    @map("html_body")
+  textBody  String?   @map("text_body")
+  variables Json?
+  category  String?
+  status    String    @default("active")
+  version   Int       @default(0)
+  createdBy String?   @map("created_by")
+  updatedBy String?   @map("updated_by")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@unique([tenantId, name])
+  @@index([tenantId])
+  @@index([category])
+  @@map("email_templates")
+}
+
+model Email {
+  id            String    @id @default(uuid())
+  tenantId      String    @map("tenant_id")
+  templateId    String?   @map("template_id")
+  fromAddress   String    @map("from_address")
+  fromName      String?   @map("from_name")
+  toAddresses   Json      @map("to_addresses")
+  ccAddresses   Json?     @map("cc_addresses")
+  bccAddresses  Json?     @map("bcc_addresses")
+  subject       String
+  htmlBody      String?   @map("html_body")
+  textBody      String?   @map("text_body")
+  attachments   Json?
+  metadata      Json?
+  status        String    @default("pending")
+  priority      Int       @default(0)
+  scheduledFor  DateTime? @map("scheduled_for")
+  sentAt        DateTime? @map("sent_at")
+  failedAt      DateTime? @map("failed_at")
+  failureReason String?   @map("failure_reason")
+  retryCount    Int       @default(0) @map("retry_count")
+  maxRetries    Int       @default(3) @map("max_retries")
+  createdBy     String?   @map("created_by")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  @@index([tenantId])
+  @@index([status, scheduledFor])
+  @@index([templateId])
+  @@map("emails")
+}
+
+model AuditLog {
+  id            String   @id @default(uuid())
+  tenantId      String   @map("tenant_id")
+  aggregateType String   @map("aggregate_type")
+  aggregateId   String   @map("aggregate_id")
+  action        String
+  actorType     String   @map("actor_type")
+  actorId       String?  @map("actor_id")
+  before        Json?
+  after         Json?
+  metadata      Json?
+  correlationId String?  @map("correlation_id")
+  occurredAt    DateTime @default(now()) @map("occurred_at")
+
+  @@index([tenantId])
+  @@index([aggregateType, aggregateId])
+  @@map("audit_log")
+}
+
+model Outbox {
+  id            String    @id @default(uuid())
+  tenantId      String    @map("tenant_id")
+  eventType     String    @map("event_type")
+  aggregateType String    @map("aggregate_type")
+  aggregateId   String    @map("aggregate_id")
+  payload       Json
+  metadata      Json?
+  status        String    @default("pending")
+  retryCount    Int       @default(0) @map("retry_count")
+  maxRetries    Int       @default(3) @map("max_retries")
+  lastError     String?   @map("last_error")
+  correlationId String?   @map("correlation_id")
+  scheduledFor  DateTime? @map("scheduled_for")
+  processedAt   DateTime? @map("processed_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  @@index([status, scheduledFor])
+  @@index([tenantId])
+  @@map("outbox")
+}

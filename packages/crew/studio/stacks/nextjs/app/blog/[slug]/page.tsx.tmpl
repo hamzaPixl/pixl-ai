@@ -1,0 +1,81 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { getTranslations } from "@/lib/i18n";
+import { getPostBySlug, getAllPosts } from "@/lib/blog";
+
+interface BlogPostPageProps {
+  params: Promise<{ slug: string }>;
+}
+
+export async function generateStaticParams() {
+  const posts = getAllPosts();
+  return posts.map((post) => ({ slug: post.slug }));
+}
+
+export async function generateMetadata({
+  params,
+}: BlogPostPageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const post = getPostBySlug(slug);
+  if (!post) return {};
+
+  return {
+    title: `{{PROJECT_NAME}} | ${post.title}`,
+    description: post.description,
+  };
+}
+
+export default async function BlogPostPage({ params }: BlogPostPageProps) {
+  const { slug } = await params;
+  const post = getPostBySlug(slug);
+  if (!post) notFound();
+
+  const t = getTranslations();
+  const bp = t.blogPage as Record<string, string>;
+
+  const readingTime = Math.max(
+    1,
+    Math.ceil(post.content.split(/\s+/).length / 200)
+  );
+
+  return (
+    <main className="{{SECTION_PADDING}}">
+      <div className="mx-auto max-w-{{LAYOUT_MAX_WIDTH}} px-4 sm:px-6 lg:px-8">
+        <article className="prose prose-neutral mx-auto max-w-3xl dark:prose-invert">
+          <Link
+            href="/blog"
+            className="mb-8 inline-flex items-center text-sm text-muted-foreground no-underline hover:text-foreground"
+          >
+            &larr; {bp.backToBlog}
+          </Link>
+
+          <header className="not-prose mb-8">
+            <h1 className="font-heading text-3xl font-bold tracking-tight sm:text-4xl">
+              {post.title}
+            </h1>
+            <div className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
+              <time dateTime={post.date}>
+                {bp.publishedOn} {post.date}
+              </time>
+              {post.author && (
+                <>
+                  <span>&middot;</span>
+                  <span>
+                    {bp.by} {post.author}
+                  </span>
+                </>
+              )}
+              <span>&middot;</span>
+              <span>
+                {readingTime} {bp.readTime}
+              </span>
+            </div>
+          </header>
+
+          {post.content}
+        </article>
+      </div>
+    </main>
+  );
+}

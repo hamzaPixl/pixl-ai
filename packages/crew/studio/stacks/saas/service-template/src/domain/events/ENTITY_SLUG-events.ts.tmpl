@@ -1,0 +1,11 @@
+/**
+ * {{ENTITY_NAME}} domain events
+ */
+
+export const {{ENTITY_NAME}}Events = {
+  CREATED: '{{ENTITY_SLUG}}.created',
+  UPDATED: '{{ENTITY_SLUG}}.updated',
+  DELETED: '{{ENTITY_SLUG}}.deleted',
+} as const;
+
+export type {{ENTITY_NAME}}EventType = (typeof {{ENTITY_NAME}}Events)[keyof typeof {{ENTITY_NAME}}Events];

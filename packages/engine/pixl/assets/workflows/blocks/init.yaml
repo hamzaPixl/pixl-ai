@@ -1,0 +1,19 @@
+id: init
+name: Initialization Block
+description: Refine user prompt into a structured design document
+version: 2.0.0
+variables:
+  design_file: "design.md"
+stages:
+  - id: refine-prompt
+    name: Refine Prompt
+    agent: default
+    prompt_ref: stages/refine-prompt
+    contract:
+      must_write:
+        - "{{design_file}}"
+      must_include_sections:
+        "{{design_file}}":
+          - "Requirements"
+          - "Constraints"
+          - "Acceptance Criteria"

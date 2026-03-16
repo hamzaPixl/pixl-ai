@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "pixl-crew hooks.json",
+  "description": "Event hook configuration for pixl-crew Claude Code plugin",
+  "type": "object",
+  "required": ["hooks"],
+  "properties": {
+    "hooks": {
+      "type": "object",
+      "properties": {
+        "SessionStart": { "$ref": "#/$defs/hookEntryArray" },
+        "Notification": { "$ref": "#/$defs/hookEntryArray" },
+        "PreToolUse": { "$ref": "#/$defs/hookEntryArray" },
+        "PostToolUse": { "$ref": "#/$defs/hookEntryArray" },
+        "Stop": { "$ref": "#/$defs/hookEntryArray" }
+      },
+      "additionalProperties": false
+    }
+  },
+  "$defs": {
+    "hookEntryArray": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/hookEntry" }
+    },
+    "hookEntry": {
+      "type": "object",
+      "required": ["matcher", "hooks"],
+      "properties": {
+        "matcher": {
+          "type": "string",
+          "description": "Tool name pattern to match. Use '*' for all, 'Write|Edit' for multiple, or specific tool name."
+        },
+        "hooks": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/hook" }
+        }
+      }
+    },
+    "hook": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["command", "prompt"],
+          "description": "Hook type: 'command' runs a shell command, 'prompt' sends to Claude for evaluation."
+        },
+        "command": {
+          "type": "string",
+          "description": "Shell command to execute. Use ${CLAUDE_PLUGIN_ROOT} for plugin-relative paths."
+        },
+        "prompt": {
+          "type": "string",
+          "description": "Prompt sent to Claude for evaluation. Use $ARGUMENTS for tool input."
+        },
+        "timeout": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 60,
+          "description": "Timeout in seconds for command hooks."
+        }
+      }
+    }
+  }
+}

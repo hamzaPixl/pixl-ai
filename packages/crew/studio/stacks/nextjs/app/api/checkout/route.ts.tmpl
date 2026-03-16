@@ -1,0 +1,56 @@
+import { NextResponse } from "next/server";
+import { stripe } from "@/lib/stripe";
+import { rateLimit } from "@/lib/rate-limit";
+import { z } from "zod";
+
+const checkoutSchema = z.object({
+  priceId: z.string().min(1, "Price ID is required"),
+  successUrl: z.string().url().optional(),
+  cancelUrl: z.string().url().optional(),
+});
+
+export async function POST(request: Request) {
+  try {
+    // Rate limiting
+    const forwarded = request.headers.get("x-forwarded-for");
+    const ip = forwarded?.split(",")[0]?.trim() ?? "unknown";
+    const { success } = rateLimit(`checkout:${ip}`, {
+      maxTokens: 10,
+      refillInterval: 60_000,
+    });
+    if (!success) {
+      return NextResponse.json(
+        { error: "Too many requests. Please try again later." },
+        { status: 429 }
+      );
+    }
+
+    // Parse and validate
+    const body = await request.json();
+    const result = checkoutSchema.safeParse(body);
+    if (!result.success) {
+      return NextResponse.json(
+        { error: "Validation failed", details: result.error.flatten() },
+        { status: 400 }
+      );
+    }
+
+    const { priceId, successUrl, cancelUrl } = result.data;
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "{{BASE_URL}}";
+
+    const session = await stripe.checkout.sessions.create({
+      mode: "payment",
+      line_items: [{ price: priceId, quantity: 1 }],
+      success_url: successUrl || `${baseUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: cancelUrl || `${baseUrl}/checkout/cancel`,
+    });
+
+    return NextResponse.json({ url: session.url });
+  } catch (error) {
+    console.error("[API] POST /api/checkout error:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}

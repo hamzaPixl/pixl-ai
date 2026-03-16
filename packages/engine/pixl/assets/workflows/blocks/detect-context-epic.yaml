@@ -1,0 +1,22 @@
+id: detect-context-epic
+name: Detect Epic Context Block
+description: Build structured project context for an epic
+version: 1.0.0
+variables:
+  context_file: "context.md"
+stages:
+  - id: detect-context
+    name: Detect Epic Context
+    agent: explorer
+    prompt_ref: stages/detect-context-epic
+    output_schema: context-payload.json
+    contract:
+      structured_output: true
+      must_write:
+        - "{{context_file}}"
+      must_include_sections:
+        "{{context_file}}":
+          - "Project Overview"
+          - "Architecture"
+          - "Integration Points"
+          - "Existing Patterns"

@@ -1,0 +1,99 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "./generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model PdfTemplate {
+  id          String    @id @default(uuid())
+  tenantId    String    @map("tenant_id")
+  name        String
+  description String?
+  htmlContent String    @map("html_content")
+  cssStyles   String?   @map("css_styles")
+  variables   Json?
+  pageSize    String    @default("A4") @map("page_size")
+  orientation String    @default("portrait")
+  margins     Json?
+  header      String?
+  footer      String?
+  status      String    @default("active")
+  version     Int       @default(0)
+  createdBy   String?   @map("created_by")
+  updatedBy   String?   @map("updated_by")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
+
+  @@unique([tenantId, name])
+  @@index([tenantId])
+  @@map("pdf_templates")
+}
+
+model PdfDocument {
+  id          String    @id @default(uuid())
+  tenantId    String    @map("tenant_id")
+  templateId  String?   @map("template_id")
+  name        String
+  data        Json?
+  filePath    String?   @map("file_path")
+  fileSize    BigInt?   @map("file_size")
+  pageCount   Int?      @map("page_count")
+  status      String    @default("pending")
+  generatedAt DateTime? @map("generated_at")
+  expiresAt   DateTime? @map("expires_at")
+  metadata    Json?
+  createdBy   String?   @map("created_by")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@index([tenantId])
+  @@index([templateId])
+  @@index([status])
+  @@map("pdf_documents")
+}
+
+model AuditLog {
+  id            String   @id @default(uuid())
+  tenantId      String   @map("tenant_id")
+  aggregateType String   @map("aggregate_type")
+  aggregateId   String   @map("aggregate_id")
+  action        String
+  actorType     String   @map("actor_type")
+  actorId       String?  @map("actor_id")
+  before        Json?
+  after         Json?
+  metadata      Json?
+  correlationId String?  @map("correlation_id")
+  occurredAt    DateTime @default(now()) @map("occurred_at")
+
+  @@index([tenantId])
+  @@index([aggregateType, aggregateId])
+  @@map("audit_log")
+}
+
+model Outbox {
+  id            String    @id @default(uuid())
+  tenantId      String    @map("tenant_id")
+  eventType     String    @map("event_type")
+  aggregateType String    @map("aggregate_type")
+  aggregateId   String    @map("aggregate_id")
+  payload       Json
+  metadata      Json?
+  status        String    @default("pending")
+  retryCount    Int       @default(0) @map("retry_count")
+  maxRetries    Int       @default(3) @map("max_retries")
+  lastError     String?   @map("last_error")
+  correlationId String?   @map("correlation_id")
+  scheduledFor  DateTime? @map("scheduled_for")
+  processedAt   DateTime? @map("processed_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  @@index([status, scheduledFor])
+  @@index([tenantId])
+  @@map("outbox")
+}

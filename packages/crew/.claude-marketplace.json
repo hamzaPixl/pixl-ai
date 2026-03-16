@@ -1,0 +1,12 @@
+{
+  "name": "pixl-local",
+  "description": "Local pixl plugin marketplace",
+  "plugins": [
+    {
+      "name": "pixl-crew",
+      "version": "6.0.3",
+      "description": "AI development crew with SaaS + Next.js studio scaffolding",
+      "path": "."
+    }
+  ]
+}

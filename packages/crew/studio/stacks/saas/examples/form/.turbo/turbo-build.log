@@ -1,0 +1,8 @@
+$ tsup src/main.ts --format esm
+CLI Building entry: src/main.ts
+CLI Using tsconfig: tsconfig.json
+CLI tsup v8.5.1
+CLI Target: es2022
+ESM Build start
+ESM dist/main.js 318.31 KB
+ESM ⚡️ Build success in 85ms

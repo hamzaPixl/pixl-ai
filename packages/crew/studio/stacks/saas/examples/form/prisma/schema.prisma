@@ -1,0 +1,94 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "./generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Form {
+  id          String    @id @default(uuid())
+  tenantId    String    @map("tenant_id")
+  name        String
+  description String?
+  schema      Json
+  settings    Json?
+  status      String    @default("draft")
+  version     Int       @default(0)
+  publishedAt DateTime? @map("published_at")
+  createdBy   String?   @map("created_by")
+  updatedBy   String?   @map("updated_by")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
+
+  submissions FormSubmission[]
+
+  @@map("forms")
+  @@index([tenantId])
+  @@index([status])
+}
+
+model FormSubmission {
+  id            String    @id @default(uuid())
+  tenantId      String    @map("tenant_id")
+  formId        String    @map("form_id")
+  data          Json
+  metadata      Json?
+  status        String    @default("pending")
+  submittedBy   String?   @map("submitted_by")
+  submittedAt   DateTime  @default(now()) @map("submitted_at")
+  processedAt   DateTime? @map("processed_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  form Form @relation(fields: [formId], references: [id])
+
+  @@map("form_submissions")
+  @@index([tenantId])
+  @@index([formId])
+  @@index([status])
+}
+
+model AuditLog {
+  id            String   @id @default(uuid())
+  tenantId      String   @map("tenant_id")
+  aggregateType String   @map("aggregate_type")
+  aggregateId   String   @map("aggregate_id")
+  action        String
+  actorType     String   @map("actor_type")
+  actorId       String?  @map("actor_id")
+  before        Json?
+  after         Json?
+  metadata      Json?
+  correlationId String?  @map("correlation_id")
+  occurredAt    DateTime @default(now()) @map("occurred_at")
+
+  @@map("audit_log")
+  @@index([tenantId])
+  @@index([aggregateType, aggregateId])
+}
+
+model Outbox {
+  id              String    @id @default(uuid())
+  tenantId        String    @map("tenant_id")
+  eventType       String    @map("event_type")
+  aggregateType   String    @map("aggregate_type")
+  aggregateId     String    @map("aggregate_id")
+  payload         Json
+  metadata        Json?
+  status          String    @default("pending")
+  retryCount      Int       @default(0) @map("retry_count")
+  maxRetries      Int       @default(3) @map("max_retries")
+  lastError       String?   @map("last_error")
+  correlationId   String?   @map("correlation_id")
+  scheduledFor    DateTime? @map("scheduled_for")
+  processedAt     DateTime? @map("processed_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+
+  @@map("outbox")
+  @@index([status, scheduledFor])
+  @@index([tenantId])
+}

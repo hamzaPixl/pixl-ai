@@ -1,0 +1,25 @@
+# Context Management
+
+## When to Compact
+
+- Use `/compact` or `/clear` when context exceeds ~60% of the window
+- Compact before starting a new, unrelated task
+- The PreCompact hook preserves critical session state automatically
+
+## Subagent Delegation
+
+- Use Explore agents for codebase searches that may require 3+ queries
+- Use `isolation: "worktree"` for agents that modify files independently
+- Use `run_in_background: true` for independent research while continuing other work
+
+## Skill Routing
+
+- Claude routes skills by semantic matching on descriptions — not by keyword
+- If a skill doesn't trigger, the description may need a "Use when..." clause
+- Check `skills/ROUTING.md` for the decision tree before building ad-hoc workflows
+
+## Context Budget
+
+- Skill descriptions (~100 words each × 71 skills) consume ~7K tokens at session start
+- Shorter descriptions free routing context for actual work
+- Move detailed trigger lists into SKILL.md body, keep description to 1-2 sentences

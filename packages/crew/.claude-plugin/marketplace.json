@@ -1,0 +1,17 @@
+{
+  "name": "pixl-local",
+  "owner": {
+    "name": "Hamza Mounir"
+  },
+  "metadata": {
+    "description": "Local pixl plugin marketplace",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "pixl-crew",
+      "description": "AI development crew with SaaS + Next.js studio scaffolding",
+      "source": "./"
+    }
+  ]
+}

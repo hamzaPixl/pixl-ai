@@ -1,0 +1,19 @@
+[project]
+name = "pixl-cli"
+version = "1.0.0"
+description = "Pixl CLI — local bridge to the pixl-engine"
+requires-python = ">=3.12"
+dependencies = ["pixl-engine", "click>=8.1"]
+
+[project.scripts]
+pixl = "pixl_cli.main:cli"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["pixl_cli"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"../crew" = "pixl_cli/_crew"

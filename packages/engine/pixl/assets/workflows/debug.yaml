@@ -1,0 +1,83 @@
+id: debug
+name: Debug Workflow
+description: Simplified RED-FIX-PROVE debugging with plugin-delegated sessions
+version: 1.0.0
+tags: [debug, bugfix]
+tier: orchestration
+workflow_format: v2
+session_mode: plugin
+routing:
+  auto_route: true
+  sub_invocable: false
+
+stages:
+  # Phase 1: Reproduce & Isolate — capture the bug and narrow the cause
+  - id: reproduce
+    name: Reproduce & Isolate
+    type: task
+    max_turns: 80
+    prompt: |
+      Systematically reproduce and isolate the bug.
+
+      1. Collect baseline: symptom, expected behavior, reproduction steps
+      2. Run tests, capture errors, add instrumentation if needed
+      3. Classify bug category (render/state, data/API, routing, build)
+      4. Binary search to narrow suspect area by ~50%
+
+      Save findings using `pixl artifact put`:
+      - `debug-context.md`: symptom, scope, environment, evidence
+      - `isolation-hypothesis.md`: category, narrowed suspect area, hypothesis
+    outputs: [debug-context.md, isolation-hypothesis.md]
+    contract:
+      must_write: [debug-context.md, isolation-hypothesis.md]
+
+  # Gate: Confirm reproduction before fixing
+  - id: confirm-repro
+    name: Confirm Reproduced
+    type: gate
+    timeout_minutes: 120
+    timeout_policy: reject
+    required_artifacts: [debug-context.md, isolation-hypothesis.md]
+    description: Confirm the bug has been reproduced and the hypothesis is sound
+
+  # Phase 2: Fix & Prove — minimal patch + regression test + proof bundle
+  - id: fix
+    name: Fix & Prove
+    type: task
+    max_turns: 150
+    prompt: |
+      Apply the smallest possible fix and prove it works.
+
+      Fix Order:
+      1. Minimal correctness patch based on isolation hypothesis
+      2. Add regression test that fails without the fix
+      3. Run full test suite — all tests must pass
+      4. Refactor only if necessary (after tests pass)
+
+      Proof Bundle (save to `proof-bundle.md` via `pixl artifact put`):
+      - Test results (pass/fail)
+      - Before/after evidence
+      - Root cause explanation (3-5 lines)
+      - Why it won't regress (link to test)
+    required_artifacts: [debug-context.md, isolation-hypothesis.md]
+    outputs: [proof-bundle.md]
+    contract:
+      must_write: [proof-bundle.md]
+
+  # Phase 3: Finalize — create PR
+  - id: finalize
+    name: Review & Finalize
+    type: task
+    max_turns: 100
+    prompt: |
+      Review the fix, ensure quality, and prepare for PR.
+      1. Self-review all modified files
+      2. Ensure tests pass and lint is clean
+      3. Create a PR with descriptive title and body using `gh pr create`
+
+loops:
+  - id: debug-loop
+    from: fix
+    to: reproduce
+    trigger: failure
+    max_iterations: 3
