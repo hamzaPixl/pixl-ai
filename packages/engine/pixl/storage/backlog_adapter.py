@@ -243,14 +243,23 @@ class BacklogStoreAdapter:
         d = self._store.get_feature(feature_id)
         return _dict_to_feature(d) if d else None
 
-    def update_feature(self, feature: Feature) -> bool:
-        """Update a feature from its Pydantic model. Returns True if found."""
+    def update_feature(self, feature_or_id: Feature | str, **fields: Any) -> bool:
+        """Update a feature. Accepts either a Feature model or (feature_id, **fields).
+
+        Returns True if found.
+        """
+        if isinstance(feature_or_id, str):
+            # Called as update_feature(feature_id, branch_name=..., ...)
+            return self._store.update_feature(feature_or_id, **fields)
+
+        # Called as update_feature(Feature(...))
+        feature = feature_or_id
         current = self._store.get_feature(feature.id)
         if not current:
             return False
 
-        fields = _feature_to_fields(feature)
-        self._store.update_feature(feature.id, **fields)
+        stored_fields = _feature_to_fields(feature)
+        self._store.update_feature(feature.id, **stored_fields)
 
         # Detect and add new notes (compare list lengths)
         existing_notes_count = len(current.get("notes", []))

@@ -1262,7 +1262,9 @@ class GraphExecutor:
         # Execute with orchestrator. Simulated success is allowed only in
         # explicit simulation contexts (tests/dev), never silently in production.
         try:
-            if self.orchestrator and node.task_config:
+            if allow_simulated_execution():
+                execution_result = execute_simulated(node, instance)
+            elif self.orchestrator and node.task_config:
                 execution_result = execute_with_orchestrator(
                     self,
                     node,
@@ -1270,8 +1272,6 @@ class GraphExecutor:
                     effective_model=effective_model,
                     artifact_handoff_manifest=artifact_handoff_manifest,
                 )
-            elif allow_simulated_execution():
-                execution_result = execute_simulated(node, instance)
             else:
                 missing = []
                 if not self.orchestrator:
