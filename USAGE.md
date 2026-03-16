@@ -200,22 +200,127 @@ Autonomy modes:
 
 ## 8. Crew Plugin (Claude Code)
 
-After `pixl setup`, the crew plugin adds agents and skills to Claude Code:
+The crew (`packages/crew/`) is a **Claude Code plugin** — a folder of markdown files (agents, skills, hooks, references) that Claude Code loads at startup. It turns Claude Code into a multi-agent development team.
+
+### How it gets registered
 
 ```bash
-# Agents (use via Claude Code Agent tool)
-orchestrator, architect, frontend-engineer, backend-engineer,
-fullstack-engineer, qa-engineer, devops-engineer, tech-lead,
-product-owner, security-engineer, explorer, build-error-resolver
-
-# Skills (invoke via / commands in Claude Code)
-/website          # build a full Next.js website
-/task-plan        # break down a feature into tasks
-/self-review-fix-loop  # iterative quality improvement
-/code-review      # multi-agent PR review
-/test-runner      # smart test execution
-# ... 71 skills total (see pixl CLAUDE.md for full list)
+pixl setup    # registers the crew plugin with Claude Code + installs companion plugins
 ```
+
+After setup, open Claude Code in any project — agents, skills, and hooks are immediately available.
+
+### Agents
+
+14 specialized agents that Claude delegates to via the `Agent` tool. Each runs at a specific model tier:
+
+| Tier | Agents | Why |
+|------|--------|-----|
+| **Opus** | orchestrator, architect, tech-lead, security-engineer | High-stakes design and review decisions |
+| **Sonnet** | qa-engineer, devops-engineer, product-owner, build-error-resolver | Structured, repetitive work |
+| **Haiku** | explorer, onboarding-agent, doc-updater | Fast, cheap read-only exploration |
+| **Inherit** | frontend-engineer, backend-engineer, fullstack-engineer | Uses parent context's model |
+
+Example usage in Claude Code:
+- "Build me a landing page" → delegates to `frontend-engineer`
+- "Review this PR" → delegates to `tech-lead`
+- "Where is the auth logic?" → delegates to `explorer`
+
+### Skills (slash commands)
+
+72 slash commands you invoke with `/skill-name` in Claude Code:
+
+| Category | Key skills |
+|----------|-----------|
+| **Build a website** | `/website`, `/website-project`, `/design-extraction`, `/shadcn-ui`, `/i18n-setup` |
+| **Modify a website** | `/website-theme` (colors/fonts), `/website-layout` (sections/grids) |
+| **Build backend** | `/ddd-pattern`, `/fastapi-service`, `/pydantic-api-endpoint`, `/saas-microservice` |
+| **Project scaffolds** | `/website-project`, `/fullstack-app`, `/admin-dashboard`, `/blog`, `/fastapi-api` |
+| **Quality & review** | `/self-review-fix-loop`, `/code-review`, `/cto-review`, `/spec-review`, `/code-reduction` |
+| **Testing** | `/test-runner`, `/test-writer`, `/eval-harness`, `/benchmark` |
+| **Audits** | `/schema-audit`, `/api-audit`, `/security-scan`, `/seo-audit`, `/dependency-review` |
+| **Planning** | `/task-plan`, `/sprint-planning`, `/migration-plan`, `/prd-pipeline` |
+| **DevOps** | `/docker-cloudrun`, `/pm2`, `/makefile` |
+| **Workflow** | `/claude-md`, `/skill-factory`, `/batch`, `/continuous-learning`, `/client-project-setup` |
+| **Intelligence** | `/intel`, `/strategic-intel`, `/vision-advisory` |
+
+### Hooks (automations)
+
+Event-driven hooks run automatically during Claude Code sessions:
+
+| Event | What happens |
+|-------|-------------|
+| **SessionStart** | Loads last 3 session summaries + recent decisions into context |
+| **PreCompact** | Saves session state before context window compacts |
+| **Stop** | Captures git diff stats, modified files, token costs |
+| **PostToolUse** | Quality checks (formatting, TDD, typecheck — depends on profile) |
+
+Control hook behavior with profiles:
+
+```bash
+PIXL_HOOK_PROFILE=minimal claude     # only critical hooks (fast exploratory sessions)
+PIXL_HOOK_PROFILE=standard claude    # critical + quality (default)
+PIXL_HOOK_PROFILE=strict claude      # everything including typecheck
+PIXL_DISABLED_HOOKS=typecheck claude # disable specific hooks
+```
+
+### Cross-session memory
+
+Hooks persist state across sessions in `.claude/memory/`:
+
+```
+.claude/memory/
+├── decisions.jsonl    # architectural decisions (auto-loaded on session start)
+├── instincts.jsonl    # learned patterns from /continuous-learning
+├── costs.jsonl        # per-session token costs
+└── sessions/          # session summaries (last 3 loaded on start)
+```
+
+When the pixl CLI is installed, hooks use `.pixl/pixl.db` (SQLite) as primary storage. Memory files are the fallback.
+
+### Studio stacks (scaffolding)
+
+Two production-ready template stacks in `studio/stacks/`:
+
+| Stack | What you get | Skill |
+|-------|-------------|-------|
+| **nextjs** | 75+ templates, 12 design archetypes, i18n, blog, Stripe, Supabase | `/website` |
+| **saas** | 18 foundation packages (identity, tenancy, RBAC, audit, outbox, DDD) | `/saas-microservice` |
+
+Scaffold interactively:
+
+```bash
+make scaffold STACK=nextjs
+```
+
+### Companion plugins
+
+`pixl setup` also installs 11 companion plugins:
+
+| Category | Plugins |
+|----------|---------|
+| **LSP** | `typescript-lsp`, `pyright-lsp`, `swift-lsp` — go-to-definition, find-references, type info |
+| **Security** | `supply-chain-risk-auditor`, `variant-analysis`, `property-based-testing`, `static-analysis`, `semgrep-rule-creator` (Trail of Bits) |
+| **Utilities** | `ralph-loop` (autonomous loops), `commit-commands` (`/amend`, `/fixup`, `/squash`), `playground` (interactive HTML) |
+
+Skip categories during setup:
+
+```bash
+pixl setup --skip-lsp --skip-security --skip-plugins
+```
+
+### Project routing
+
+| You want to... | Use |
+|----------------|-----|
+| Build a new website | `/website` or `/website-project` |
+| Build a SaaS backend | Orchestrator → `/saas-microservice` |
+| Build a fullstack app | Orchestrator → `/fullstack-app` |
+| Add an endpoint to existing service | Backend engineer (follows existing patterns) |
+| Refactor to DDD | `/ddd-pattern` |
+| Review code quality | `/self-review-fix-loop` or `/cto-review` |
+| Review a PR before merge | `/code-review` |
+| Plan a sprint | `/task-plan` + `/sprint-planning` |
 
 ---
 
