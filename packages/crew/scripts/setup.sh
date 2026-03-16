@@ -19,7 +19,7 @@ PLUGINS=(
   "ralph-loop@claude-plugins-official"
   "commit-commands@claude-plugins-official"
   "playground@claude-plugins-official"
-  "frontend-design@claude-code"
+  "frontend-design@claude-plugins-official"
 )
 
 sync_plugins() {
