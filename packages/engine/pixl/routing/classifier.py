@@ -25,10 +25,9 @@ class PromptClassifier:
     a structured RouterResult.
     """
 
-    def __init__(self, project_path: Path, model: str | None = None, *, sandbox_backend: object | None = None) -> None:
+    def __init__(self, project_path: Path, model: str | None = None) -> None:
         self.project_path = project_path
         self.model = model or load_providers_config(project_path).default_model
-        self._sandbox_backend = sandbox_backend
 
     def _load_prompt_template(self) -> str:
         """Load the router classification prompt from YAML."""
@@ -83,7 +82,7 @@ class PromptClassifier:
         """
         from pixl.orchestration.core import OrchestratorCore
 
-        orchestrator = OrchestratorCore(self.project_path, sandbox_backend=self._sandbox_backend)
+        orchestrator = OrchestratorCore(self.project_path)
         full_prompt = self._build_prompt(prompt)
 
         # First attempt

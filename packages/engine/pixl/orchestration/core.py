@@ -65,11 +65,8 @@ class OrchestratorCore:
     def __init__(
         self,
         project_path: Path,
-        *,
-        sandbox_backend: Any | None = None,
     ) -> None:
         self.project_path = project_path
-        self._sandbox_backend = sandbox_backend
         self.backlog_store = BacklogStore(project_path)
         self.boulder_store = BoulderStore(project_path)
         self.config_store = ConfigStore(project_path)
@@ -90,7 +87,6 @@ class OrchestratorCore:
         self.background = BackgroundManager(
             concurrency_config=self.providers_config.concurrency,
             project_path=project_path,
-            sandbox_backend=sandbox_backend,
         )
 
         # SDK event callback for real-time tracing (set by GraphExecutor)
@@ -352,18 +348,7 @@ class OrchestratorCore:
         command: str,
         options: ClaudeAgentOptions | None = None,
     ) -> None:
-        """Send a slash command to manage session state.
-
-        No-op when sandbox_backend is set — the container manages its own
-        session state internally.
-        """
-        if self._sandbox_backend is not None:
-            logger.debug("send_session_command skipped (sandbox_backend set): %s", command)
-            return
-
-        if os.environ.get("PIXL_REQUIRE_SANDBOX", "").strip().lower() in ("1", "true", "yes"):
-            logger.debug("send_session_command skipped (PIXL_REQUIRE_SANDBOX): %s", command)
-            return
+        """Send a slash command to manage session state."""
 
         if options is None:
             options = self._build_query_options(max_turns=1)
@@ -395,12 +380,6 @@ class OrchestratorCore:
     ) -> tuple[str, dict]:
         """Execute SDK query with optional streaming callback."""
         import time
-
-        if self._sandbox_backend is not None:
-            raise RuntimeError(
-                "Sandbox backend was provided but Daytona adapter is not available in this build. "
-                "Install the full pixl-platform package for sandbox support."
-            )
 
         start_time = time.time()
 

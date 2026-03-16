@@ -20,11 +20,6 @@ class PixlConfig(BaseModel):
     # Default settings
     default_model: str = Field(default="anthropic/claude-sonnet-4-6")
 
-    # Execution backend
-    execution_backend: str = Field(
-        default="sandbox",
-        description="Execution backend for agent sessions (sandbox or sdk)",
-    )
     # Claude settings
     permission_mode: str = Field(default="bypassPermissions")
     max_tokens: int = Field(default=8192)

@@ -189,7 +189,6 @@ pixl/
 ├── packages/engine/    # pixl-engine — Python orchestration engine
 ├── packages/cli/       # pixl-cli — Click CLI (bundles crew in wheel)
 ├── packages/crew/      # pixl-crew — Claude Code plugin
-├── docs/               # Architecture documentation
 └── scripts/            # Release tooling
 ```
 

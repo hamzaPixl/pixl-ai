@@ -1,8 +1,7 @@
-"""Core workflow execution — delegates to Daytona sandboxes.
+"""Core workflow execution.
 
 The API routes import from ``pixl.execution.workflow_runner`` to launch
-workflow sessions.  Execution ownership is tracked via sandbox lifecycle
-rather than DB leases (sandbox running = session alive).
+workflow sessions.
 """
 
 from __future__ import annotations
@@ -182,7 +181,6 @@ def _run_workflow_inner(
         set_worktree_baton_context,
     )
     from pixl.orchestration.core import OrchestratorCore
-    from pixl.orchestration.resolve import resolve_execution_backend
     from pixl.paths import get_sessions_dir
     from pixl.storage import SessionManager, WorkflowSessionStore
 
@@ -196,8 +194,6 @@ def _run_workflow_inner(
     _info = _get_project(project_id)
     if _info and _info.get("project_root"):
         _project_root = Path(_info["project_root"])
-
-    sandbox_backend = None
 
     try:
         session_store = WorkflowSessionStore(project_path)
@@ -229,14 +225,7 @@ def _run_workflow_inner(
                     branch_name=branch_name,
                     workspace_root=str(worktree_path),
                 )
-            backend = resolve_execution_backend(project_path)
-            if backend == "sandbox":
-                try:
-                    from pixl.execution.session_report_manager import _get_shared_sandbox_backend
-                    sandbox_backend = _get_shared_sandbox_backend()
-                except Exception as e:
-                    logger.warning("Shared DaytonaBackend unavailable (%s) — falling back to SDK backend", e)
-            orchestrator = OrchestratorCore(project_path, sandbox_backend=sandbox_backend)
+            orchestrator = OrchestratorCore(project_path)
         except Exception as e:
             if workflow_id == "resumed" and session.workspace_root:
                 # Reuse existing workspace for resumed sessions
@@ -245,7 +234,7 @@ def _run_workflow_inner(
                     session_id,
                     e,
                 )
-                orchestrator = OrchestratorCore(project_path, sandbox_backend=sandbox_backend)
+                orchestrator = OrchestratorCore(project_path)
             else:
                 logger.error("Failed to create worktree for session %s: %s", session_id, e)
                 # Mark session as ended so it doesn't appear active / get retried
@@ -505,10 +494,3 @@ def _run_workflow_inner(
             WorkflowRunnerManager.unregister_orchestrator(session_id)
         except Exception:
             logger.exception("Failed to unregister orchestrator for session %s", session_id)
-        if sandbox_backend is not None:
-            try:
-                from pixl.utils.async_compat import run_coroutine_sync
-
-                run_coroutine_sync(sandbox_backend.cancel(session_id))
-            except Exception:
-                logger.exception("Failed to cleanup sandbox for session %s", session_id)

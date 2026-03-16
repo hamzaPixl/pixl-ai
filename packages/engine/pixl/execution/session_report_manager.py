@@ -5,7 +5,6 @@ from __future__ import annotations
 import json
 import logging
 import os
-import threading
 import time
 from datetime import datetime
 from pathlib import Path
@@ -15,24 +14,6 @@ from pixl.utils.async_compat import run_coroutine_sync
 from pixl.utils.versioning import suggest_next_version
 
 logger = logging.getLogger(__name__)
-
-_shared_sandbox_backend = None
-_shared_backend_lock = threading.Lock()
-
-
-def set_shared_sandbox_backend(backend: object) -> None:
-    """Register the global DaytonaBackend so workflow runs reuse it."""
-    global _shared_sandbox_backend
-    with _shared_backend_lock:
-        _shared_sandbox_backend = backend
-
-
-def _get_shared_sandbox_backend():
-    """Return the shared DaytonaBackend, or raise if none was registered."""
-    with _shared_backend_lock:
-        if _shared_sandbox_backend is None:
-            raise RuntimeError("No shared DaytonaBackend registered")
-        return _shared_sandbox_backend
 
 
 REPORT_MODEL = "anthropic/claude-opus-4-6"
@@ -274,7 +255,6 @@ def generate_session_report(
     )
 
     from pixl.orchestration.core import OrchestratorCore
-    from pixl.orchestration.resolve import resolve_execution_backend
 
     project_root = _resolve_project_root(project_path)
     model_override = None
@@ -284,16 +264,7 @@ def generate_session_report(
         logger.debug("Unable to read session report model override", exc_info=True)
     model_name = resolve_report_model(project_root, db_override_model=model_override)
 
-    sandbox_backend = None
-    backend = resolve_execution_backend(project_root)
-    if backend == "sandbox":
-        try:
-            sandbox_backend = _get_shared_sandbox_backend()
-        except RuntimeError:
-            if os.environ.get("PIXL_REQUIRE_SANDBOX", "").strip().lower() in ("1", "true", "yes"):
-                raise RuntimeError("PIXL_REQUIRE_SANDBOX is set but no sandbox backend registered for reports")
-            logger.warning("Shared DaytonaBackend not registered — report will use SDK backend")
-    orchestrator = OrchestratorCore(project_root, sandbox_backend=sandbox_backend)
+    orchestrator = OrchestratorCore(project_root)
     llm_text, metadata = run_coroutine_sync(
         orchestrator.query_with_streaming(
             prompt=prompt,

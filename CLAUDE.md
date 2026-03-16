@@ -30,7 +30,6 @@ packages/
     ├── examples/               # CLAUDE.md templates
     ├── schemas/                # JSON schemas
     └── scripts/                # setup, release, scaffold
-docs/                           # architecture documentation
 scripts/release.sh              # monorepo release script
 .claude/rules/                  # coding style, testing, security, git, etc.
 .mcp.json                       # MCP servers (Sentry)

@@ -1,1 +1,0 @@
-"""Foundation configuration utilities."""

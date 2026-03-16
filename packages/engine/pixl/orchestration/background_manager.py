@@ -27,14 +27,11 @@ class BackgroundManager:
         self,
         concurrency_config: ConcurrencyConfig | None = None,
         project_path: Path | None = None,
-        *,
-        sandbox_backend: object | None = None,
     ) -> None:
         self._tasks: dict[str, BackgroundTask] = {}
         self._asyncio_tasks: dict[str, asyncio.Task[None]] = {}
 
         self._project_path = project_path or Path.cwd()
-        self._sandbox_backend = sandbox_backend
         self._providers_config = load_providers_config(self._project_path)
         config = concurrency_config or ConcurrencyConfig()
         self._concurrency = ConcurrencyManager(
@@ -75,13 +72,11 @@ class BackgroundManager:
         return TaskHandle(task_id=task_id, status=TaskStatus.RUNNING)
 
     async def _run_task(self, task: BackgroundTask) -> None:
-        """Run a background task via OrchestratorCore (routes to Daytona when available)."""
+        """Run a background task via OrchestratorCore."""
         try:
             from pixl.orchestration.core import OrchestratorCore
 
-            orchestrator = OrchestratorCore(
-                self._project_path, sandbox_backend=self._sandbox_backend
-            )
+            orchestrator = OrchestratorCore(self._project_path)
             result_text, metadata = await orchestrator.query_with_streaming(
                 prompt=task.prompt,
                 model=task.model or "claude-haiku-4-5",

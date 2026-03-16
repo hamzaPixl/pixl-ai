@@ -48,7 +48,6 @@ from pixl.execution.autonomy import (  # noqa: F401
     record_autonomy_outcome,
     resolve_latest_agent_task_pair as _resolve_latest_agent_task_pair,
     should_auto_approve_waiting_gate,
-    should_auto_merge_pr,
 )
 
 def _create_state_bridge(project_path: Path, event_callback=None):
@@ -118,9 +117,6 @@ def _run_workflow_inner(
 ) -> None:
     from pixl.execution.graph_executor import GraphExecutor
     from pixl.orchestration.core import OrchestratorCore
-    from pixl.orchestration.resolve import (
-        resolve_execution_backend,
-    )
     from pixl.paths import get_sessions_dir
     from pixl.storage import SessionManager, WorkflowSessionStore
 
@@ -151,16 +147,7 @@ def _run_workflow_inner(
 
     session_dir = get_sessions_dir(project_path) / session.id
 
-    sandbox_backend = None
-    backend = resolve_execution_backend(project_path)
-    if backend == "sandbox":
-        from pixl.execution.session_report_manager import _get_shared_sandbox_backend
-
-        try:
-            sandbox_backend = _get_shared_sandbox_backend()
-        except RuntimeError:
-            logger.warning("No shared DaytonaBackend — workflow will use SDK backend")
-    orchestrator = OrchestratorCore(exec_root, sandbox_backend=sandbox_backend)
+    orchestrator = OrchestratorCore(exec_root)
     session_manager = SessionManager(exec_root)
     # Use project_path (not exec_root) for state_bridge so entity transitions
     # work correctly when running in a git worktree. Worktrees don't have a
@@ -312,10 +299,3 @@ def _run_workflow_inner(
             )
     finally:
         WorkflowRunnerManager.unregister_orchestrator(session_id)
-        if sandbox_backend is not None:
-            try:
-                from pixl.utils.async_compat import run_coroutine_sync
-
-                run_coroutine_sync(sandbox_backend.cancel(session_id))
-            except Exception:
-                logger.exception("Failed to cleanup sandbox for session %s", session_id)

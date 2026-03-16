@@ -69,7 +69,6 @@ def create_project(
     project_root: str | None = None,
     global_dir: Path | None = None,
     github_clone_url: str | None = None,
-    daytona_manager: Any | None = None,
 ) -> dict[str, Any]:
     """Create a new project in the global pixl workspace.
 
@@ -126,28 +125,6 @@ def create_project(
     info = _project_info(project_dir)
     if info is None:
         raise RuntimeError(f"Failed to read back created project: {project_id}")
-
-    # Create Daytona sandbox if manager is provided and we have a git URL
-    if daytona_manager and github_clone_url:
-        import asyncio
-
-        try:
-            loop = asyncio.get_running_loop()
-        except RuntimeError:
-            loop = None
-
-        async def _create_sandbox():
-            sandbox_id = await daytona_manager.create_sandbox(
-                project_id=project_id,
-                git_url=github_clone_url,
-            )
-            return sandbox_id
-
-        if loop and loop.is_running():
-            # We're in an async context — schedule as a task
-            asyncio.ensure_future(_create_sandbox())
-        else:
-            asyncio.run(_create_sandbox())
 
     return info
 

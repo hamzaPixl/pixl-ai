@@ -1,6 +1,6 @@
 """Auto-PR hook — creates a pull request on workflow completion.
 
-Runs ``git push`` + ``gh pr create`` inside the sandbox (or locally)
+Runs ``git push`` + ``gh pr create`` locally
 when a workflow reaches the finalize stage with sufficient confidence.
 
 Workflow YAML usage::

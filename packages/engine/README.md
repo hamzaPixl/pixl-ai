@@ -11,7 +11,7 @@ pixl-engine is the brain of the Pixl Platform. It handles everything from prompt
 | Module | Description |
 |---|---|
 | **Models** | 20+ Pydantic v2 models for workflows, features, epics, sessions, boulders |
-| **Execution** | `GraphExecutor` (DAG engine), `ChainRunner` (epic orchestration), `DaytonaBackend` (sandbox execution) |
+| **Execution** | `GraphExecutor` (DAG engine), `ChainRunner` (epic orchestration) |
 | **State** | `TransitionEngine` + `StateMachine` with typed guards and effects |
 | **Storage** | SQLite WAL + FTS5 full-text search, per-project database isolation |
 | **Providers** | Anthropic, OpenAI, Gemini — behind a common `ProviderRegistry` |
@@ -35,7 +35,7 @@ pixl-engine is the brain of the Pixl Platform. It handles everything from prompt
 - **Baton Pattern** — Inter-stage context relay, accumulating results across workflow stages
 - **Supervisor Pattern** — `PMSupervisor` monitors for loops, pathological behavior
 - **Contract Validation** — Output quality gates via `ContractValidator`
-- **Protocol Pattern** — `ExecutionBackend` protocol with Daytona sandbox implementation
+- **Protocol Pattern** — Provider registry for pluggable LLM backends
 
 ## Installation
 
@@ -74,7 +74,6 @@ pixl/
 ├── recovery/      # RecoveryEngine, incident store
 ├── config/        # Workflow/agent YAML loaders
 ├── agents/        # SDK options builder, hooks
-├── foundation/    # CORS, auth middleware, pagination
 ├── git/           # PR automation
 ├── assets/        # Workflow YAMLs, prompts, JSON schemas
 └── observability/ # Logging, metrics

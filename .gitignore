@@ -27,3 +27,10 @@ node_modules/
 
 # Lock
 uv.lock
+
+# Claude memory (session-local)
+.claude/memory/instincts.jsonl
+.claude/memory/costs.jsonl
+
+# Pixl local data
+.pixl/
