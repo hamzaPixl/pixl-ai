@@ -159,19 +159,6 @@ When the pixl CLI is installed, agents use AST-indexed code search, artifacts, a
 - **Explorer agent** uses `pixl knowledge search` alongside Grep
 - See `references/intel/pixl-cli-reference.md` for the full command reference
 
-## MCP Servers
-
-Bundled in `.mcp.json` — available to all projects using pixl-crew:
-
-| Server   | Transport | What it provides                                           |
-| -------- | --------- | ---------------------------------------------------------- |
-| `sentry` | HTTP      | Production errors, stack traces, releases, Seer AI analysis |
-
-OAuth authentication on first use. Gives `build-error-resolver` and `qa-engineer` real production error data.
-
-Optional (install separately):
-- **Semgrep**: `semgrep login && semgrep install-semgrep-pro` — AST-aware SAST scanning (used by Trail of Bits `static-analysis` plugin)
-
 ## Companion Plugins
 
 Installed by `make setup` alongside pixl-crew:

@@ -9,7 +9,7 @@
 
 ### Your AI development team as a Claude Code plugin.
 
-14 agents &middot; 70 skills &middot; 1 MCP server &middot; 11 companion plugins &middot; 2 studio stacks
+14 agents &middot; 70 skills &middot; 11 companion plugins &middot; 2 studio stacks
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Claude Code](https://img.shields.io/badge/Claude_Code-plugin-blueviolet)](https://claude.ai/code)
@@ -119,14 +119,6 @@ After setup, open Claude Code in any project — agents and skills are immediate
 ## Companion Plugins
 
 Installed by `make setup` alongside pixl-crew.
-
-### MCP Servers
-
-| Server | Transport | What it provides |
-| :--- | :--- | :--- |
-| **Sentry** | HTTP | Production errors, stack traces, releases, Seer AI analysis |
-
-OAuth on first use. Optional: [Semgrep](https://semgrep.dev/) for AST-aware static analysis.
 
 ### LSP (Language Server Protocol)
 

@@ -32,7 +32,6 @@ packages/
     └── scripts/                # setup, release, scaffold
 scripts/release.sh              # monorepo release script
 .claude/rules/                  # coding style, testing, security, git, etc.
-.mcp.json                       # MCP servers (Sentry)
 ```
 
 ## Setup

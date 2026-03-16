@@ -2,7 +2,7 @@
 
 AI dev platform — orchestration engine + Claude Code crew plugin.
 
-**14 agents · 70 skills · 11 workflows · 1 MCP server**
+**14 agents · 70 skills · 11 workflows**
 
 ## What is pixl?
 
@@ -139,14 +139,6 @@ Installed automatically by `pixl setup`:
 | `semgrep-rule-creator` | trailofbits | Test-driven Semgrep rule authoring |
 
 Skip categories with flags: `pixl setup --skip-lsp --skip-security --skip-plugins`
-
-## MCP Servers
-
-Bundled in `.mcp.json`:
-
-| Server | What it provides |
-|--------|-----------------|
-| `sentry` | Production errors, stack traces, releases, Seer AI analysis |
 
 ## Engine Architecture
 
