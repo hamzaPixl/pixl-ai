@@ -73,6 +73,7 @@ Decision tree: "I want to build X" → use skill Y.
 
 | I want to...                         | Use                     |
 | ------------------------------------ | ----------------------- |
+| Execute a full PRD autonomously      | `/prd-pipeline`         |
 | Break a feature into tasks           | `/task-plan`            |
 | Validate implementation against spec | `/spec-review`          |
 | Update plan after spec changes       | `/task-plan` (drift mode) |
