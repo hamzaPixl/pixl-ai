@@ -41,8 +41,9 @@ def workflow_list(ctx: click.Context) -> None:
 @workflow.command("run")
 @click.option("--prompt", required=True, help="Prompt describing what to build.")
 @click.option("--workflow", "workflow_id", default=None, help="Workflow ID (auto if omitted).")
+@click.option("--yes", is_flag=True, default=False, help="Auto-approve all gates.")
 @click.pass_context
-def workflow_run(ctx: click.Context, prompt: str, workflow_id: str | None) -> None:
+def workflow_run(ctx: click.Context, prompt: str, workflow_id: str | None, yes: bool) -> None:
     """Run a workflow from a prompt.
 
     Classifies the prompt, creates a feature, loads the workflow,
@@ -53,10 +54,12 @@ def workflow_run(ctx: click.Context, prompt: str, workflow_id: str | None) -> No
     if not cli.is_json:
         click.echo(f"Starting workflow for: {prompt}")
 
-    _run_workflow_sync(cli, prompt, workflow_id)
+    _run_workflow_sync(cli, prompt, workflow_id, skip_approval=yes)
 
 
-def _run_workflow_sync(cli, prompt: str, workflow_id: str | None) -> None:
+def _run_workflow_sync(
+    cli, prompt: str, workflow_id: str | None, *, skip_approval: bool = False
+) -> None:
     """Synchronous workflow execution."""
     from pixl.config.workflow_loader import WorkflowLoader
 
@@ -94,9 +97,10 @@ def _run_workflow_sync(cli, prompt: str, workflow_id: str | None) -> None:
     # 3. Create session via WorkflowSessionStore (produces WorkflowSession model)
     try:
         from pixl.execution import GraphExecutor
+        from pixl.execution.workflow_helpers import get_waiting_gate_node, has_waiting_gates
         from pixl.orchestration.core import OrchestratorCore
         from pixl.paths import get_sessions_dir
-        from pixl.storage import WorkflowSessionStore
+        from pixl.storage import SessionManager, WorkflowSessionStore
 
         session_store = WorkflowSessionStore(cli.project_path)
         session = session_store.create_session(feature_id, snapshot)
@@ -110,6 +114,7 @@ def _run_workflow_sync(cli, prompt: str, workflow_id: str | None) -> None:
         session_dir.mkdir(parents=True, exist_ok=True)
 
         orchestrator = OrchestratorCore(cli.project_path)
+        session_manager = SessionManager(cli.project_path)
 
         executor = GraphExecutor(
             session,
@@ -117,6 +122,7 @@ def _run_workflow_sync(cli, prompt: str, workflow_id: str | None) -> None:
             session_dir,
             project_root=cli.project_path,
             orchestrator=orchestrator,
+            session_manager=session_manager,
             db=db,
         )
 
@@ -127,6 +133,24 @@ def _run_workflow_sync(cli, prompt: str, workflow_id: str | None) -> None:
         max_steps = 100
 
         while step_count < max_steps:
+            # Handle waiting gates before stepping
+            session = executor.session
+            if has_waiting_gates(session):
+                gate_node_id = get_waiting_gate_node(session)
+                if not gate_node_id:
+                    break
+
+                if skip_approval:
+                    if not cli.is_json:
+                        click.echo(f"    Auto-approving gate: {gate_node_id}")
+                    session = session_manager.approve_gate(
+                        session.id, gate_node_id, approver="auto", snapshot=snapshot,
+                    )
+                else:
+                    if not cli.is_json:
+                        click.echo(f"  Paused at gate: {gate_node_id} (use --yes to auto-approve)")
+                    break
+
             result = executor.step()
 
             if not result["executed"]:

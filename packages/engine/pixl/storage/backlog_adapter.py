@@ -396,19 +396,26 @@ class BacklogStoreAdapter:
         d = self._store.get_epic(epic_id)
         return _dict_to_epic(d) if d else None
 
-    def update_epic(self, epic: Epic) -> bool:
-        """Update an epic from its Pydantic model.
+    def update_epic(self, epic_or_id: Epic | str, **fields: Any) -> bool:
+        """Update an epic. Accepts either an Epic model or (epic_id, **fields).
 
-        Handles feature_ids reconciliation: if the epic's feature_ids
-        changed, updates the epic_id FK on affected features.
+        When called with an Epic model, handles feature_ids reconciliation:
+        if the epic's feature_ids changed, updates the epic_id FK on affected
+        features.
+
+        Returns True if found.
         """
-        fields: dict[str, Any] = {
+        if isinstance(epic_or_id, str):
+            return self._store.update_epic(epic_or_id, **fields)
+
+        epic = epic_or_id
+        update_fields: dict[str, Any] = {
             "title": epic.title,
             "original_prompt": epic.original_prompt,
             "workflow_id": epic.workflow_id,
             "status": epic.status.value if isinstance(epic.status, EpicStatus) else epic.status,
         }
-        self._store.update_epic(epic.id, **fields)
+        self._store.update_epic(epic.id, **update_fields)
 
         # Reconcile feature_ids: sync epic_id FK on features
         current = self._store.get_epic(epic.id)
@@ -452,20 +459,27 @@ class BacklogStoreAdapter:
         d = self._store.get_roadmap(roadmap_id)
         return _dict_to_roadmap(d) if d else None
 
-    def update_roadmap(self, roadmap: Roadmap) -> bool:
-        """Update a roadmap from its Pydantic model.
+    def update_roadmap(self, roadmap_or_id: Roadmap | str, **fields: Any) -> bool:
+        """Update a roadmap. Accepts either a Roadmap model or (roadmap_id, **fields).
 
-        Handles epic_ids reconciliation: if the roadmap's epic_ids
-        changed, updates the roadmap_id FK on affected epics.
+        When called with a Roadmap model, handles epic_ids reconciliation:
+        if the roadmap's epic_ids changed, updates the roadmap_id FK on
+        affected epics.
+
+        Returns True if found.
         """
-        fields: dict[str, Any] = {
+        if isinstance(roadmap_or_id, str):
+            return self._store.update_roadmap(roadmap_or_id, **fields)
+
+        roadmap = roadmap_or_id
+        update_fields: dict[str, Any] = {
             "title": roadmap.title,
             "original_prompt": roadmap.original_prompt,
             "status": roadmap.status.value
             if isinstance(roadmap.status, RoadmapStatus)
             else roadmap.status,
         }
-        self._store.update_roadmap(roadmap.id, **fields)
+        self._store.update_roadmap(roadmap.id, **update_fields)
 
         # Reconcile epic_ids: sync roadmap_id FK on epics
         current = self._store.get_roadmap(roadmap.id)

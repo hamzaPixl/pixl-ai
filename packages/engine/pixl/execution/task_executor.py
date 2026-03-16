@@ -911,6 +911,9 @@ def _tail_excerpt(text: str, limit: int = RAW_OUTPUT_EXCERPT_CHARS) -> str:
 def execute_simulated(node: Node, instance: dict) -> dict:
     """Execute task in simulation mode (no SDK call).
 
+    Generates a stub output based on the node's task_config so downstream
+    gates and edges see realistic payload metadata.
+
     Args:
         node: Node definition
         instance: Node instance
@@ -918,11 +921,20 @@ def execute_simulated(node: Node, instance: dict) -> dict:
     Returns:
         Execution result
     """
+    stub_output = f"[SIMULATED] Output for node: {node.id}"
+    if node.task_config:
+        artifact_name = getattr(node.task_config, "output_artifact", None)
+        if artifact_name:
+            stub_output = f"[SIMULATED] {artifact_name} for: {node.id}"
+
     return {
         "success": True,
         "state": NodeState.TASK_COMPLETED,
         "result_state": "success",
         "events": [],
         "final_event_type": EventType.TASK_COMPLETED,
-        "final_event_payload": {},
+        "final_event_payload": {
+            "simulated": True,
+            "output": stub_output,
+        },
     }
