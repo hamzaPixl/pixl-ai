@@ -40,7 +40,7 @@ def workflow_list(ctx: click.Context) -> None:
 
 @workflow.command("run")
 @click.option("--prompt", required=True, help="Prompt describing what to build.")
-@click.option("--workflow", "workflow_id", default=None, help="Workflow ID (auto-selects if not specified).")
+@click.option("--workflow", "workflow_id", default=None, help="Workflow ID (auto if omitted).")
 @click.pass_context
 def workflow_run(ctx: click.Context, prompt: str, workflow_id: str | None) -> None:
     """Run a workflow from a prompt.
@@ -145,7 +145,8 @@ def _run_workflow_sync(cli, prompt: str, workflow_id: str | None) -> None:
                 node_id = result.get("node_id", "?")
                 click.echo(f"    Step {step_count}: {node_id}")
 
-        final_status = session.status.value if hasattr(session.status, "value") else str(session.status)
+        status_val = session.status
+        final_status = status_val.value if hasattr(status_val, "value") else str(status_val)
 
         if not cli.is_json:
             click.echo(f"  Workflow complete ({final_status}, {step_count} steps).")
