@@ -1,7 +1,7 @@
 ---
 name: website-project
 description: "Orchestrates a full multi-agent website pipeline across four phases: parallel discovery (design-extraction + task-plan + reference site analysis), architecture (component tree + page structure), parallel implementation (scoped frontend-engineer waves + SEO/devops), and quality (self-review-fix-loop + tech-lead review). Use when asked to 'build a website project', 'orchestrate a website', 'multi-agent website', or 'website pipeline'."
-allowed-tools: Read, Write, Edit, Bash, Glob, Grep, Task
+allowed-tools: Read, Write, Edit, Bash, Glob, Grep, Task, WebFetch
 argument-hint: "<website brief, Figma URL, reference URL, or project description>"
 context: fork
 ---
@@ -73,11 +73,16 @@ Run `/website` Step 4 (scaffold) in the main context:
 2. Run `bash scripts/scaffold.sh studio/stacks/nextjs/ <project-dir> /tmp/<slug>-tokens.txt`
 3. Run `npm install && npx tsc --noEmit`
 
+### Pre-wave: Block Discovery
+
+Run `/website` Step 4.5 — read `references/frontend/block-sources.md`, install matched blocks, write `.context/block-plan.md`. Include block plan in Wave A context packets.
+
 ### Wave A: Build Sections (2-4 parallel frontend-engineer agents)
 
 Distribute sections from the architecture packet across N agents (see `/website` Step 5 for rules):
 
 - Each agent receives: design-spec.json tokens, its assigned section files, variant names, content
+- Block plan from `.context/block-plan.md` — agents must check for block assignments before hand-rolling
 - Each agent builds its sections following `/website` Section Building Rules
 - **Anti-conflict:** "DO NOT create or modify any files outside your assigned list"
 - **Mode C override:** In Mode C, agents receive `screenshot_path` and `content` per section from the spec. No content-agent output to merge. Assets must be copied to `public/assets/` before section building begins.

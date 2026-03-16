@@ -32,6 +32,7 @@ Shared domain knowledge auto-loaded by agents and skills via `references/` in CL
 
 | File                                     | Purpose                                                            |
 | ---------------------------------------- | ------------------------------------------------------------------ |
+| `frontend/block-sources.md`              | Pre-built block catalog (shadcn, Magic UI, Aceternity) with archetype affinity |
 | `frontend/component-variants.md`         | 920-line map of JSX patterns to 12 design archetypes               |
 | `frontend/design-archetypes.md`          | Visual archetype definitions (Corporate, Startup, Editorial, etc.) |
 | `frontend/design-reference-routing.md`   | How to route design references to extraction pipelines             |

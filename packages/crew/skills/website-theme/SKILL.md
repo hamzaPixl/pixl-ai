@@ -1,7 +1,7 @@
 ---
 name: website-theme
 description: "Apply a complete design theme to an existing website: colors, fonts, radius, shadows, motion, nav/footer variants. Proposes 3 archetype-based theme directions, user picks one, then applies all tokens to the codebase. Pure theming — no layout or section restructuring. Use when asked to retheme, recolor, change fonts, or reskin an existing site."
-allowed-tools: Read, Write, Edit, Bash, Glob, Grep
+allowed-tools: Read, Write, Edit, Bash, Glob, Grep, WebFetch
 argument-hint: "<path to existing website project OR design preferences OR reference URL>"
 ---
 
@@ -21,6 +21,7 @@ If the user provides a Figma URL or live website URL, follow the routing in `ref
 - `references/frontend/design-archetypes.md` — 12 archetypes with complete token sets
 - `references/frontend/sector-design-intelligence.md` — sector mappings, color psychology, layout patterns
 - `references/frontend/design-resources.md` — color formulas, typography scales, font catalog
+- `references/frontend/block-sources.md` — animated components that match archetype personalities
 
 ## Step 1: Audit Current Theme
 
@@ -163,6 +164,16 @@ grep -rn 'rounded-\(xl\|lg\|md\|2xl\)' components/  # → rounded-[var(--radius)
 grep -rn 'shadow-\(sm\|md\|lg\)' components/          # → shadow-[var(--shadow-md)]
 grep -rn 'duration-\[' components/                     # → var(--duration-micro)
 ```
+
+### 5.7 Suggest Animated Component Enhancements (Optional)
+
+If the new archetype has strong personality (Bold, Aurora, Glassmorphism, Cyberpunk, Playful), suggest animated component upgrades from `references/frontend/block-sources.md` that match the archetype:
+
+- List 3-5 Magic UI or Aceternity components that would elevate the new theme
+- Provide install commands for each
+- Note which existing sections they would enhance (e.g., "Replace static logo bar with Magic UI `marquee` for animated scrolling logos")
+
+Present suggestions to the user — do NOT install automatically (this is a theme skill, not a layout skill).
 
 ## Step 6: Verification
 

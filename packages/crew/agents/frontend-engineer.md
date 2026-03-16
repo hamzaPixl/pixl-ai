@@ -25,7 +25,7 @@ description: >
   </example>
 color: blue
 model: inherit
-tools: Read, Write, Edit, Bash, Glob, Grep, Task
+tools: Read, Write, Edit, Bash, Glob, Grep, Task, WebFetch
 skills:
   - website
   - shadcn-ui
@@ -56,7 +56,7 @@ Other skills are invoked within the workflow or standalone:
 - For a full redesign (theme + layout), invoke `/website-theme` then `/website-layout`
 - `/i18n-setup` — when multi-language support is requested
 
-This agent also has access to the `ui-layouts` registry (`search_components`, `get_docs`, `get_component_meta`, `get_source_code`) for browsing animated/interactive component blocks from the ui-layouts.com registry. Prefer ui-layouts implementations over plain static JSX when a matching component exists.
+This agent uses pre-built blocks from external component libraries to produce creative, varied outputs. Read `references/frontend/block-sources.md` for the full catalog (shadcn blocks, Magic UI, Aceternity). Prefer pre-built blocks over hand-rolling JSX — install via `npx shadcn@latest add` or fetch source via WebFetch.
 
 ## Role
 

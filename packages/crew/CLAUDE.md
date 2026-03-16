@@ -176,6 +176,7 @@ Installed by `make setup` alongside pixl-crew:
 | `property-based-testing` | trailofbits | QuickCheck-style property tests (Hypothesis, fast-check) |
 | `static-analysis` | trailofbits | Semgrep + CodeQL orchestration with SARIF parsing |
 | `semgrep-rule-creator` | trailofbits | Test-driven Semgrep rule authoring |
+| `frontend-design` | claude-code | Anti-AI-slop aesthetics: bold typography, distinctive colors, motion |
 
 ### Optional Security Hardening
 

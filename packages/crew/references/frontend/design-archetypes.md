@@ -46,6 +46,15 @@ LAYOUT_MAX_WIDTH: "6xl"
 
 **Real-world references:** Apple.com, Notion, Linear, Stripe.
 
+**Prescribed Variants:**
+- Hero: centered
+- Nav: bar
+- Footer: 4-column
+- Features: card-grid
+- Testimonials: single-spotlight
+- CTA: banner
+- Pricing: tier-cards
+
 ---
 
 ## 2. Bold
@@ -72,6 +81,15 @@ LAYOUT_MAX_WIDTH: "7xl"
 **Character:** Full-bleed hero. Large gradient backgrounds. Dramatic hover shadows. Vibrant saturated palette.
 
 **Real-world references:** Vercel, Figma, Pitch, Framer.
+
+**Prescribed Variants:**
+- Hero: fullscreen or asymmetric
+- Nav: transparent
+- Footer: dark-inverted
+- Features: stacked-full
+- Testimonials: card-carousel
+- CTA: split-visual
+- Pricing: toggle-plans
 
 ---
 
@@ -100,6 +118,15 @@ LAYOUT_MAX_WIDTH: "6xl"
 
 **Real-world references:** Duolingo, Slack, Notion templates, Canva.
 
+**Prescribed Variants:**
+- Hero: asymmetric
+- Nav: pill
+- Footer: dark-inverted
+- Features: card-grid
+- Testimonials: card-carousel
+- CTA: card
+- Pricing: toggle-plans
+
 ---
 
 ## 4. Corporate
@@ -126,6 +153,15 @@ LAYOUT_MAX_WIDTH: "7xl"
 **Character:** Split hero (text left, graphic right). Dark footer (split variant preferred over 4-column). Deep blues or navy palette. Data and statistics prominent.
 
 **Real-world references:** Salesforce, IBM, Deloitte, McKinsey.
+
+**Prescribed Variants:**
+- Hero: centered or split
+- Nav: bar
+- Footer: 4-column
+- Features: card-grid
+- Testimonials: card-carousel
+- CTA: banner
+- Pricing: comparison-table
 
 ---
 
@@ -154,6 +190,15 @@ LAYOUT_MAX_WIDTH: "7xl"
 
 **Real-world references:** Cartier, Aesop, Bang & Olufsen, Rapha.
 
+**Prescribed Variants:**
+- Hero: fullscreen
+- Nav: transparent
+- Footer: minimal
+- Features: stacked-full
+- Testimonials: single-spotlight
+- CTA: banner
+- Pricing: tier-cards
+
 ---
 
 ## 6. Organic
@@ -180,6 +225,15 @@ LAYOUT_MAX_WIDTH: "6xl"
 **Character:** Earthy palette (warm brown, olive, terracotta, cream). Solid grounded nav bar. Split hero with large photography.
 
 **Real-world references:** Sweetgreen, Patagonia, Aesop, Headspace.
+
+**Prescribed Variants:**
+- Hero: split
+- Nav: bar
+- Footer: split
+- Features: alternating-rows
+- Testimonials: single-spotlight
+- CTA: split-visual
+- Pricing: tier-cards
 
 ---
 
@@ -208,6 +262,15 @@ LAYOUT_MAX_WIDTH: "full"
 
 **Real-world references:** Bloomberg, Balenciaga, Craigslist, Hacker News.
 
+**Prescribed Variants:**
+- Hero: statement
+- Nav: split-bar
+- Footer: minimal
+- Features: icon-list
+- Testimonials: inline-quotes
+- CTA: banner
+- Pricing: tier-cards
+
 ---
 
 ## 8. Editorial
@@ -234,6 +297,15 @@ LAYOUT_MAX_WIDTH: "5xl"
 **Character:** Narrow max-width (5xl) for optimal reading. Dense but organized sections. Serif headings. Light, minimal footer.
 
 **Real-world references:** Medium, The New York Times, Substack, The Verge.
+
+**Prescribed Variants:**
+- Hero: statement
+- Nav: bar or sidebar
+- Footer: split
+- Features: alternating-rows
+- Testimonials: inline-quotes
+- CTA: banner
+- Pricing: tier-cards
 
 ---
 
@@ -262,6 +334,15 @@ LAYOUT_MAX_WIDTH: "7xl"
 
 **Real-world references:** Figma 2023 marketing, Gumroad, Read.cv, Pika.
 
+**Prescribed Variants:**
+- Hero: asymmetric
+- Nav: split-bar
+- Footer: dark-inverted
+- Features: icon-list
+- Testimonials: grid-mosaic
+- CTA: card
+- Pricing: toggle-plans
+
 ---
 
 ## 10. Glassmorphism
@@ -288,6 +369,15 @@ LAYOUT_MAX_WIDTH: "7xl"
 **Character:** Dark gradient base (deep purple, navy, near-black). Cards use backdrop-blur with semi-transparent white border. Geometric sans. Light text on dark. Glowing accent orbs in backgrounds.
 
 **Real-world references:** Arc Browser, Apple WWDC pages, Vercel AI.
+
+**Prescribed Variants:**
+- Hero: bento
+- Nav: transparent
+- Footer: dark-inverted
+- Features: bento
+- Testimonials: grid-mosaic
+- CTA: card
+- Pricing: tier-cards
 
 ---
 
@@ -316,6 +406,15 @@ LAYOUT_MAX_WIDTH: "7xl"
 
 **Real-world references:** Luma, Framer landing pages, some Anthropic pages.
 
+**Prescribed Variants:**
+- Hero: bento
+- Nav: pill
+- Footer: dark-inverted
+- Features: bento
+- Testimonials: grid-mosaic
+- CTA: card
+- Pricing: toggle-plans
+
 ---
 
 ## 12. Cyberpunk
@@ -342,6 +441,15 @@ LAYOUT_MAX_WIDTH: "7xl"
 **Character:** Near-black base (#0a0a0f). Neon accent (electric blue or hot magenta). Monospace or techno fonts. Glowing border effects via box-shadow. Grid/scanline texture overlays. Dense layout.
 
 **Real-world references:** Vercel (dark theme), Raycast, Linear dark mode.
+
+**Prescribed Variants:**
+- Hero: statement
+- Nav: split-bar
+- Footer: dark-inverted
+- Features: icon-list
+- Testimonials: inline-quotes
+- CTA: banner
+- Pricing: toggle-plans
 
 ---
 

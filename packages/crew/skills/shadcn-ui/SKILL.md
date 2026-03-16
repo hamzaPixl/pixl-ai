@@ -1,7 +1,7 @@
 ---
 name: shadcn-ui
-description: "Install, compose, and theme shadcn/ui components using the CLI and registry. Use when asked to add UI components, build forms, create data tables, or theme an interface with shadcn/ui."
-allowed-tools: Read, Write, Edit, Bash, Glob, Grep
+description: "Install, compose, and theme shadcn/ui components and blocks using the CLI and registry. Use when asked to add UI components, build forms, create data tables, install blocks, or theme an interface with shadcn/ui."
+allowed-tools: Read, Write, Edit, Bash, Glob, Grep, WebFetch
 argument-hint: "<component or UI feature to build>"
 ---
 
@@ -28,6 +28,15 @@ Install, compose, and theme shadcn/ui components. Supports interactive use, prog
 2. Identify component dependencies (e.g., Dialog needs Button)
 3. Plan installation order (dependencies first)
 4. Check for conflicts with existing components
+
+## Step 2.5: Blocks & External Registry
+
+Before installing primitives, check if a pre-built **block** covers the feature:
+- **shadcn blocks:** login (01-05), dashboard (01-07), sidebar (01-16), charts, calendar — `npx shadcn@latest add <block> --yes`
+- **Magic UI:** 150+ animated components — `npx shadcn@latest add "https://magicui.design/r/<name>" --yes`
+- **Aceternity:** 100+ decorative components — copy from https://ui.aceternity.com
+
+See `references/frontend/block-sources.md` for archetype affinity and section-to-block mappings.
 
 ## Step 3: Install
 

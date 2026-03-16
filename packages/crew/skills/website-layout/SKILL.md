@@ -1,7 +1,7 @@
 ---
 name: website-layout
 description: "Restructure the layout of an existing website: section order, hero variants, component shapes (cards, bento, lists, splits), spacing density, grid patterns, and section composition. Pure layout — no color, font, or token changes. Use when asked to restructure sections, change layout style, reorganize page flow, or change how components are shaped and arranged."
-allowed-tools: Read, Write, Edit, Bash, Glob, Grep
+allowed-tools: Read, Write, Edit, Bash, Glob, Grep, WebFetch
 argument-hint: "<path to existing website project OR reference URL>"
 ---
 
@@ -21,6 +21,8 @@ If the user provides a Figma URL or live website URL, follow the routing in `ref
 
 - `references/frontend/design-archetypes.md` — layout patterns per archetype (grid, density, section shapes)
 - `references/frontend/sector-design-intelligence.md` — sector layout recommendations, component matrix
+- `references/frontend/block-sources.md` — pre-built blocks and animated components for section restructuring
+- `references/frontend/component-variants.md` — canonical variant definitions with JSX structural sketches
 
 ## Step 1: Audit Current Layout
 
@@ -62,6 +64,8 @@ Each proposition must use a **structurally different** layout approach:
 - `bento` — hero broken into a grid of tiles
 - `statement` — oversized single headline, minimal content
 
+For JSX structural sketches of each variant, read `references/frontend/component-variants.md`.
+
 **Section shapes:**
 
 - `card-grid` — 3-col cards with icon/image/text
@@ -73,6 +77,8 @@ Each proposition must use a **structurally different** layout approach:
 - `stats-row` — horizontal metrics band
 - `testimonial-carousel` — sliding quotes
 - `comparison-table` — side-by-side feature matrix
+
+For JSX structural sketches of each section shape, read `references/frontend/component-variants.md`.
 
 **Grid patterns:**
 
@@ -145,6 +151,8 @@ For each page file:
 - Update section wrappers with chosen grid pattern and density classes
 
 ### 4.2 Update Section Components
+
+Before hand-rolling a new section shape, check `references/frontend/block-sources.md` for a pre-built block that matches the target variant. Install via `npx shadcn@latest add` (shadcn blocks, Magic UI) or fetch via WebFetch (Aceternity). Adapt the block to match existing design tokens rather than writing JSX from scratch.
 
 For each section in the chosen layout:
 

@@ -1,7 +1,7 @@
 ---
 name: website
 description: "Build a production-ready Next.js website. Three modes: (A) Discovery — interactive Q&A → design → content → scaffold → build → polish, (B) Spec-fed — consumes a design-spec.json, skips discovery/design, builds directly, (C) Replicate — consumes a design-spec.json from URL extraction, exact visual match. The canonical 8-step workflow for all website creation in pixl-crew."
-allowed-tools: Read, Write, Edit, Bash, Glob, Grep, Task
+allowed-tools: Read, Write, Edit, Bash, Glob, Grep, Task, WebFetch
 argument-hint: "<website description, project brief, Figma URL, reference URL, or path to design-spec.json>"
 context: fork
 ---
@@ -126,9 +126,9 @@ Generate a unique, sector-appropriate design system. **Read the design reference
 
 ##### Procedure
 
-This step walks through archetype selection, color palette generation, typography pairing, spacing/shape/motion/shadow token definition, component variant selection, and ui-layouts browsing. The output is a complete `design.output` object with every token populated.
+This step walks through archetype selection, color palette generation, typography pairing, spacing/shape/motion/shadow token definition, component variant selection, and block planning. The output is a complete `design.output` object with every token populated.
 
-For the complete design system procedure (archetype selection, color palette, typography, spacing, motion, shadows, layout variants, component variants, design brief compilation, ui-layouts browsing), read `references/frontend/website-design-system.md`.
+For the complete design system procedure (archetype selection, color palette, typography, spacing, motion, shadows, layout variants, component variants, design brief compilation, block planning), read `references/frontend/website-design-system.md`.
 
 ##### Output Schema (top-level keys)
 
@@ -170,6 +170,16 @@ Initialize the project from studio templates using the bulk scaffold script:
 3. **Install & verify** — Run `npm install && npx tsc --noEmit` to confirm a clean build
 4. **Spot-check** — Read `lib/design-config.ts` and `app/globals.css` to verify tokens were replaced correctly
 
+## Step 4.5: Block & Component Discovery
+
+After scaffolding, discover and install pre-built blocks matching the design's archetype. Read `references/frontend/block-sources.md`.
+
+1. Check the **Archetype Affinity Map** and **Section-to-Block Mapping** for matches
+2. Selection priority: shadcn blocks > Magic UI > Aceternity > hand-roll
+3. Install matched blocks: `npx shadcn@latest add <block> --yes` (or `npx shadcn@latest add "https://magicui.design/r/<component>" --yes`)
+4. Document assignments in `.context/block-plan.md` (section | source | component | install command)
+5. Include block plan in context packet for Step 5 agents
+
 ## Step 5: Build Sections (Parallel Waves)
 
 **You MUST spawn parallel sub-agents via the `Task` tool.** Do NOT build sections sequentially in the main context — this wastes turns and loses the quality benefits of isolated agent contexts. For parallel spawning patterns, see `references/methodology/parallel-execution.md`.
@@ -183,6 +193,7 @@ Before spawning agents, compile a **context packet** string containing:
 - All design token values from `lib/design-config.ts`
 - **Selected component variant names** from Step 2.8 (hero, nav, footer, features, testimonials, cta, pricing)
 - Content/copy for each section from Step 3
+- Block plan from `.context/block-plan.md` — agents must check for block assignments before hand-rolling
 - CSS variable contract (shadow, duration, ease variable names)
 - Section building rules (below)
 - The archetype name and personality notes
@@ -237,6 +248,7 @@ After both waves complete:
 
 ### Section Building Rules
 
+- **Check block plan first** — read `.context/block-plan.md`. If a pre-built block exists for your section, start from the installed code and adapt to archetype tokens. Do NOT hand-roll sections with block assignments.
 - **Always implement the selected variant** — read the structural sketch from `references/frontend/component-variants.md` and build that specific layout, not a generic default
 - **Always use CSS variables** for shadows (`var(--shadow-sm)`), animation timing (`var(--duration-micro)`), and easing (`var(--ease-default)`)
 - **Always use the design config** for section padding, max-width, and border radius

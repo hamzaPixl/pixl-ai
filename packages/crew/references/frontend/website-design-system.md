@@ -76,6 +76,8 @@ Before starting, read these files to inform your decisions:
 
 **Read `references/frontend/component-variants.md`** and select a named variant for each component category based on the archetype. This is what makes each website structurally unique — tokens alone only change colors, not layout.
 
+**Use the prescribed variants.** Each archetype in `references/frontend/design-archetypes.md` has a "Prescribed Variants" block. Use those variants unless the user explicitly requests otherwise.
+
 Select and record:
 
 - **Hero variant** — e.g., `split`, `fullscreen`, `bento`, `statement` (NOT always `centered`)
@@ -137,14 +139,12 @@ design.output:
 
 **Every token must have a value. Every variant must be explicitly selected.** Do not leave any token empty or undefined. Do not default every project to the same variant combination.
 
-### 2.10 Browse ui-layouts for Component Inspiration
+### 2.10 Plan Block & Animated Component Usage
 
-After selecting archetype and variants, search the `ui-layouts` registry for animated/interactive component blocks that match the selected variants:
+Consult `references/frontend/block-sources.md` to identify pre-built blocks for each section:
 
-1. Use `search_components` to find components matching each variant (e.g., search "hero split", "pricing cards", "testimonial carousel")
-2. Use `get_component_meta` to evaluate fit — check if the component's style matches the archetype personality
-3. Use `get_source_code` to retrieve implementation code for any components you plan to use
-4. **Prefer ui-layouts implementations** over plain static JSX when a matching component exists — they come with built-in animations and interactions
-5. Record which ui-layouts components will be used in the design brief so section-building agents know to integrate them
+1. Check the **Archetype Affinity Map** for animated components matching the archetype
+2. Check the **Section-to-Block Mapping** for each planned section
+3. Add a `blocks:` field to the design brief noting recommended blocks per section (source, component, install command)
 
-This step is optional but strongly recommended — it produces more polished, interactive results than hand-rolling every component.
+Block installation happens in Step 4.5. This step only records recommendations in the design output.
