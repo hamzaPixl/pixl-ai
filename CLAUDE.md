@@ -22,7 +22,7 @@ packages/
 └── crew/                       # pixl-crew (bash/md) — NOT a Python package
     ├── .claude-plugin/
     ├── agents/                 # 14 agents
-    ├── skills/                 # 72 skills (see skills/ROUTING.md)
+    ├── skills/                 # 73 skills (see skills/ROUTING.md)
     ├── hooks/                  # event hooks
     ├── references/             # shared domain knowledge
     ├── studio/stacks/          # nextjs, saas scaffolds
@@ -121,7 +121,7 @@ Global options: `--json` (JSON output), `--project <path>` (project root).
 **Utilities**: `/file-parser`
 **Marketing**: `/content-marketing`
 **DevOps**: `/docker-cloudrun`, `/pm2`, `/makefile`, `/docker-prisma-setup`
-**Planning**: `/task-plan`, `/content-pipeline`, `/sprint-planning`, `/task-persist`, `/migration-plan`, `/prd-pipeline`
+**Planning**: `/prd-analysis`, `/task-plan`, `/content-pipeline`, `/sprint-planning`, `/task-persist`, `/migration-plan`, `/prd-pipeline`
 **Workflow**: `/pr-creation`, `/claude-md`, `/skill-factory`, `/multi-agent-pipeline`, `/ralph-loop-crew`, `/context-packet-template`, `/crew-init`, `/studio-guide`, `/session-export`, `/session-retrospective`, `/client-project-setup`, `/strategic-compact`, `/continuous-learning`, `/batch`
 **Swift**: `/swift-patterns`
 **Project types**: `/website-project`, `/saas-microservice`, `/fullstack-app`, `/admin-dashboard`, `/blog`, `/fastapi-api`

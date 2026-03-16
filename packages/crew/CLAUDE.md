@@ -8,7 +8,7 @@ Claude Code plugin — AI dev crew with agents, skills, and studio templates.
 .claude-plugin/plugin.json   # manifest
 Makefile                     # setup, release, check
 agents/                      # 14 agents
-skills/                      # 71 skills (see skills/ROUTING.md for decision tree)
+skills/                      # 72 skills (see skills/ROUTING.md for decision tree)
 hooks/hooks.json             # event hooks (routed via run-with-flags.sh orchestrator)
 references/                  # shared domain knowledge (see references/INDEX.md, AGENT-REGISTRY.md)
 contexts/                    # dynamic context overlays (dev, research, review)
@@ -59,7 +59,7 @@ make scaffold STACK=nextjs   # interactive project scaffold
 **Utilities**: `/file-parser`
 **Marketing**: `/content-marketing`
 **DevOps**: `/docker-cloudrun`, `/pm2`, `/makefile`, `/docker-prisma-setup`
-**Planning**: `/task-plan`, `/content-pipeline`, `/sprint-planning`, `/task-persist`, `/migration-plan`, `/prd-pipeline`
+**Planning**: `/prd-analysis`, `/task-plan`, `/content-pipeline`, `/sprint-planning`, `/task-persist`, `/migration-plan`, `/prd-pipeline`
 **Workflow**: `/pr-creation`, `/claude-md`, `/skill-factory`, `/multi-agent-pipeline`, `/ralph-loop-crew`, `/context-packet-template`, `/crew-init`, `/studio-guide`, `/session-export`, `/session-retrospective`, `/client-project-setup`, `/strategic-compact`, `/continuous-learning`, `/batch`
 **Swift**: `/swift-patterns`
 **Scripts**: `download-assets.sh` (asset downloading), `visual-diff.mjs` (pixelmatch visual regression)
