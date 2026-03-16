@@ -2,7 +2,7 @@
 
 AI dev platform — orchestration engine + Claude Code crew plugin.
 
-**14 agents · 70 skills · 11 workflows**
+**14 agents · 72 skills · 11 workflows**
 
 ## What is pixl?
 
@@ -10,7 +10,7 @@ Three components, one install:
 
 1. **Engine** — DAG-based workflow orchestration, multi-provider LLMs (Anthropic, OpenAI, Gemini), SQLite storage with FTS5, AST-indexed knowledge search
 2. **CLI** — `pixl` binary for projects, workflows, sessions, artifacts, knowledge, and crew setup
-3. **Crew** — Claude Code plugin with 14 specialized agents, 70 skills, event hooks, and studio templates
+3. **Crew** — Claude Code plugin with 14 specialized agents, 72 skills, event hooks, and studio templates
 
 ```
 User → pixl CLI → Engine (DAG, LLM, Storage) → Claude Agent SDK
@@ -49,12 +49,12 @@ pixl [--json] [--project PATH] COMMAND
 | Command | Description |
 |---------|-------------|
 | `pixl project init` | Initialize a `.pixl/` project directory |
-| `pixl workflow run` | Execute a workflow template |
+| `pixl workflow run` | Execute a workflow template (`--yes` to auto-approve gates) |
 | `pixl session list` | List workflow sessions |
 | `pixl artifact list` | List build artifacts |
 | `pixl knowledge build` | Build AST-indexed knowledge base |
 | `pixl knowledge search` | Search knowledge base |
-| `pixl state get` | Get project state |
+| `pixl state show` | Show entity state and transitions |
 | `pixl events list` | List execution events |
 | `pixl config get` | Get project configuration |
 | `pixl setup` | Register crew plugin with Claude Code |
@@ -82,9 +82,9 @@ The crew plugin provides 14 specialized agents that Claude Code can delegate to:
 
 ## Skills
 
-70 skills organized by domain:
+72 skills organized by domain:
 
-**Frontend** `/website` · `/design-extraction` · `/shadcn-ui` · `/svg-icon-creation` · `/i18n-setup` · `/website-theme` · `/website-layout` · `/website-redesign`
+**Frontend** `/website` · `/design-extraction` · `/shadcn-ui` · `/svg-icon-creation` · `/i18n-setup` · `/website-theme` · `/website-layout`
 
 **Backend** `/ddd-pattern` · `/fastapi-service` · `/pydantic-api-endpoint`
 
@@ -98,7 +98,7 @@ The crew plugin provides 14 specialized agents that Claude Code can delegate to:
 
 **Project Scaffolding** `/website-project` · `/saas-microservice` · `/fullstack-app` · `/admin-dashboard` · `/blog` · `/fastapi-api`
 
-**Intelligence** `/intel` · `/strategic-intel`
+**Intelligence** `/intel` · `/strategic-intel` · `/vision-advisory`
 
 ## Studio Stacks
 

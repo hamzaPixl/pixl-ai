@@ -22,7 +22,7 @@ packages/
 └── crew/                       # pixl-crew (bash/md) — NOT a Python package
     ├── .claude-plugin/
     ├── agents/                 # 14 agents
-    ├── skills/                 # 71 skills (see skills/ROUTING.md)
+    ├── skills/                 # 72 skills (see skills/ROUTING.md)
     ├── hooks/                  # event hooks
     ├── references/             # shared domain knowledge
     ├── studio/stacks/          # nextjs, saas scaffolds
@@ -81,12 +81,12 @@ WorkflowTemplate → WorkflowSession → GraphExecutor → ChainRunnerManager �
 | Command | Description |
 |---------|-------------|
 | `pixl project init` | Initialize a `.pixl/` project directory |
-| `pixl workflow run` | Execute a workflow template |
+| `pixl workflow run` | Execute a workflow template (`--yes` to auto-approve gates) |
 | `pixl session list` | List workflow sessions |
 | `pixl artifact list` | List build artifacts |
 | `pixl knowledge build` | Build AST-indexed knowledge base |
 | `pixl knowledge search` | Search knowledge base |
-| `pixl state get` | Get project state |
+| `pixl state show` | Show entity state and transitions |
 | `pixl events list` | List execution events |
 | `pixl config get` | Get project configuration |
 | `pixl setup` | Register crew plugin with Claude Code |
@@ -127,7 +127,7 @@ Global options: `--json` (JSON output), `--project <path>` (project root).
 **Project types**: `/website-project`, `/saas-microservice`, `/fullstack-app`, `/admin-dashboard`, `/blog`, `/fastapi-api`
 **Plugin dev**: `/agent-development`, `/command-development`, `/hook-development`, `/plugin-settings`, `/plugin-structure`, `/skill-factory`
 **Database/Payments**: `/supabase-postgres-best-practices`, `/stripe-best-practices`
-**Intelligence**: `/intel`, `/strategic-intel`
+**Intelligence**: `/intel`, `/strategic-intel`, `/vision-advisory`
 
 ## Hooks & Memory
 
