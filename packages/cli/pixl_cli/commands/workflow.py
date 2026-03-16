@@ -86,7 +86,7 @@ def _run_workflow_sync(cli, prompt: str, workflow_id: str | None) -> None:
         config = loader.load_workflow(workflows[0]["id"])
 
     template = loader.convert_to_template(config)
-    snapshot = template.snapshot
+    snapshot = template.current_snapshot
 
     if not cli.is_json:
         click.echo(f"  Workflow: {config.id} v{config.version}")
@@ -104,12 +104,6 @@ def _run_workflow_sync(cli, prompt: str, workflow_id: str | None) -> None:
 
         if not cli.is_json:
             click.echo(f"  Session: {session_id}")
-
-        # Also track in PixlDB for observability
-        db.sessions.create_session(
-            feature_id=feature_id,
-            snapshot_hash=snapshot.snapshot_hash,
-        )
 
         # 4. Execute via GraphExecutor
         session_dir = get_sessions_dir(cli.project_path) / session_id
