@@ -159,6 +159,14 @@ python -m pytest --cov=[module] --cov-report=term-missing [test-file]
 - [ ] Consider property-based tests for [pure functions]
 ```
 
+## Gotchas
+
+- Don't mock what you don't own — wrapping third-party APIs in your own adapter and mocking that adapter is safer than mocking the library directly, which breaks when the library changes
+- Snapshot tests are brittle and create maintenance burden — prefer explicit assertions over `.toMatchSnapshot()` because snapshots get blindly updated and hide regressions
+- Test file placement must match the project's existing convention (co-located `*.test.ts` vs `__tests__/` directory vs `tests/` mirror) — check existing tests first before creating new ones in the wrong location
+- Async tests need proper `await` or `return` on promises — a missing `await` causes the test to pass vacuously because the assertion never executes
+- Coverage numbers lie — 100% line coverage does not mean all edge cases are tested; focus on behavioral coverage (error paths, boundary values, concurrent access) over line metrics
+
 ## Anti-Patterns
 
 - Don't test implementation details (private methods, internal state)

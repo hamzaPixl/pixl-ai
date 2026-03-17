@@ -97,6 +97,19 @@ For each table:
    - Migrations that should backfill data
    - Index creation on large tables (should be CONCURRENTLY)
 
+## Gotchas
+
+- Composite indexes have column order dependency — `(tenant_id, created_at)` is NOT the same as `(created_at, tenant_id)` for query optimization. The leading column must match the query's WHERE/ORDER BY pattern.
+- Prisma's `@@unique` doesn't create a covering index — you may still need a separate `@@index` for query performance on fields included in the unique constraint.
+- SQLite has no ALTER COLUMN — schema changes require table recreation, which can cause data loss if not scripted carefully. Always verify migration scripts on a copy first.
+- Foreign keys without indexes cause full table scans on JOIN/DELETE — always index FK columns, even if the ORM doesn't do it automatically.
+- `ON DELETE CASCADE` can cause surprising data loss — audit cascade chains before recommending. A single DELETE on a parent can silently wipe rows across many tables.
+
+## Helper Scripts
+
+- `scripts/detect-orm.sh [path]` — auto-detects ORM type (prisma, sqlalchemy, drizzle, raw-sql)
+- `scripts/audit-indexes.sh [schema]` — extracts index coverage from Prisma schemas
+
 ## Step 7: Scorecard
 
 Output a summary scorecard:

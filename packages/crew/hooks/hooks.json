@@ -83,6 +83,11 @@
             "type": "command",
             "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/run-with-flags.sh enforce-skill quality ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/enforce-skill-first.sh",
             "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/run-with-flags.sh prd-pipeline-scope-guard quality ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/prd-pipeline-scope-guard.sh",
+            "timeout": 5
           }
         ]
       }

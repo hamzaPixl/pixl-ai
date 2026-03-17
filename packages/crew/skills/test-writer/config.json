@@ -1,0 +1,23 @@
+{
+  "$schema": "../../schemas/skill-config.schema.json",
+  "description": "User defaults for /test-writer",
+  "settings": {
+    "framework": {
+      "description": "Test framework preference",
+      "type": "string",
+      "enum": ["vitest", "jest", "pytest"],
+      "default": null
+    },
+    "coverage_threshold": {
+      "description": "Minimum coverage percentage to target",
+      "type": "number",
+      "default": 80
+    },
+    "style": {
+      "description": "Test style preference",
+      "type": "string",
+      "enum": ["describe-it", "test-only", "class-based"],
+      "default": "describe-it"
+    }
+  }
+}

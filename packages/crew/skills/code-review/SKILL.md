@@ -146,6 +146,28 @@ Confidence boosters:
 - Issue matches a known anti-pattern from `references/standards/code-review.md`: +5
 - Issue is in a critical path (auth, payments, data integrity): +5
 
+## Gotchas
+
+- Large PRs (>500 lines) degrade review quality — recommend splitting before reviewing. Reviewers lose track of cross-file interactions in large diffs.
+- Confidence scores below 70% should be flagged as "needs human verification" — don't auto-post low-confidence findings as definitive issues.
+- Security findings should never be posted as public PR comments — use private channels or draft comments to avoid disclosing vulnerabilities in the open.
+- The 3-reviewer pattern consumes significant tokens — for small PRs (<100 lines), a single reviewer pass is sufficient. Only use full 3-reviewer mode for substantial changes.
+- Review diff context is limited — if a finding references code outside the diff, verify it exists before reporting. Stale references cause false positives.
+
+## Data Logging
+
+After completing a review, persist metadata for trend tracking:
+
+```bash
+DATA_DIR="${CLAUDE_PLUGIN_DATA:-${HOME}/.pixl/plugin-data}/code-review"
+mkdir -p "$DATA_DIR"
+cat >> "$DATA_DIR/review-history.jsonl" <<EOF
+{"date":"$(date -u +%Y-%m-%dT%H:%M:%SZ)","pr":"$(gh pr view --json number -q .number 2>/dev/null || echo 'unknown')","findings_high":0,"findings_medium":0,"findings_low":0,"confidence_avg":0}
+EOF
+```
+
+Replace the `0` values with actual counts. Run `cat $DATA_DIR/review-history.jsonl | jq -s` to view trends.
+
 ## Related Skills
 
 - **`/self-review-fix-loop`** — Review AND fix. Pair with `/code-review` → `/self-review-fix-loop` for a find-then-fix workflow.

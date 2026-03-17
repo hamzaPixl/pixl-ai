@@ -65,3 +65,11 @@ Before starting, read these files:
    - Test plan
    - Screenshots (if UI changes)
 3. Add labels and reviewers if configured
+
+## Gotchas
+
+- Always rebase onto the target branch before creating the PR — stale branches cause merge conflicts that block reviewers and CI
+- `gh pr create` fails silently if the branch has not been pushed — always push with `-u` first to set the upstream tracking branch
+- Use draft PRs (`--draft`) for work-in-progress — this prevents accidental review requests and signals the PR is not yet ready for feedback
+- Changelog updates should go in a separate commit from code changes — mixing them makes reverts harder and pollutes the diff reviewers need to focus on
+- Never force-push after PR review has started — it destroys review comments and makes it impossible for reviewers to see what changed since their last review

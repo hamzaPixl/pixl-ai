@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "skill-config.schema.json",
+  "title": "Skill Configuration",
+  "description": "User-configurable defaults for pixl-crew skills. Values are loaded at skill invocation and can be overridden by arguments.",
+  "type": "object",
+  "properties": {
+    "$schema": { "type": "string" },
+    "description": { "type": "string" },
+    "settings": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "description": { "type": "string" },
+          "type": { "type": "string", "enum": ["string", "number", "boolean", "array"] },
+          "enum": { "type": "array" },
+          "default": {}
+        },
+        "required": ["description", "type", "default"]
+      }
+    }
+  },
+  "required": ["description", "settings"]
+}

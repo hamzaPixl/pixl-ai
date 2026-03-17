@@ -1,0 +1,21 @@
+{
+  "$schema": "../../schemas/skill-config.schema.json",
+  "description": "User defaults for /code-review",
+  "settings": {
+    "confidence_threshold": {
+      "description": "Minimum confidence to include a finding (0-100)",
+      "type": "number",
+      "default": 70
+    },
+    "post_comments": {
+      "description": "Automatically post findings as PR comments",
+      "type": "boolean",
+      "default": false
+    },
+    "reviewers": {
+      "description": "Review dimensions to run",
+      "type": "array",
+      "default": ["correctness", "security", "conventions"]
+    }
+  }
+}

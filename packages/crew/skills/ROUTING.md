@@ -68,6 +68,7 @@ Decision tree: "I want to build X" → use skill Y.
 | Audit API endpoints for consistency            | `/api-audit`            |
 | Review dependencies for CVEs/outdated/licenses | `/dependency-review`    |
 | Eliminate dead code with static analysis       | `/code-reduction` (quick mode) |
+| Investigate production incident or generate runbook | `/runbook`          |
 
 ## Plan & Strategize
 

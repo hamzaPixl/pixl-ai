@@ -49,6 +49,14 @@ Before starting, read these files:
 4. Configure auto-scaling, min/max instances
 5. Add staging and production environments
 
+## Gotchas
+
+- Cloud Run requires the container to listen on the `PORT` environment variable (not hardcoded ports) — the service will fail health checks and never become healthy if the port is hardcoded
+- Multi-stage builds must copy only production dependencies — copying `devDependencies` or test files into the runtime stage bloats the image and leaks build tooling
+- Cloud Run cold starts are proportional to image size — keep the container image under 500MB and avoid heavy initialization logic (eager DB connections, large file reads at startup)
+- `.dockerignore` must exclude `.git`, `node_modules`, `.env`, and test directories — a missing or incomplete `.dockerignore` can bloat images 10x and leak secrets into layers
+- GitHub Actions needs Workload Identity Federation for keyless auth to GCP — service account JSON keys are a security risk and should not be stored as repository secrets
+
 ## Step 5: Verify
 
 - [ ] Docker build succeeds locally

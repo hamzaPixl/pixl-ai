@@ -1,0 +1,30 @@
+{
+  "$schema": "../../schemas/skill-config.schema.json",
+  "description": "User defaults for /website",
+  "settings": {
+    "framework": {
+      "description": "Frontend framework",
+      "type": "string",
+      "enum": ["nextjs", "astro", "remix"],
+      "default": "nextjs"
+    },
+    "styling": {
+      "description": "Styling approach",
+      "type": "string",
+      "enum": ["tailwind", "css-modules", "styled-components"],
+      "default": "tailwind"
+    },
+    "component_library": {
+      "description": "Component library preference",
+      "type": "string",
+      "enum": ["shadcn-ui", "radix", "headless-ui", "none"],
+      "default": "shadcn-ui"
+    },
+    "package_manager": {
+      "description": "Package manager",
+      "type": "string",
+      "enum": ["bun", "pnpm", "npm", "yarn"],
+      "default": "bun"
+    }
+  }
+}

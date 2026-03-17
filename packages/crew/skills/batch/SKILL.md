@@ -112,6 +112,14 @@ Failed units (manual attention needed):
 | Wave size   | 2-3   | Per `parallel-execution.md` recommendations  |
 | Scope guard | strict| Each unit's files must be non-overlapping    |
 
+## Gotchas
+
+- Worktree agents share the same git objects — concurrent writes to the same file across units will conflict at merge. Always verify file scopes are disjoint before execution.
+- Max 10 units is a hard limit — decompose further upstream if needed, don't increase the cap. Exceeding it causes agent spawn failures.
+- Each worktree agent gets a fresh context — shared state must be passed via the unit description, not assumed from the parent session.
+- Merge conflicts from parallel worktrees require manual resolution — prefer units that touch disjoint files. If overlap is unavoidable, run those units sequentially.
+- Background agent failures are silent until merge — check each unit's exit status before attempting merge. A unit may report "complete" but have left the worktree in a broken state.
+
 ## Related Skills
 
 - **`/self-review-fix-loop`** — Run after batch to review all changes across units

@@ -8,13 +8,9 @@ context: fork
 
 ## Overview
 
-This skill orchestrates a full PRD-to-production pipeline by composing existing pixl-crew skills in sequence. It manages the lifecycle across multiple sessions, using `.context/` for state persistence and `.context/pipeline-state.json` for pipeline progress tracking.
+Orchestrates a PRD-to-production pipeline by composing existing pixl-crew skills across multiple sessions. Each phase persists state to a pipeline state file so the next session can resume without replanning. The `session-start.sh` hook auto-injects prior session summaries and decisions on restart.
 
-**Why multi-session**: A full project exceeds a single context window. Each phase runs within one session, persists state, and the next session picks up where the previous left off. The `session-start.sh` hook auto-injects last 3 session summaries + 10 decisions on restart.
-
-## Required References
-
-Read `references/pipeline-runbook.md` for the detailed phase-by-phase runbook with recovery procedures.
+A scope guard hook (`prd-pipeline-scope-guard`) activates automatically when `pipeline-state.json` is present — it blocks accidental writes to critical infrastructure files (CI workflows, `.env`, `Makefile`, `docker-compose`, package manifests, `CLAUDE.md`) during autonomous execution. Set `PIXL_PIPELINE_BYPASS=1` to override.
 
 ## Mode Detection
 
@@ -27,206 +23,103 @@ Read `references/pipeline-runbook.md` for the detailed phase-by-phase runbook wi
 
 ## Pipeline State
 
-Track progress in `.context/pipeline-state.json`:
+Track progress in a `pipeline-state.json` file committed alongside the project:
 
 ```json
 {
   "version": "1.0",
   "started_at": "ISO timestamp",
   "updated_at": "ISO timestamp",
-  "prd_source": ".context/prd.md",
+  "prd_source": "<path to canonical PRD>",
   "current_phase": "planning",
   "phases": {
     "setup": { "status": "completed", "started_at": "...", "completed_at": "..." },
-    "planning": { "status": "completed", "started_at": "...", "completed_at": "..." },
-    "foundation": { "status": "in_progress", "sprint": 1, "started_at": "..." },
+    "planning": { "status": "in_progress", "started_at": "..." },
+    "foundation": { "status": "pending" },
     "implementation": { "status": "pending" },
     "quality": { "status": "pending" },
-    "pr": { "status": "pending" },
+    "delivery": { "status": "pending" },
     "finalization": { "status": "pending" }
   },
-  "sprints_completed": 1,
+  "sprints_completed": 0,
   "total_sprints": 4,
-  "coverage_percentage": 35.0,
+  "coverage_percentage": 0.0,
   "branch": "feat/prd-implementation"
 }
 ```
 
-## Phase 0: Setup (automatic)
+## Phases
 
-1. Create `.context/` and `.context/spec/` directories if they don't exist
-2. Copy the PRD to `.context/prd.md` (canonical location)
-3. Initialize `.context/pipeline-state.json` with all phases set to `pending`
-4. Verify the project has a working test command (check `Makefile`, `package.json`, `pyproject.toml`)
-5. If `.claude/settings.local.json` does not exist, suggest permissions for autonomous operation via AskUserQuestion:
+### Phase 0: Setup
 
-```json
-{
-  "permissions": {
-    "allow": [
-      "Bash(make *)", "Bash(npm run *)", "Bash(npx *)", "Bash(bun run *)",
-      "Bash(git add:*)", "Bash(git commit:*)", "Bash(git checkout:*)",
-      "Bash(git push -u:*)", "Bash(gh pr create:*)", "Bash(gh *)",
-      "Bash(pytest *)", "Bash(uv run *)"
-    ]
-  }
-}
-```
+**Goal**: Bootstrap the pipeline workspace and verify the project is buildable and testable.
+**Inputs**: PRD file path or URL.
+**Outputs**: Canonical PRD stored in the project context directory, `pipeline-state.json` initialized, test command verified.
+**Constraints**: PRD must be readable before proceeding. The project must have a discoverable test command. Suggest scoped permission wildcards via `AskUserQuestion` if none are configured.
 
-## Phase 1: Planning (interactive — human reviews before autonomy)
+### Phase 1: Planning
 
-Execute these skills in sequence:
+**Goal**: Decompose the PRD into atomic requirements, produce a dependency-aware task plan, size it into sprints, and capture an architecture decision record. End with a mandatory human checkpoint.
+**Inputs**: `pipeline-state.json`, canonical PRD.
+**Outputs**: `requirements.json`, `task-state.json`, `sprint-plan.md`, architecture packet.
+**Constraints**: Human approval required before Phase 2. Present the full plan summary — task count, sprint breakdown, critical path, architecture — via `AskUserQuestion`. Do not auto-approve. Persist task state and learning before pausing.
 
-### Step 1.1: Spec Decomposition
-Invoke `/spec-review .context/prd.md`:
-- Decomposes PRD into atomic requirements in `.context/spec/requirements.json`
-- Produces baseline coverage scan (starts at 0%)
+### Phase 2: Foundation
 
-### Step 1.2: Task Planning
-Invoke `/task-plan .context/prd.md`:
-- Creates dependency-aware vertical slices with acceptance criteria
-- Assigns suggested agents per task
-- Saves to `.context/task-state.json`
+**Goal**: Scaffold the project structure and land Sprint 1 tasks that touch shared files, establishing a stable base for parallel implementation.
+**Inputs**: `sprint-plan.md`, `task-state.json`, architecture packet.
+**Outputs**: Scaffold and base infrastructure committed to a feature branch, full test suite passing.
+**Constraints**: No feature code before the scaffold is committed. Sprint 1 tasks run sequentially — foundation work touches shared files and cannot be safely parallelized. Each task must pass tests before the next begins.
 
-### Step 1.3: Sprint Breakdown
-Invoke `/sprint-planning` on the task plan:
-- Groups tasks into sprint iterations (S=1pt, M=2pt, L=3pt)
-- Saves sprint plan to `.context/sprint-plan.md`
+### Phase 3: Implementation
 
-### Step 1.4: Architecture
-Spawn an **architect** agent:
-- Architecture decisions, component tree, file structure, tech stack
-- Output to `.context/architecture-packet.json`
+**Goal**: Execute remaining sprints autonomously, parallelizing independent tasks where file scopes do not overlap.
+**Inputs**: `task-state.json` (phase=implementation), architecture packet, requirements.
+**Outputs**: Features implemented, tests passing, changes committed per task.
+**Constraints**: Compact context before each sprint batch — do not wait for truncation warnings. Load task state at the start of each session. Run the full test suite after each sprint; fix failures before proceeding. If context grows large mid-sprint, persist state and resume in a new session.
 
-### Step 1.5: Persist
-1. Invoke `/task-persist save`
-2. Invoke `/continuous-learning record` — log key planning decisions
-3. Update `pipeline-state.json`: set `planning` to `completed`
+### Phase 4: Quality
 
-### Step 1.6: Human Checkpoint
-Present to the user via AskUserQuestion:
-- Total tasks, sprint breakdown, critical path
-- Parallelizable task groups
-- Architecture summary
-- Ask: "Review the plan. Approve to proceed with autonomous implementation, or request changes."
+**Goal**: Validate implementation quality, measure spec coverage, and resolve any drift between implemented behavior and the original requirements.
+**Inputs**: Sprint changes, requirements baseline, `pipeline-state.json`.
+**Outputs**: Review findings resolved, updated `coverage_percentage`, drift-corrected task plan if gaps are found.
+**Constraints**: All HIGH+ findings from `/code-review` or `/self-review-fix-loop` must be resolved before proceeding. If P0/P1 findings persist after the review-fix loop limit, escalate to the user via `AskUserQuestion`. Update `pipeline-state.json` with the latest coverage percentage.
 
-**This is the last human checkpoint before autonomous execution.**
+### Phase 5: Delivery
 
-## Phase 2: Foundation Sprint (sequential)
+**Goal**: Push the feature branch and create a PR that documents what was built and why.
+**Inputs**: Quality gate passed, committed changes on the feature branch.
+**Outputs**: PR created, `pipeline-state.json` finalized.
+**Constraints**: PR body must reference the PRD (link or inline summary), include acceptance criteria met, and a test plan. For multi-sprint projects, prefer incremental PRs per sprint over one large PR.
 
-Foundation/scaffolding touches shared files — must be sequential.
+## Human Checkpoints
 
-1. Create the implementation branch:
-   ```
-   git checkout -b feat/prd-implementation
-   ```
-2. Load task state: invoke `/task-persist load`
-3. Read `.context/architecture-packet.json` and `.context/sprint-plan.md`
-4. Execute Sprint 1 tasks **sequentially**:
-   - For each task: implement → test → typecheck → commit (conventional commits)
-   - Mark each task completed via TaskUpdate
-5. After all Sprint 1 tasks: run full test suite
-6. Invoke `/task-persist save`
-7. Invoke `/continuous-learning observe`
-8. Update `pipeline-state.json`: set `foundation` to `completed`, increment `sprints_completed`
+| Phase | Why |
+|-------|-----|
+| After Phase 1 | Validate planning before implementation begins — this is the last approval gate before autonomous execution |
+| During Phase 3 | If `/spec-review` detects significant drift from the original requirements |
+| During Phase 4 | If the review-fix loop cannot resolve P0/P1 findings autonomously |
 
-## Phase 3: Implementation Sprints (autonomous, per sprint)
+## Recovery Table
 
-For each remaining sprint (2..N):
+| Failure | Symptom | Recovery |
+|---------|---------|----------|
+| Lost state | `pipeline-state.json` missing | Re-run with `--reset` flag and the original PRD path |
+| Session crash | Context lost mid-phase | Run `/prd-pipeline resume` — reads state file and `git log` to find resume point |
+| Context overflow | Truncated output or compaction warning | Run `/strategic-compact`, then `/task-persist save`, then start a new session with `resume` |
+| Spec drift | `/spec-review` reports coverage gaps | Run `/prd-analysis` again, update task plan in drift mode, then resume |
+| Sprint stall | Tasks blocked for more than one sprint | Re-evaluate scope with the user, defer low-priority items |
+| Test failures | Quality gate blocked, suite red | Run `/self-review-fix-loop` before retrying; never skip to the next phase |
+| Batch partial failure | Some `/batch` units report errors | Re-run only failed units — successful ones are already committed |
+| Typecheck failing | Type errors block commit | Resolve type errors before committing; consult architecture packet for type contracts |
 
-### Step 3.1: Load State
-1. Invoke `/task-persist load`
-2. Read `.context/architecture-packet.json` and `.context/spec/requirements.json`
+## Gotchas
 
-### Step 3.2: Identify Parallelism
-Analyze sprint tasks for parallel groups:
-- Tasks with **non-overlapping file scopes** can run in parallel
-- Tasks with dependencies must be sequential
-
-### Step 3.3: Execute
-- **Parallel tasks**: Use `/batch` with worktree isolation (max 10 units)
-- **Sequential tasks**: Execute in dependency order, commit after each
-- After each task: run relevant tests + typecheck
-
-### Step 3.4: Integration
-1. Run full test suite after all sprint tasks
-2. If tests fail, fix failures before proceeding
-
-### Step 3.5: Persist
-1. Invoke `/task-persist save`
-2. Update `pipeline-state.json`: increment `sprints_completed`
-
-### Step 3.6: Context Check
-If context is getting large (many tool calls):
-1. Invoke `/strategic-compact`
-2. Invoke `/task-persist save`
-3. Tell the user to start a new session with `/prd-pipeline resume`
-
-## Phase 4: Quality Gate (per sprint)
-
-After each implementation sprint:
-
-### Step 4.1: Self-Review
-Invoke `/self-review-fix-loop` on sprint changes:
-- 3 parallel reviewers (correctness, security, tests)
-- 3 parallel fixers (non-overlapping file scopes)
-- Iterates until no P0/P1 findings (max 10 rounds)
-
-### Step 4.2: Spec Coverage
-Invoke `/spec-review rescan`:
-- Coverage percentage against `requirements.json`
-- Detect missing features and extras (scope creep)
-
-### Step 4.3: Plan Drift
-If gaps found, invoke `/task-plan` in drift mode:
-- Creates new tasks for missing requirements
-- Removes tasks for dropped requirements
-- Updates `.context/task-state.json`
-
-### Step 4.4: Persist
-Invoke `/task-persist save`
-Update `pipeline-state.json` with latest `coverage_percentage`
-
-## Phase 5: PR Creation (per sprint)
-
-After quality gate passes for a sprint:
-
-1. Push the branch: `git push -u origin feat/prd-implementation`
-2. Create a PR using `gh pr create`:
-   - Title: sprint goal
-   - Body: PRD coverage percentage, acceptance criteria met, test plan
-3. Update `pipeline-state.json`
-
-For multi-sprint projects, create incremental PRs per sprint to keep each under 400 lines.
-
-## Phase 6: Final Validation (last session)
-
-When all sprints are completed and all tasks are done:
-
-1. Invoke `/spec-review rescan` — final coverage percentage
-2. Invoke `/cto-review` — architectural assessment
-3. Invoke `/security-scan` — OWASP check
-4. Invoke `/dependency-review` — CVE/license audit
-5. Run full build + test suite
-6. Invoke `/continuous-learning observe` — extract project patterns
-7. Update `pipeline-state.json`: set `finalization` to `completed`
-
-Present the final report:
-- Coverage percentage (target: 100% of `must` requirements)
-- Quality assessment summary
-- Security findings (if any)
-- Total sprints, commits, and tasks completed
-
-## Recovery
-
-| Failure | Recovery |
-|---------|----------|
-| Session crash | `/prd-pipeline resume` — reads `pipeline-state.json` + `task-state.json` + `git log` |
-| `/batch` partial failure | Re-run failed units only; successful ones already merged |
-| Context overflow | `/strategic-compact` → `/task-persist save` → new session with `resume` |
-| Spec drift (PRD changed) | `/spec-review` Mode B → `/task-plan` drift mode |
-| Quality gate stuck | Max 10 iterations; escalates to human via AskUserQuestion |
-| Tests failing | Fix before proceeding; do not skip to next phase |
+- Pipeline state file must be committed — losing it means restarting from scratch. Commit after every phase transition.
+- Context fills fast during implementation — use `/strategic-compact` proactively, don't wait for truncation. By the time you notice, important context is already lost.
+- Human checkpoints are blocking — skipping them risks building on unvalidated assumptions. Never auto-approve the Phase 1 checkpoint.
+- Resume mode re-reads all artifacts — if artifacts were manually edited between sessions, the pipeline may produce inconsistent output. Document any manual edits in the decision log.
+- Sprint execution depends on `/task-plan` output — running without it causes the pipeline to re-plan from scratch, potentially diverging from prior approvals.
 
 ## Related Skills
 

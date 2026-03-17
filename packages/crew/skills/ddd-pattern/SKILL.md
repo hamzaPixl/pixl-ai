@@ -63,6 +63,14 @@ Add domain event publishing:
 3. Events are published within `unitOfWork.execute()` — never directly
 4. Define handlers for events that trigger cross-context side effects
 
+## Gotchas
+
+- Don't apply DDD to simple CRUD — aggregates, repositories, and domain events add significant complexity that provides no value when the domain logic is thin (just data in, data out)
+- Aggregate boundaries define transaction boundaries — loading or mutating entities across two aggregates in a single transaction breaks consistency guarantees and creates hidden coupling
+- Value Objects must be compared by value, not by reference — always implement an `equals()` method (or use structural equality) because two VOs with the same attributes are the same concept
+- Domain events should be named in past tense (`OrderPlaced`, `PaymentProcessed`, not `PlaceOrder`) — imperative names blur the line between commands (intent) and events (facts that happened)
+- Repository interfaces belong in the domain layer, but their implementations belong in infrastructure — placing the implementation in the domain layer couples the domain to database drivers and frameworks
+
 ## Step 5: Verify
 
 Validate the DDD implementation:

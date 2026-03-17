@@ -1,0 +1,23 @@
+{
+  "$schema": "../../schemas/skill-config.schema.json",
+  "description": "User defaults for /security-scan",
+  "settings": {
+    "scan_scope": {
+      "description": "Default scan scope when none specified",
+      "type": "string",
+      "enum": ["full", "changed-files", "src-only"],
+      "default": "full"
+    },
+    "severity_threshold": {
+      "description": "Minimum severity to report",
+      "type": "string",
+      "enum": ["CRITICAL", "HIGH", "MEDIUM", "LOW"],
+      "default": "MEDIUM"
+    },
+    "skip_modules": {
+      "description": "Directories to exclude from scanning",
+      "type": "array",
+      "default": ["node_modules", ".next", "dist", "__pycache__"]
+    }
+  }
+}

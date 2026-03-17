@@ -1,0 +1,22 @@
+{
+  "$schema": "../../schemas/skill-config.schema.json",
+  "description": "User defaults for /i18n-setup",
+  "settings": {
+    "locales": {
+      "description": "Target locales (BCP-47 codes)",
+      "type": "array",
+      "default": ["en", "fr", "nl"]
+    },
+    "default_locale": {
+      "description": "Default/fallback locale",
+      "type": "string",
+      "default": "en"
+    },
+    "library": {
+      "description": "i18n library preference",
+      "type": "string",
+      "enum": ["next-intl", "react-i18next", "lingui"],
+      "default": "next-intl"
+    }
+  }
+}
