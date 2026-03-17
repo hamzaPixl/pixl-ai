@@ -1,6 +1,6 @@
 ---
 name: task-persist
-description: "Save and restore task state across sessions. On save: serializes current TaskList to .context/task-state.json. On load: reads the file and recreates tasks via TaskCreate. Use when ending a session with unfinished tasks or resuming work from a previous session."
+description: "Save and restore task progress across sessions. Use when a multi-step task needs to survive context resets, session boundaries, or /compact operations."
 allowed-tools: Read, Write, Bash, Glob
 argument-hint: "<save | load>"
 disable-model-invocation: true
