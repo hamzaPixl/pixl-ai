@@ -1,0 +1,27 @@
+{
+  "name": "@pixl/skills",
+  "version": "9.0.0",
+  "description": "Install Claude Code skills from GitHub repositories",
+  "type": "module",
+  "bin": {
+    "skills": "./bin/skills.js"
+  },
+  "files": [
+    "bin/",
+    "src/"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "node --test src/add.test.js"
+  },
+  "keywords": [
+    "claude-code",
+    "skills",
+    "claude",
+    "ai",
+    "pixl"
+  ],
+  "license": "MIT"
+}
