@@ -5,6 +5,17 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep
 argument-hint: "<locales to support, e.g. en,fr,nl>"
 ---
 
+## Setup
+
+Read `config.json` in this skill directory (if it exists):
+- `locales` — target locale list; default ["en", "fr", "nl"]
+- `default_locale` — fallback locale; default "en"
+- `library` — i18n library preference; default "next-intl"
+
+If the argument provides locales (e.g. `/i18n-setup en,fr,de`), override the config defaults.
+If neither argument nor config provides locales, use AskUserQuestion:
+"Which locales should this project support? (comma-separated BCP-47 codes, e.g. en,fr,nl)"
+
 ## Overview
 
 Adds internationalization (i18n) to a Next.js application supporting EN/FR/NL. Covers infrastructure setup, translation extraction, component integration, and optional CMS/MDX content migration.

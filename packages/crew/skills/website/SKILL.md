@@ -6,6 +6,17 @@ argument-hint: "<website description, project brief, Figma URL, reference URL, o
 context: fork
 ---
 
+## Setup
+
+Read `config.json` in this skill directory (if it exists):
+- `framework` — frontend framework; default "nextjs"
+- `styling` — styling approach; default "tailwind"
+- `component_library` — UI component library; default "shadcn-ui"
+- `package_manager` — package manager; default "bun"
+
+These defaults apply to Mode A (Discovery). Mode B/C override from the design-spec.json.
+If config.json is absent and the project already has a framework installed, detect it from package.json instead.
+
 ## Overview
 
 End-to-end website creation using Next.js with shadcn/ui and Tailwind CSS. Three operating modes:

@@ -5,6 +5,15 @@ allowed-tools: Read, Bash, Glob, Grep, Agent
 argument-hint: "<scope: secrets|owasp|deps|rbac|full> [path]"
 ---
 
+## Setup
+
+Read `config.json` in this skill directory (if it exists):
+- `scan_scope` — default scope when none given; default "full"
+- `severity_threshold` — minimum severity to report; default "MEDIUM"
+- `skip_modules` — directories to exclude; default ["node_modules", ".next", "dist", "__pycache__"]
+
+If invoked without arguments, use `scan_scope` as the default. Override with the argument if provided.
+
 # Security Scan
 
 Automated security scanning across multiple dimensions.

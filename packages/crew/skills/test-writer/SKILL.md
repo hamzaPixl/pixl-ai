@@ -5,6 +5,17 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep
 argument-hint: "<file, module, or directory to generate tests for> [framework: pytest|vitest|jest]"
 ---
 
+## Setup
+
+Read `config.json` in this skill directory (if it exists) to load user defaults:
+- `framework` — test framework to use; if null, auto-detect from project files
+- `coverage_threshold` — target coverage %; default 80
+- `style` — test style preference; default describe-it
+
+If `framework` is null and auto-detection is ambiguous, use AskUserQuestion:
+"Which test framework does this project use? (vitest / jest / pytest)"
+Store the answer back to config.json for future invocations.
+
 ## Overview
 
 Generates comprehensive test suites from existing source code. Reads public function signatures, infers expected behavior from names, types, and usage patterns, and writes failing tests (TDD red phase). The tests execute but may not pass — that's intentional, as the developer then makes them green.

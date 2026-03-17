@@ -5,6 +5,16 @@ allowed-tools: Read, Bash, Glob, Grep
 argument-hint: "[PR number or branch name]"
 ---
 
+## Setup
+
+Read `config.json` in this skill directory (if it exists):
+- `confidence_threshold` — minimum confidence to include a finding; default 70
+- `post_comments` — auto-post findings as PR comments; default false
+- `reviewers` — review dimensions to run; default ["correctness", "security", "conventions"]
+
+If `post_comments` is false (default), output findings as a report only — do not call `gh pr review`.
+Argument-level flags override config defaults (e.g. `--post` forces comment posting).
+
 ## Overview
 
 Structured multi-agent code review for pull requests. Three parallel reviewers analyze the diff through specialized lenses (correctness, security, conventions), findings are deduplicated and scored for confidence, and only high-confidence issues surface to the user or get posted as PR comments.
