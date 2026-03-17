@@ -120,6 +120,7 @@ Global options: `--json` (JSON output), `--project <path>` (project root).
 **Quality**: `/self-review-fix-loop`, `/code-reduction`, `/agent-browser`, `/react-doctor`, `/seo-audit`, `/cto-review`, `/cartographer`, `/test-runner`, `/test-writer`, `/benchmark`, `/schema-audit`, `/error-catalog`, `/api-audit`, `/dependency-review`, `/eval-harness`, `/security-scan`, `/spec-review`, `/code-review`
 **Utilities**: `/file-parser`
 **Marketing**: `/content-marketing`
+**Video**: `/intro-video-brief` (create or enhance Remotion product intro videos)
 **DevOps**: `/docker-cloudrun`, `/pm2`, `/makefile`, `/docker-prisma-setup`
 **Planning**: `/prd-analysis`, `/task-plan`, `/content-pipeline`, `/sprint-planning`, `/task-persist`, `/migration-plan`, `/prd-pipeline`
 **Workflow**: `/pr-creation`, `/claude-md`, `/skill-factory`, `/multi-agent-pipeline`, `/ralph-loop-crew`, `/context-packet-template`, `/crew-init`, `/studio-guide`, `/session-export`, `/session-retrospective`, `/client-project-setup`, `/strategic-compact`, `/continuous-learning`, `/batch`

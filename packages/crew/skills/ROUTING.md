@@ -131,6 +131,14 @@ Decision tree: "I want to build X" → use skill Y.
 | Learn from session patterns              | `/continuous-learning` |
 | Manage context before compaction         | `/strategic-compact` |
 
+## Video
+
+| I want to...                                             | Use                     |
+| -------------------------------------------------------- | ----------------------- |
+| Create a product intro video brief from GitHub/URL/desc  | `/intro-video-brief`    |
+| Enhance / audit an existing Remotion video               | `/intro-video-brief --enhance` |
+| Build the actual Remotion composition from the brief     | `/remotion`             |
+
 ## Best Practices (Reference Skills)
 
 | Topic                 | Use                                 |
