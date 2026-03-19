@@ -60,6 +60,21 @@ uv run ruff format .                     # Format
 - Dependency injection via FastAPI's `Depends` system
 - Background tasks via Celery or FastAPI BackgroundTasks
 
+## Crew
+
+| Skill | When to use |
+|-------|-------------|
+| `/pydantic-api-endpoint` | Add a CRUD endpoint |
+| `/fastapi-service` | Add a service to a monorepo |
+| `/ddd-pattern` | Domain modeling |
+| `/code-review` | PR review before merge |
+| `/self-review-fix-loop` | Auto-fix quality issues |
+| `/schema-audit` | Review database schema |
+| `/api-audit` | Check API endpoint consistency |
+| `/security-scan` | OWASP + dependency CVE scan |
+| `/test-runner` | Run tests (pytest) |
+| `/changelog` | Generate release notes |
+
 ## Don't
 
 - Don't put business logic in route handlers

@@ -80,11 +80,12 @@ Print a summary:
 ✓ Crew initialized for <project-name>
 
   Created:
-    CLAUDE.md              — project identity + crew reference
-    .claude/rules/         — crew-workflow.md, crew-delegation.md
+    CLAUDE.md              — project identity + crew reference (14 agents, 75 skills)
+    .claude/rules/         — crew-workflow.md, crew-delegation.md, crew-enforcement.md
     .claude/settings.local.json — scoped permissions
 
   Next steps:
     1. Fill in the project description in CLAUDE.md
     2. Start a new Claude session to pick up the new rules
+    3. Run /session-wrap at end of sessions to preserve decisions
 ```

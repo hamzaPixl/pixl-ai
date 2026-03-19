@@ -12,10 +12,16 @@
 Before building anything manually, check if a skill handles it:
 
 - Building a website? → `/website`
-- New backend service? → `/saas-microservice`
+- New backend service? → `/saas-microservice` or `/fastapi-api`
 - Need a full-stack app? → `/fullstack-app`
 - Adding DDD patterns? → `/ddd-pattern`
 - Code quality issues? → `/self-review-fix-loop` or `/code-reduction`
+- Reviewing a PR? → `/code-review`
+- Planning tasks? → `/task-plan` then `/sprint-planning`
+- Security audit? → `/security-scan`
+- Wrapping up a session? → `/session-wrap`
+
+See `skills/ROUTING.md` for the full decision tree.
 
 ## Frequent Commits
 

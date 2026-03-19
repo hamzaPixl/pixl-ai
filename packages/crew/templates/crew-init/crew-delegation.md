@@ -23,6 +23,9 @@ For single-domain tasks, delegate directly to the specialist agent.
 | Task planning | `product-owner` | Sprint planning, task breakdown, acceptance criteria |
 | Code review | `tech-lead` | Review PRs, enforce quality gates, technical decisions |
 | Quick research | `explorer` | Find files, understand patterns, codebase questions |
+| Build/type errors | `build-error-resolver` | Fix compilation failures with minimal diffs |
+| Doc updates | `doc-updater` | Sync docs with code changes |
+| New project onboarding | `onboarding-agent` | Scan codebase, generate CLAUDE.md, catalog stack |
 
 ## Skill-First Rules
 

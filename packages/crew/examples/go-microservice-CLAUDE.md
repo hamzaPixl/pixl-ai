@@ -53,6 +53,18 @@ golangci-lint run            # Lint
 - Structured logging via `slog`
 - Graceful shutdown with signal handling
 
+## Crew
+
+| Skill | When to use |
+|-------|-------------|
+| `/code-review` | PR review before merge |
+| `/cto-review` | Architectural critique |
+| `/self-review-fix-loop` | Auto-fix quality issues |
+| `/api-audit` | Check API endpoint consistency |
+| `/security-scan` | OWASP + dependency CVE scan |
+| `/benchmark` | Compare against open-source Go patterns |
+| `/changelog` | Generate release notes |
+
 ## Don't
 
 - Don't use `init()` functions — explicit initialization in main

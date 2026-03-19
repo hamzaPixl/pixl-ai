@@ -55,6 +55,20 @@ make deploy       # Deploy to Cloud Run
 - Domain events via transactional outbox pattern
 - Tenant isolation at repository level (never raw Prisma queries)
 
+## Crew
+
+| Skill | When to use |
+|-------|-------------|
+| `/code-review` | PR review before merge |
+| `/cto-review` | Architectural critique |
+| `/self-review-fix-loop` | Auto-fix quality issues |
+| `/ddd-pattern` | Add/refactor domain models |
+| `/schema-audit` | Review database schema |
+| `/api-audit` | Check API endpoint consistency |
+| `/security-scan` | OWASP + dependency CVE scan |
+| `/test-runner` | Run tests with smart discovery |
+| `/changelog` | Generate release notes |
+
 ## Don't
 
 - Don't write raw SQL — use Prisma
