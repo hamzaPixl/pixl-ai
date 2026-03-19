@@ -107,10 +107,10 @@ Decision tree: "I want to build X" → use skill Y.
 | Parse a PDF/text/JSON file       | `/file-parser`             |
 | Run a persistent autonomous loop | `/ralph-loop-crew`         |
 | Explore the studio stacks        | `/studio-guide`            |
-| Export a session summary         | `/session-export`          |
+| Wrap up a session (decisions + handoff) | `/session-wrap`     |
 | Persist tasks across sessions    | `/task-persist`            |
 | Create a context packet          | `/context-packet-template` |
-| Capture session decisions        | `/session-retrospective`   |
+| Capture session decisions        | `/session-wrap`            |
 | Onboard a new client project     | `/client-project-setup`    |
 
 ## Swift / iOS
@@ -137,7 +137,6 @@ Decision tree: "I want to build X" → use skill Y.
 | -------------------------------------------------------- | ----------------------- |
 | Create a product intro video brief from GitHub/URL/desc  | `/intro-video-brief`    |
 | Enhance / audit an existing Remotion video               | `/intro-video-brief --enhance` |
-| Build the actual Remotion composition from the brief     | `/remotion`             |
 
 ## Best Practices (Reference Skills)
 

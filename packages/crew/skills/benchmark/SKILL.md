@@ -1,6 +1,6 @@
 ---
 name: benchmark
-description: "Compare local code against real-world open-source implementations from GitHub. Use when benchmarking patterns, finding industry examples, or improving code by learning from similar repos."
+description: "Compare local code patterns against real-world open-source implementations from GitHub. Use when you want to see how other projects implement the same pattern (auth, DDD, i18n) or identify gaps vs industry standards. Not for performance benchmarking — see /eval-harness for metric-based evaluation."
 allowed-tools: Read, Glob, Grep, Bash, WebSearch, WebFetch, Agent, AskUserQuestion
 argument-hint: "<pattern, feature, or architecture to benchmark — e.g. 'auth middleware', 'DDD aggregate pattern', 'Next.js i18n setup'>"
 ---

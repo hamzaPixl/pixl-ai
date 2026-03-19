@@ -1,6 +1,6 @@
 ---
 name: code-review
-description: "Multi-agent PR review with confidence scoring. Runs 3 parallel reviewers on a PR diff (bugs, security, conventions), deduplicates findings, posts high-confidence comments. Use when reviewing a PR, auditing changes before merge, or running automated review on a branch."
+description: "Multi-agent PR review with confidence scoring. Runs 3 parallel reviewers on a PR diff (bugs, security, conventions), deduplicates findings, posts high-confidence comments. Use when reviewing a PR, auditing changes before merge, or running automated review on a branch. Read-only PR-diff review. For architectural critique of the full branch, use /cto-review. To auto-fix issues, use /self-review-fix-loop."
 allowed-tools: Read, Bash, Glob, Grep
 argument-hint: "[PR number or branch name]"
 ---

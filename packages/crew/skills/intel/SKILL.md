@@ -1,6 +1,6 @@
 ---
 name: intel
-description: "AST-indexed code search, artifacts, events, and dependency graphs via pixl CLI. Use when searching code semantically, managing artifacts, querying event history, or building knowledge indexes."
+description: "Semantic code search (FTS5-indexed, BM25-ranked), artifact CRUD, and event history via the pixl CLI. Use when you need ranked search results, fuzzy code discovery, or artifact/event log queries. Falls back to Grep/Glob when pixl CLI is not installed."
 allowed-tools: Bash, Read, Grep, Glob
 argument-hint: "<query or command — e.g. 'search auth middleware', 'build index', 'artifact get session-plan', 'events --type decision'>"
 ---

@@ -1,6 +1,6 @@
 ---
 name: strategic-intel
-description: "Strategic business intelligence report: company profiling, market research, competitor analysis, and go-to-market roadmap. Use when analyzing a company's position, finding business opportunities, or preparing a management pitch."
+description: "Strategic business intelligence report: company profiling, market research, competitor analysis, and go-to-market roadmap. Use when analyzing a company's position, finding business opportunities, or preparing a management pitch. For a full multi-document advisory package with architecture and roadmap, use /vision-advisory instead."
 allowed-tools: WebSearch, WebFetch, Read, Write, Edit, Bash, Agent, AskUserQuestion
 argument-hint: "<company name or URL + problem/opportunity — e.g. 'Zetes needs new AI projects' or 'https://acme.com wants to enter the EU market'>"
 ---

@@ -1,6 +1,6 @@
 ---
 name: eval-harness
-description: "Capability and regression evaluation harness for skills, agents, and prompts. Runs pass@k metrics, tracks regressions across versions, and generates eval reports. Use when asked to evaluate, benchmark, or regression-test a skill or agent."
+description: "Capability and regression evaluation harness for pixl-crew skills, agents, and prompts. Runs pass@k metrics, tracks regressions across versions, and generates eval reports. Use when measuring skill/agent quality or regression-testing after prompt changes. Not for comparing code patterns — see /benchmark."
 allowed-tools: Read, Bash, Glob, Grep, Write, Agent
 argument-hint: "<target: skill-name|agent-name|prompt-file> [--k=3] [--mode=capability|regression]"
 ---

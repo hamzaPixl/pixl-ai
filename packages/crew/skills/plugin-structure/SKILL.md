@@ -102,7 +102,7 @@ See `/agent-development` skill for file format and triggering.
 
 **Location**: `skills/<skill-name>/SKILL.md` | **Format**: `.md` with YAML frontmatter | **Auto-discovered**
 Skills can include supporting files (scripts, references, examples) in subdirectories.
-See `/skill-development` skill for file format and activation.
+See `/skill-factory` skill for file format and activation.
 
 ### Hooks
 

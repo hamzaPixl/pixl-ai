@@ -1,6 +1,6 @@
 ---
 name: sprint-planning
-description: "Sprint breakdown: epic decomposition → sprint cycles → velocity tracking. Use when asked to plan sprints, decompose epics, organize work into iterations, or estimate delivery timelines."
+description: "Sprint breakdown: epic decomposition → sprint cycles → velocity tracking. Use when asked to plan sprints, decompose epics, organize work into iterations, or estimate delivery timelines. Consumes /task-plan output. Run /task-plan first if no task breakdown exists."
 allowed-tools: Read, Glob, Grep, Write
 argument-hint: "<epic or feature set to plan>"
 ---

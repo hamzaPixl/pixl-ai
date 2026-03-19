@@ -1,6 +1,6 @@
 ---
 name: task-plan
-description: "Structured task planning pipeline: discovery → decompose → detail → output. Breaks features and projects into dependency-aware, ordered task lists with acceptance criteria and execution strategy. Also adapts existing plans when requirements change (consumes /spec-review drift reports). Use when asked to 'plan tasks', 'break down a feature', 'create a roadmap', 'adapt the plan', or 'update tasks from spec changes'."
+description: "Structured task planning pipeline: discovery → decompose → detail → output. Breaks features and projects into dependency-aware, ordered task lists with acceptance criteria and execution strategy. Also adapts existing plans when requirements change (consumes /spec-review drift reports). Use when asked to 'plan tasks', 'break down a feature', 'create a roadmap', 'adapt the plan', or 'update tasks from spec changes'. Produces a task list that /sprint-planning can schedule into iterations."
 allowed-tools: Read, Glob, Grep, Write, WebFetch, AskUserQuestion
 argument-hint: "<description, file path to PRD, or URL>"
 ---

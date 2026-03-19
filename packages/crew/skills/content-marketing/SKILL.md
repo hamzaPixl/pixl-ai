@@ -1,6 +1,6 @@
 ---
 name: content-marketing
-description: "Content strategy and copywriting for business websites. Use when planning blog content, writing SEO-optimized copy, or building content calendars. For automated pipelines, use /content-pipeline instead."
+description: "Content strategy and hands-on copywriting for business websites: audience analysis, content calendar, SEO-optimized copy, blog plans. Use for strategic content planning or writing individual pieces with human review. For batch-generating content across many pages automatically, use /content-pipeline instead."
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash, WebSearch
 argument-hint: "<business type or specific content request, e.g. 'SaaS blog strategy' or 'rewrite homepage copy'>"
 ---

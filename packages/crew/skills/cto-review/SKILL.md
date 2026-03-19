@@ -1,6 +1,6 @@
 ---
 name: cto-review
-description: "Brutally honest architectural review that quantifies complexity smells and produces a ranked simplification plan. Use when asked to review, critique, or simplify an implementation."
+description: "Brutally honest architectural review that quantifies complexity smells and produces a ranked simplification plan. Use when asked to review, critique, or simplify an implementation. For PR-diff-level review, use /code-review. To auto-fix issues, use /self-review-fix-loop."
 allowed-tools: Read, Bash, Glob, Grep, Write, Edit, Agent, AskUserQuestion
 argument-hint: "<base-ref: e.g. origin/main>"
 context: fork

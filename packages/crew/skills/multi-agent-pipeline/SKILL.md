@@ -1,6 +1,6 @@
 ---
 name: multi-agent-pipeline
-description: "Build a multi-agent LLM pipeline with orchestrator, domain agents, and structured output. Use when asked to create an agent system, multi-agent workflow, LLM pipeline, agent orchestration, or any system with multiple specialized AI agents."
+description: "Scaffold a multi-agent LLM application in your codebase: base agent class, domain-specific agents, orchestrator, and runner with structured output. Use when building a product feature with multiple specialized AI agents. For creating pixl-crew agents, use /agent-development instead."
 allowed-tools: Read, Write, Edit, Bash, Glob, Grep
 argument-hint: "<pipeline description or domain areas>"
 context: fork
