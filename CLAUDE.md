@@ -19,17 +19,22 @@ packages/
 │   │   ├── crew.py             # get_crew_root() resolver
 │   │   └── commands/           # artifact, config, events, knowledge, project, session, setup, state, workflow
 │   └── tests/
-└── crew/                       # pixl-crew (bash/md) — NOT a Python package
-    ├── .claude-plugin/
-    ├── agents/                 # 14 agents
-    ├── skills/                 # 75 skills (see skills/ROUTING.md)
-    ├── hooks/                  # event hooks
-    ├── references/             # shared domain knowledge
-    ├── studio/stacks/          # nextjs, saas scaffolds
-    ├── contexts/               # dynamic context overlays
-    ├── examples/               # CLAUDE.md templates
-    ├── schemas/                # JSON schemas
-    └── scripts/                # setup, release, scaffold
+├── crew/                       # pixl-crew (bash/md) — NOT a Python package
+│   ├── .claude-plugin/
+│   ├── agents/                 # 14 agents
+│   ├── skills/                 # 75 skills (see skills/ROUTING.md)
+│   ├── hooks/                  # event hooks
+│   ├── references/             # shared domain knowledge
+│   ├── studio/stacks/          # nextjs, saas scaffolds
+│   ├── contexts/               # dynamic context overlays
+│   ├── examples/               # CLAUDE.md templates
+│   ├── schemas/                # JSON schemas
+│   └── scripts/                # setup, release, scaffold
+└── sandbox/                    # pixl-sandbox (TypeScript) — Cloudflare Sandbox containers
+    ├── docker/                 # Dockerfile, init.sh, test workflow
+    ├── src/                    # Hono router + Durable Object
+    ├── scripts/                # e2e test script
+    └── wrangler.jsonc          # Cloudflare Workers config
 scripts/release.sh              # monorepo release script
 .claude/rules/                  # coding style, testing, security, git, etc.
 ```

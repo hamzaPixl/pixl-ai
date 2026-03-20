@@ -1,4 +1,4 @@
-.PHONY: setup release check help install-local scaffold
+.PHONY: setup release check help install-local scaffold export-skills export-skills-dry
 
 setup:
 	@bash scripts/setup.sh
@@ -25,3 +25,9 @@ scaffold:
 
 install-local:
 	@bash scripts/install-local.sh
+
+export-skills:
+	@python3 scripts/export-skills-zip.py --mega-zip
+
+export-skills-dry:
+	@python3 scripts/export-skills-zip.py --dry-run --verbose

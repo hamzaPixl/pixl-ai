@@ -10,6 +10,9 @@ source "${SCRIPT_DIR}/_common.sh"
 
 read_stdin
 
+# Notification style: "alert" (permission prompts) or "subtle" (idle/other)
+STYLE="${1:-subtle}"
+
 # Extract notification message from stdin (if available)
 MESSAGE="Claude needs your attention"
 if [ -n "${STDIN_INPUT:-}" ]; then
@@ -22,9 +25,19 @@ fi
 TITLE="pixl-crew"
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
-  osascript -e "display notification \"${MESSAGE}\" with title \"${TITLE}\"" 2>/dev/null || true
+  if [ "$STYLE" = "alert" ]; then
+    # Alert: notification with sound for permission prompts
+    osascript -e "display notification \"${MESSAGE}\" with title \"${TITLE}\" sound name \"Ping\"" 2>/dev/null || true
+  else
+    # Subtle: silent notification for idle prompts
+    osascript -e "display notification \"${MESSAGE}\" with title \"${TITLE}\"" 2>/dev/null || true
+  fi
 elif command -v notify-send &>/dev/null; then
-  notify-send "$TITLE" "$MESSAGE" 2>/dev/null || true
+  if [ "$STYLE" = "alert" ]; then
+    notify-send -u critical "$TITLE" "$MESSAGE" 2>/dev/null || true
+  else
+    notify-send -u low "$TITLE" "$MESSAGE" 2>/dev/null || true
+  fi
 else
   # Terminal bell fallback
   printf '\a' 2>/dev/null || true

@@ -55,6 +55,7 @@ Shared domain knowledge auto-loaded by agents and skills via `references/` in CL
 | `methodology/verification.md`       | Self-verification and quality gates              |
 | `methodology/vertical-slice.md`     | Vertical slice architecture for feature delivery |
 | `methodology/client-onboarding.md`  | Client project onboarding checklist and CLAUDE.md template |
+| `methodology/worktrees.md`          | Git worktree best practices for parallel work and subagent isolation |
 
 ## Orchestration
 
