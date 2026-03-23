@@ -2,19 +2,21 @@
 
 AI dev platform — orchestration engine + Claude Code crew plugin.
 
-**14 agents · 72 skills · 11 workflows**
+**14 agents · 75 skills · 11 workflows · sandboxed execution**
 
 ## What is pixl?
 
-Three components, one install:
+Four components, one install:
 
-1. **Engine** — DAG-based workflow orchestration, multi-provider LLMs (Anthropic, OpenAI, Gemini), SQLite storage with FTS5, AST-indexed knowledge search
-2. **CLI** — `pixl` binary for projects, workflows, sessions, artifacts, knowledge, and crew setup
-3. **Crew** — Claude Code plugin with 14 specialized agents, 72 skills, event hooks, and studio templates
+1. **Engine** — DAG-based workflow orchestration, multi-provider LLMs (Anthropic, OpenAI, Gemini), SQLite storage (schema v37, 40+ tables), FTS5 search, EventBus, agent registry
+2. **CLI** — `pixl` binary for projects, workflows, sessions, artifacts, knowledge, sandboxes, cost analytics, and crew setup
+3. **Crew** — Claude Code plugin with 14 specialized agents, 75 skills, event hooks, and studio templates
+4. **Sandbox** — Cloudflare Workers containers for isolated AI execution with full pixl stack
 
 ```
-User → pixl CLI → Engine (DAG, LLM, Storage) → Claude Agent SDK
+User → pixl CLI → Engine (DAG, LLM, Storage, EventBus) → Claude Agent SDK
                 → Crew Plugin (Agents, Skills, Hooks) → Claude Code
+                → Sandbox (Cloudflare Workers) → Isolated containers
 ```
 
 ## Quick Start
@@ -57,6 +59,11 @@ pixl [--json] [--project PATH] COMMAND
 | `pixl state show` | Show entity state and transitions |
 | `pixl events list` | List execution events |
 | `pixl config get` | Get project configuration |
+| `pixl cost summary` | Cost analytics (total, by-model, by-session) |
+| `pixl template list` | Manage DB-backed workflow templates |
+| `pixl sandbox create` | Create sandbox project (`--fork-from` for session continuity) |
+| `pixl sandbox workflow` | Run workflow in sandbox (`--stream` for SSE) |
+| `pixl sandbox sync` | Sync sandbox data to local DB |
 | `pixl setup` | Register crew plugin with Claude Code |
 
 ## Agents
@@ -82,7 +89,7 @@ The crew plugin provides 14 specialized agents that Claude Code can delegate to:
 
 ## Skills
 
-72 skills organized by domain:
+75 skills organized by domain:
 
 **Frontend** `/website` · `/design-extraction` · `/shadcn-ui` · `/svg-icon-creation` · `/i18n-setup` · `/website-theme` · `/website-layout`
 
@@ -154,9 +161,16 @@ WorkflowTemplate → WorkflowSession
 
 ### Storage
 
-SQLite with WAL mode and FTS5 full-text search. Protocol-based stores:
+SQLite with WAL mode, FTS5 full-text search, schema v37 (40+ tables). Protocol-based stores:
 
-`BacklogStore` · `SessionStore` · `ArtifactStore` · `EventStore` · `KnowledgeStore` · `ConfigStore` · `WorkflowStore`
+`BacklogStore` · `SessionStore` · `ArtifactStore` · `EventStore` · `KnowledgeStore` · `ConfigStore` · `WorkflowStore` · `CostEventDB` · `WorkflowTemplateDB` · `SandboxDB`
+
+### Agent SDK Integration
+
+- **AgentRegistry** — parses crew agent markdown into SDK `AgentDefinition` with model/tools per agent
+- **Plugin loading** — crew plugin loaded programmatically via `plugins` param
+- **Hook bridge** — crew shell hooks bridged to SDK callbacks with profile filtering
+- **EventBus** — in-process pub/sub for real-time event distribution
 
 ### Recovery
 
@@ -181,6 +195,7 @@ pixl/
 ├── packages/engine/    # pixl-engine — Python orchestration engine
 ├── packages/cli/       # pixl-cli — Click CLI (bundles crew in wheel)
 ├── packages/crew/      # pixl-crew — Claude Code plugin
+├── packages/sandbox/   # pixl-sandbox — Cloudflare Workers sandbox runtime
 └── scripts/            # Release tooling
 ```
 

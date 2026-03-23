@@ -13,7 +13,9 @@ pixl-engine is the brain of the Pixl Platform. It handles everything from prompt
 | **Models** | 20+ Pydantic v2 models for workflows, features, epics, sessions, boulders |
 | **Execution** | `GraphExecutor` (DAG engine), `ChainRunner` (epic orchestration) |
 | **State** | `TransitionEngine` + `StateMachine` with typed guards and effects |
-| **Storage** | SQLite WAL + FTS5 full-text search, per-project database isolation |
+| **Storage** | SQLite WAL + FTS5 full-text search, schema v37 (40+ tables), per-project isolation |
+| **Events** | `EventBus` — in-process pub/sub for real-time event distribution |
+| **Agents** | `AgentRegistry` — parses crew markdown into SDK `AgentDefinition`, crew hook bridge |
 | **Providers** | Anthropic, OpenAI, Gemini — behind a common `ProviderRegistry` |
 | **Knowledge** | tree-sitter AST chunker + FTS5-powered RAG search |
 | **Context** | `UnifiedContextCompiler` — assembles rich prompts from multiple sources |
@@ -73,7 +75,8 @@ pixl/
 ├── session/       # SessionManager
 ├── recovery/      # RecoveryEngine, incident store
 ├── config/        # Workflow/agent YAML loaders
-├── agents/        # SDK options builder, hooks
+├── agents/        # SDK options builder, agent registry, crew hook bridge, todo bridge
+├── events/        # EventBus (in-process pub/sub)
 ├── git/           # PR automation
 ├── assets/        # Workflow YAMLs, prompts, JSON schemas
 └── observability/ # Logging, metrics

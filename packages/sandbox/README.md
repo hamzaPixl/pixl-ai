@@ -35,14 +35,29 @@ make deploy   # deploy to Cloudflare
 | Secret | Required | Purpose |
 |--------|----------|---------|
 | `ANTHROPIC_API_KEY` | Yes | Claude API access inside containers |
-| `SANDBOX_API_KEY` | Yes | Bearer token for API auth |
+| `JWT_SECRET` | Yes | HS256 secret for JWT auth (preferred) |
+| `SANDBOX_API_KEY` | No | Static bearer token fallback (legacy) |
 | `OPENAI_API_KEY` | No | OpenAI access inside containers |
 | `ALLOWED_ORIGINS` | No | CORS origins (comma-separated) |
 
 ```bash
 npx wrangler secret put ANTHROPIC_API_KEY
-npx wrangler secret put SANDBOX_API_KEY
+npx wrangler secret put JWT_SECRET
 ```
+
+### Authentication
+
+JWT tokens with scoped access (preferred over static API keys):
+
+| Scope | Access |
+|-------|--------|
+| `read` | GET endpoints only |
+| `write` | GET + POST (except destroy) |
+| `admin` | All operations including destroy |
+
+The CLI generates scoped JWTs automatically when `PIXL_SANDBOX_JWT_SECRET` is set. Static API key fallback grants `admin` scope for backwards compatibility.
+
+Rate limiting: 60 requests/minute per IP. Audit logging on POST/DELETE.
 
 ## API Reference
 
@@ -70,6 +85,9 @@ npx wrangler secret put SANDBOX_API_KEY
 | `GET` | `/sandboxes/:id/status` | Versions, git info, project state, env key names |
 | `GET` | `/sandboxes/:id/events` | Workflow events from container pixl.db |
 | `GET` | `/sandboxes/:id/sessions` | Workflow sessions |
+| `GET` | `/sandboxes/:id/sessions/:sid/export` | Export session bundle (session + nodes + events) |
+| `POST` | `/sandboxes/:id/sessions/import` | Import session bundle |
+| `GET` | `/sandboxes/:id/export` | Bulk export (events + sessions + artifacts) |
 | `GET` | `/sandboxes/:id/usage` | Operation stats |
 | `POST` | `/sandboxes/:id/env` | Update env vars at runtime |
 
@@ -81,6 +99,7 @@ npx wrangler secret put SANDBOX_API_KEY
 | `POST` | `/sandboxes/:id/exec/stream` | Execute command (SSE stream) |
 | `POST` | `/sandboxes/:id/workflow` | Run pixl workflow (JSON response) |
 | `POST` | `/sandboxes/:id/workflow/stream` | Run pixl workflow (SSE stream) |
+| `POST` | `/sandboxes/:id/workflow/cancel` | Cancel running workflow (SIGINT) |
 
 ### Git
 

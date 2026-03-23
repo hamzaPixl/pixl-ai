@@ -1,4 +1,4 @@
-# pixl — Usage Guide (v8.0.0)
+# pixl — Usage Guide (v9.1.0)
 
 How to use pixl for a new project, from install to workflow execution.
 
@@ -18,7 +18,7 @@ uv tool install pixl && pixl setup
 Verify:
 
 ```bash
-pixl --version      # 8.0.0
+pixl --version      # 9.1.0
 pixl --help         # lists all commands
 ```
 
@@ -364,4 +364,100 @@ Simulated events will show:
     "output": "[SIMULATED] Output for node: plan"
   }
 }
+```
+
+### Real-time event streaming (NDJSON)
+
+```bash
+pixl --json workflow run --workflow simple --yes --prompt "Add auth"
+```
+
+With `--json`, events stream as newline-delimited JSON in real-time:
+
+```json
+{"event_type": "node_started", "session_id": "sess-001", "node_id": "plan", "timestamp": "..."}
+{"event_type": "node_completed", "session_id": "sess-001", "node_id": "plan", "timestamp": "..."}
+```
+
+---
+
+## 10. Sandbox Execution
+
+Run workflows in isolated Cloudflare containers with their own pixl stack.
+
+### Configure sandbox access
+
+```bash
+pixl config set sandbox.url https://pixl-sandbox.account.workers.dev
+pixl config set sandbox.api_key <key>
+
+# Or use env vars
+export PIXL_SANDBOX_URL=https://pixl-sandbox.account.workers.dev
+export PIXL_SANDBOX_JWT_SECRET=<secret>   # preferred over static API key
+```
+
+### Create and run
+
+```bash
+# Create sandbox (clones repo, sets env, inits pixl)
+pixl sandbox create acme-landing \
+  --repo-url https://github.com/user/repo \
+  --env GITHUB_TOKEN=ghp_xxx
+
+# Run workflow inside sandbox
+pixl sandbox workflow acme-landing --prompt "Build a landing page" --yes
+
+# Stream workflow execution (SSE)
+pixl sandbox workflow acme-landing --prompt "Build auth" --stream
+```
+
+### Monitor
+
+```bash
+pixl sandbox status acme-landing        # versions, git info, project state
+pixl sandbox events acme-landing        # workflow events from container
+pixl sandbox sessions acme-landing      # workflow sessions
+```
+
+### Session continuity (fork-from)
+
+Bootstrap a new sandbox from an existing session:
+
+```bash
+# Export session from source, import into new sandbox
+pixl sandbox create new-project --fork-from acme-landing:sess-001
+```
+
+### Sync and cleanup
+
+```bash
+pixl sandbox sync acme-landing          # pull events/sessions/artifacts to local DB
+pixl sandbox destroy acme-landing       # destroy container
+```
+
+---
+
+## 11. Cost Analytics
+
+Track token usage and costs across models and sessions.
+
+```bash
+pixl cost summary                       # total cost, queries, top model
+pixl cost by-model                      # breakdown by model name
+pixl cost by-session                    # cost per session (top 20)
+pixl --json cost summary                # JSON output
+```
+
+---
+
+## 12. Workflow Templates
+
+Manage DB-backed workflow templates (alongside filesystem YAML).
+
+```bash
+pixl template list                      # all templates (DB + filesystem)
+pixl template get <id>                  # template details
+pixl template create --name "custom" --yaml workflow.yaml
+pixl template update <id> --description "Updated"
+pixl template delete <id>
 ```
