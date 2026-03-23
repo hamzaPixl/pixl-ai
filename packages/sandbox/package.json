@@ -1,0 +1,26 @@
+{
+  "name": "@pixl/sandbox",
+  "version": "0.2.0",
+  "description": "Cloudflare Sandbox integration for pixl — isolated workflow execution environments",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "typecheck": "tsc --noEmit",
+    "test:e2e": "bash scripts/test-e2e.sh"
+  },
+  "dependencies": {
+    "@cloudflare/sandbox": "^0.4.0",
+    "hono": "^4.7.0",
+    "jose": "^6.2.2"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250312.0",
+    "typescript": "^5.7.0",
+    "wrangler": "^4.0.0"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT"
+}

@@ -1,0 +1,15 @@
+id: sandbox-test
+name: Sandbox Validation
+version: "1.0"
+description: Minimal workflow to validate pixl in Cloudflare Sandbox
+workflow_format: v2
+session_mode: plugin
+
+stages:
+  - id: hello
+    name: Hello Test
+    type: task
+    max_turns: 5
+    prompt: |
+      List the files in /workspace and confirm pixl is working.
+      Run `pixl --version` and report the version.
