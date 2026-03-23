@@ -5,6 +5,7 @@ from __future__ import annotations
 import re
 from typing import Any
 
+
 def parse_frontmatter(content: str) -> tuple[dict[str, Any], str]:
     """Parse YAML frontmatter from markdown.
 

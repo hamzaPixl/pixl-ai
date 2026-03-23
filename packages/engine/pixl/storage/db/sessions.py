@@ -21,6 +21,7 @@ from typing import Any
 from pixl.models.session import STALENESS_THRESHOLD_SECONDS
 from pixl.storage.db.base import BaseStore
 
+
 class SessionDB(BaseStore):
     """Workflow session store backed by SQLite.
 
@@ -84,19 +85,23 @@ class SessionDB(BaseStore):
                 session["frozen_artifacts"] = {}
 
         # Batch-deserialize all JSON-suffixed fields
-        self._deserialize_json(session, {
-            "cursor_json": "cursor",
-            "structured_outputs_json": "structured_outputs",
-            "session_state_json": "session_state",
-            "baton_json": "baton",
-            "baton_history_json": "baton_history",
-            "context_audit_json": "context_audit",
-        }, defaults={
-            "structured_outputs": {},
-            "session_state": {},
-            "baton_history": [],
-            "context_audit": [],
-        })
+        self._deserialize_json(
+            session,
+            {
+                "cursor_json": "cursor",
+                "structured_outputs_json": "structured_outputs",
+                "session_state_json": "session_state",
+                "baton_json": "baton",
+                "baton_history_json": "baton_history",
+                "context_audit_json": "context_audit",
+            },
+            defaults={
+                "structured_outputs": {},
+                "session_state": {},
+                "baton_history": [],
+                "context_audit": [],
+            },
+        )
 
         node_rows = self._conn.execute(
             "SELECT * FROM node_instances WHERE session_id = ?",
@@ -145,9 +150,7 @@ class SessionDB(BaseStore):
                     session["ended_at"],
                     session.get("last_updated_at"),
                 )
-                _logging.getLogger(__name__).warning(
-                    "Self-healed zombie session %s", session_id
-                )
+                _logging.getLogger(__name__).warning("Self-healed zombie session %s", session_id)
 
         session["execution_seconds"] = self._sum_node_durations(session["node_instances"])
 
@@ -242,7 +245,7 @@ class SessionDB(BaseStore):
                 )""")
             elif status == "stalled":
                 # Zombie sessions: not ended, no active nodes, last_updated_at stale
-                conditions.append(f"""ws.ended_at IS NULL
+                conditions.append("""ws.ended_at IS NULL
                     AND ws.paused_at IS NULL
                     AND NOT EXISTS (
                         SELECT 1 FROM node_instances ni
@@ -368,7 +371,9 @@ class SessionDB(BaseStore):
 
     def list_stalled_running_sessions(self, stale_after_seconds: int | None = None) -> list[str]:
         """List running sessions whose last_updated_at exceeds the staleness threshold."""
-        threshold = stale_after_seconds if stale_after_seconds is not None else STALENESS_THRESHOLD_SECONDS
+        threshold = (
+            stale_after_seconds if stale_after_seconds is not None else STALENESS_THRESHOLD_SECONDS
+        )
         rows = self._conn.execute(
             """SELECT id, paused_at, ended_at, last_updated_at
                FROM workflow_sessions
@@ -761,9 +766,13 @@ class SessionDB(BaseStore):
             feature_id="tmp",
             snapshot_hash="tmp",
             node_instances=node_instances,
-            paused_at=paused_at,
-            ended_at=ended_at,
-            last_updated_at=last_updated_at,
+            paused_at=datetime.fromisoformat(paused_at)
+            if isinstance(paused_at, str)
+            else paused_at,
+            ended_at=datetime.fromisoformat(ended_at) if isinstance(ended_at, str) else ended_at,
+            last_updated_at=datetime.fromisoformat(last_updated_at)
+            if isinstance(last_updated_at, str)
+            else last_updated_at,
         )
         return temp.status.value
 
@@ -796,9 +805,7 @@ class SessionDB(BaseStore):
             "task_failed",
             "gate_rejected",
         }
-        return all(
-            n.get("state") in terminal for n in node_instances.values()
-        )
+        return all(n.get("state") in terminal for n in node_instances.values())
 
     # Node execution locks (Phase 5)
 
@@ -825,9 +832,7 @@ class SessionDB(BaseStore):
                 locked_at = row["execution_locked_at"]
                 if locked_at:
                     try:
-                        age = (
-                            datetime.now() - datetime.fromisoformat(locked_at)
-                        ).total_seconds()
+                        age = (datetime.now() - datetime.fromisoformat(locked_at)).total_seconds()
                         if age < 120:
                             conn.execute("COMMIT")
                             return False

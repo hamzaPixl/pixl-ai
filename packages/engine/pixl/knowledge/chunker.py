@@ -6,6 +6,7 @@ from pathlib import Path
 
 from pixl.models.knowledge import Chunk, ChunkType
 
+
 @dataclass
 class ChunkConfig:
     """Chunking configuration."""
@@ -14,6 +15,7 @@ class ChunkConfig:
     min_chunk_size: int = 50  # Min characters (skip smaller)
     include_code_files: bool = True  # Also index source code
     code_extensions: tuple = (".py", ".ts", ".js", ".go", ".rs")
+
 
 class Chunker:
     """Split documents into chunks."""

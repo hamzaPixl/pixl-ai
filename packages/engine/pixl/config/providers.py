@@ -42,6 +42,7 @@ DEFAULT_MODELS: list[str] = [
     "gemini/gemini-2.5-flash-lite",
 ]
 
+
 class ProviderConfig(BaseModel):
     """Configuration for an LLM provider."""
 
@@ -49,6 +50,7 @@ class ProviderConfig(BaseModel):
     api_key_env: str = Field(..., description="Environment variable for API key")
     enabled: bool = Field(default=True, description="Whether provider is enabled")
     base_url: str | None = Field(default=None, description="Custom base URL for API")
+
 
 class ConcurrencyConfig(BaseModel):
     """Concurrency limits to prevent rate limiting."""
@@ -62,6 +64,7 @@ class ConcurrencyConfig(BaseModel):
         default_factory=dict,
         description="Per-model concurrency limits (provider/model)",
     )
+
 
 # Default providers
 DEFAULT_PROVIDERS: dict[str, ProviderConfig] = {
@@ -78,6 +81,7 @@ DEFAULT_PROVIDERS: dict[str, ProviderConfig] = {
         api_key_env="GEMINI_API_KEY",
     ),
 }
+
 
 class ExecutionModeConfig(BaseModel):
     """Execution mode configuration controlling human-in-the-loop behavior.
@@ -100,6 +104,7 @@ class ExecutionModeConfig(BaseModel):
         default=True,
         description="Always require approval for destructive operations regardless of mode",
     )
+
 
 class GitStrategyConfig(BaseModel):
     """Git branching strategy configuration.
@@ -127,6 +132,7 @@ class GitStrategyConfig(BaseModel):
         default=False,
         description="Commit planning artifacts separately from implementation",
     )
+
 
 class ProvidersConfig(BaseModel):
     """Root configuration for providers and model resolution.
@@ -190,6 +196,7 @@ class ProvidersConfig(BaseModel):
         """
         return self.providers.get(provider)
 
+
 @dataclass
 class ProvidersConfigLoadResult:
     """Result of loading providers config including source info."""
@@ -200,6 +207,7 @@ class ProvidersConfigLoadResult:
     def __iter__(self) -> Iterator[ProvidersConfig | ConfigSource]:
         """Allow unpacking as tuple."""
         return iter((self.config, self.source))
+
 
 def load_providers_config(project_path: Path) -> ProvidersConfig:
     """Load providers config from project or use defaults.
@@ -218,6 +226,7 @@ def load_providers_config(project_path: Path) -> ProvidersConfig:
     """
     result = load_providers_config_with_source(project_path)
     return result.config
+
 
 def load_providers_config_with_source(
     project_path: Path,

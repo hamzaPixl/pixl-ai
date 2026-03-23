@@ -17,6 +17,7 @@ if TYPE_CHECKING:
     from pixl.models.workflow import WorkflowSnapshot
     from pixl.storage import WorkflowSessionStore
 
+
 def save_session_summary(
     *,
     session: WorkflowSession,

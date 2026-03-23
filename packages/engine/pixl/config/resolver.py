@@ -23,11 +23,13 @@ from pixl.paths import (
     get_project_name as _get_project_name,
 )
 
+
 def get_global_pixl_dir(global_dir: Path | None = None) -> Path:
     """Get global pixl directory (default: ~/.pixl/)."""
     if global_dir is not None:
         return global_dir
     return _get_global_pixl_dir()
+
 
 def get_project_name(project_path: Path) -> str:
     """Extract project name from path.
@@ -43,6 +45,7 @@ def get_project_name(project_path: Path) -> str:
     """
     return _get_project_name(project_path)
 
+
 def get_project_global_dir(project_path: Path, global_dir: Path | None = None) -> Path:
     """Get global config directory for a specific project.
 
@@ -55,6 +58,7 @@ def get_project_global_dir(project_path: Path, global_dir: Path | None = None) -
     """
     base_dir = get_global_pixl_dir(global_dir)
     return base_dir / "projects" / _get_project_id(project_path)
+
 
 class ConfigSource:
     """Represents where a config file was loaded from."""
@@ -77,6 +81,7 @@ class ConfigSource:
         if self.path:
             return f"{self.source_type}: {self.path}"
         return f"{self.source_type}: (bundled defaults)"
+
 
 def find_config_file(
     project_path: Path,
@@ -109,6 +114,7 @@ def find_config_file(
 
     # No file found - will use defaults
     return None, ConfigSource(None, "default")
+
 
 def find_all_config_sources(
     project_path: Path,
@@ -146,6 +152,7 @@ def find_all_config_sources(
 
     return sources
 
+
 def ensure_global_dir() -> Path:
     """Ensure the global pixl directory exists.
 
@@ -155,6 +162,7 @@ def ensure_global_dir() -> Path:
     global_dir = get_global_pixl_dir()
     global_dir.mkdir(parents=True, exist_ok=True)
     return global_dir
+
 
 def ensure_project_global_dir(project_path: Path) -> Path:
     """Ensure the global config directory for a project exists.
@@ -169,6 +177,7 @@ def ensure_project_global_dir(project_path: Path) -> Path:
     project_dir = get_project_global_dir(project_path)
     project_dir.mkdir(parents=True, exist_ok=True)
     return project_dir
+
 
 __all__ = [
     "get_global_pixl_dir",

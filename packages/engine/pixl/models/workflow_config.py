@@ -39,12 +39,14 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
+
 class ParameterOption(BaseModel):
     """Option for choice/checklist parameters."""
 
     id: str = Field(description="Option identifier")
     label: str = Field(description="Display label")
     default: bool = Field(default=False, description="Default selection state")
+
 
 class ParameterConfig(BaseModel):
     """Configuration for an interactive parameter.
@@ -98,6 +100,7 @@ class ParameterConfig(BaseModel):
             )
         return v
 
+
 class ArtifactNeed(BaseModel):
     """Declares how a stage needs a specific artifact in its context.
 
@@ -122,6 +125,7 @@ class ArtifactNeed(BaseModel):
         description="Override default excerpt length for this artifact",
     )
 
+
 class PredecessorNeed(BaseModel):
     """Declares what to include from a predecessor stage's structured output.
 
@@ -142,6 +146,7 @@ class PredecessorNeed(BaseModel):
         default=False,
         description="If true, missing predecessor is silently skipped instead of warning",
     )
+
 
 class ContextNeeds(BaseModel):
     """Declares what context a stage needs from the compiled prompt.
@@ -176,6 +181,7 @@ class ContextNeeds(BaseModel):
             "(e.g. ['models/user.py', 'models/incident.py'])"
         ),
     )
+
 
 class StageContract(BaseModel):
     """Declarative output contract for a workflow stage.
@@ -276,6 +282,7 @@ class StageContract(BaseModel):
             "Takes precedence over scope_boundary."
         ),
     )
+
 
 class WorkflowStageConfig(BaseModel):
     """Configuration for a single workflow stage.
@@ -414,6 +421,7 @@ class WorkflowStageConfig(BaseModel):
             raise ValueError("Sub-workflow stages must specify 'sub_workflow' field")
         return self
 
+
 class LoopConfig(BaseModel):
     """Configuration for a loop constraint in the workflow.
 
@@ -450,6 +458,7 @@ class LoopConfig(BaseModel):
         if v > 100:
             raise ValueError("max_iterations cannot exceed 100")
         return v
+
 
 class BlockConfig(BaseModel):
     """A reusable block of workflow stages.
@@ -584,6 +593,7 @@ class BlockConfig(BaseModel):
                 allow_unicode=True,
             )
 
+
 class ParallelConfig(BaseModel):
     """Configuration for parallel stage execution.
 
@@ -593,6 +603,7 @@ class ParallelConfig(BaseModel):
     name: str = Field(description="Parallel group name")
     stages: list[str] = Field(description="Stage IDs to execute in parallel")
 
+
 class WorkflowTier(StrEnum):
     """Workflow tier classification."""
 
@@ -601,6 +612,7 @@ class WorkflowTier(StrEnum):
     TASK = "task"  # 2-5 stages, 0 gates, single-purpose, sub-invocable
     UTILITY = "utility"  # Lifecycle management, not feature work
     META = "meta"  # Generates pixl assets or project docs
+
 
 class RoutingHints(BaseModel):
     """Routing hints for workflow discovery and sub-workflow composition."""
@@ -621,6 +633,7 @@ class RoutingHints(BaseModel):
         default_factory=list,
         description="Keywords that hint to the classifier this workflow is relevant",
     )
+
 
 class WorkflowConfigYaml(BaseModel):
     """Top-level workflow configuration from YAML.
@@ -823,6 +836,7 @@ class WorkflowConfigYaml(BaseModel):
                 sort_keys=False,
                 allow_unicode=True,
             )
+
 
 __all__ = [
     "ArtifactNeed",

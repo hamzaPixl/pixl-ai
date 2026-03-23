@@ -1,10 +1,8 @@
 """Tests for dual-signature update_epic() and update_roadmap() on BacklogStoreAdapter."""
 
-import tempfile
 from pathlib import Path
 
 import pytest
-
 from pixl.storage.backlog_adapter import BacklogStoreAdapter
 
 

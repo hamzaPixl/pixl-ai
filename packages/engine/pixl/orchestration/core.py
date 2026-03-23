@@ -51,11 +51,13 @@ _UNRECOVERABLE_ERROR_PATTERNS = (
     "messages.*.content.*.tool_use.name:",
 )
 
+
 def _is_unrecoverable_api_error(text: str) -> bool:
     """Return True if *text* describes an API error that will never self-resolve."""
     if not text:
         return False
     return any(pat in text for pat in _UNRECOVERABLE_ERROR_PATTERNS)
+
 
 class OrchestratorCore:
     """Core orchestrator with initialization and helper methods."""
@@ -253,7 +255,7 @@ class OrchestratorCore:
         fallback_model: str | None = None,
         output_format: dict[str, Any] | None = None,
         fork_session: bool = False,
-        thinking: "str | dict[str, Any] | ThinkingConfig | None" = None,
+        thinking: "str | dict[str, Any] | ThinkingConfig | None" = None,  # type: ignore[reportInvalidTypeForm]
         effort: "Literal['low', 'medium', 'high', 'max'] | None" = None,
         agent_name: str | None = None,
     ) -> ClaudeAgentOptions:
@@ -316,7 +318,12 @@ class OrchestratorCore:
             if on_interrupt:
                 with contextlib.suppress(Exception):
                     await on_interrupt()
-            return api_error_count, result_text, "Query interrupted (session paused or stopped)", True
+            return (
+                api_error_count,
+                result_text,
+                "Query interrupted (session paused or stopped)",
+                True,
+            )
 
         if hasattr(message, "content"):
             for block in message.content:
@@ -336,8 +343,7 @@ class OrchestratorCore:
                 agent_name,
             )
             error_msg = (
-                f"Unrecoverable API error loop detected "
-                f"({api_error_count} repeated errors)."
+                f"Unrecoverable API error loop detected ({api_error_count} repeated errors)."
             )
             if on_circuit_breaker:
                 await on_circuit_breaker()
@@ -391,7 +397,7 @@ class OrchestratorCore:
         cwd: Path | None = None,
         output_format: dict[str, Any] | None = None,
         fork_session: bool = False,
-        thinking: "str | dict[str, Any] | ThinkingConfig | None" = None,
+        thinking: "str | dict[str, Any] | ThinkingConfig | None" = None,  # type: ignore[reportInvalidTypeForm]
         effort: "Literal['low', 'medium', 'high', 'max'] | None" = None,
         artifacts_dir: str | None = None,
     ) -> tuple[str, dict]:
@@ -529,18 +535,21 @@ class OrchestratorCore:
                     await client.query(prompt)
                     async with asyncio.timeout(_SDK_QUERY_TIMEOUT):
                         async for message in client.receive_response():
-                            api_error_count, result_text, error_message, aborted = (
-                                await self._process_streaming_message(
-                                    message,
-                                    sdk_result_ref=sdk_result_ref,
-                                    stream_callback=stream_callback,
-                                    api_error_count=api_error_count,
-                                    result_text=result_text,
-                                    stage_id=stage_id,
-                                    agent_name=agent_name,
-                                    on_interrupt=client.interrupt,
-                                    on_circuit_breaker=_evict_client,
-                                )
+                            (
+                                api_error_count,
+                                result_text,
+                                error_message,
+                                aborted,
+                            ) = await self._process_streaming_message(
+                                message,
+                                sdk_result_ref=sdk_result_ref,
+                                stream_callback=stream_callback,
+                                api_error_count=api_error_count,
+                                result_text=result_text,
+                                stage_id=stage_id,
+                                agent_name=agent_name,
+                                on_interrupt=client.interrupt,
+                                on_circuit_breaker=_evict_client,
                             )
                             if aborted:
                                 break
@@ -549,16 +558,19 @@ class OrchestratorCore:
                     sdk_result_ref: list[ResultMessage | None] = [None]  # type: ignore[no-redef]
                     async with asyncio.timeout(_SDK_QUERY_TIMEOUT):
                         async for message in query(prompt=prompt, options=options):
-                            api_error_count, result_text, error_message, aborted = (
-                                await self._process_streaming_message(
-                                    message,
-                                    sdk_result_ref=sdk_result_ref,
-                                    stream_callback=stream_callback,
-                                    api_error_count=api_error_count,
-                                    result_text=result_text,
-                                    stage_id=stage_id,
-                                    agent_name=agent_name,
-                                )
+                            (
+                                api_error_count,
+                                result_text,
+                                error_message,
+                                aborted,
+                            ) = await self._process_streaming_message(
+                                message,
+                                sdk_result_ref=sdk_result_ref,
+                                stream_callback=stream_callback,
+                                api_error_count=api_error_count,
+                                result_text=result_text,
+                                stage_id=stage_id,
+                                agent_name=agent_name,
                             )
                             if aborted:
                                 break
@@ -766,6 +778,7 @@ class OrchestratorCore:
             except Exception:
                 logger.exception("Failed to emit SDK event")
 
+
 # Model tier helpers (SDK provider only)
 
 _BUDGET_BY_TIER: dict[str, float] = {
@@ -779,6 +792,7 @@ _FALLBACK_MAP: dict[str, str] = {
     "sonnet": "claude-haiku-4-5",
 }
 
+
 def _model_tier(model: str) -> str | None:
     lower = model.lower()
     if "opus" in lower:
@@ -789,12 +803,15 @@ def _model_tier(model: str) -> str | None:
         return "haiku"
     return None
 
+
 def _model_budget_usd(model: str) -> float | None:
     tier = _model_tier(model)
     return _BUDGET_BY_TIER.get(tier) if tier else None
 
+
 def _fallback_model_for(model: str) -> str | None:
     tier = _model_tier(model)
     return _FALLBACK_MAP.get(tier) if tier else None
+
 
 __all__ = ["OrchestratorCore"]

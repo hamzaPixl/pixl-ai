@@ -16,6 +16,7 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+
 def record_chain_quality_scores(
     db: PixlDB,
     chain_id: str,
@@ -52,6 +53,7 @@ def record_chain_quality_scores(
             )
     except Exception:
         logger.debug("Quality score recording failed for chain %s", chain_id, exc_info=True)
+
 
 def trigger_consolidation_workflow(
     db: PixlDB,
@@ -103,9 +105,7 @@ def trigger_consolidation_workflow(
         if worktree_path:
             db.sessions.update_session(session.id, workspace_root=str(worktree_path))
     except Exception:
-        logger.warning(
-            "Could not create worktree for consolidation session", exc_info=True
-        )
+        logger.warning("Could not create worktree for consolidation session", exc_info=True)
 
     thread = threading.Thread(
         target=run_workflow_background,

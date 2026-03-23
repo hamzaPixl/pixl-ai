@@ -140,7 +140,9 @@ def artifact_search(
             click.echo("No artifacts found.")
             return
         for r in results:
-            click.echo(f"  [{r.get('artifact_type', '?')}] {r.get('name', r.get('logical_path', '?'))}")
+            click.echo(
+                f"  [{r.get('artifact_type', '?')}] {r.get('name', r.get('logical_path', '?'))}"
+            )
 
 
 @artifact.command("versions")

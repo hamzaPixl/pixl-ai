@@ -9,7 +9,6 @@ for each operation, making it safe for concurrent use.
 
 from __future__ import annotations
 
-import sqlite3
 import uuid
 from dataclasses import dataclass
 from typing import Any

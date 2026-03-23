@@ -32,6 +32,7 @@ _NO_PARSER = object()
 
 # Language registry
 
+
 @dataclass(frozen=True)
 class LanguageSpec:
     """Specification for a supported language grammar."""
@@ -39,6 +40,7 @@ class LanguageSpec:
     name: str
     extensions: tuple[str, ...]
     loader: str  # dotted import path to the language function
+
 
 _LANGUAGE_SPECS: dict[str, LanguageSpec] = {
     "python": LanguageSpec("python", (".py",), "tree_sitter_python.language"),
@@ -59,6 +61,7 @@ for _lang, _spec in _LANGUAGE_SPECS.items():
         _EXT_TO_LANG[_ext] = _lang
 
 # AST Chunker
+
 
 class ASTChunker(Chunker):
     """Tree-sitter based chunker that extends the regex Chunker.
@@ -870,15 +873,19 @@ class ASTChunker(Chunker):
             self._parsers[lang_name] = _NO_PARSER  # type: ignore[assignment]
             return None
 
+
 # Node helpers
+
 
 def _node_text(node: Node, source: bytes) -> str:
     """Extract text content from a tree-sitter node."""
     return source[node.start_byte : node.end_byte].decode("utf-8", errors="replace")
 
+
 def _child_by_field(node: Node, field_name: str) -> Node | None:
     """Get a child node by field name."""
     return node.child_by_field_name(field_name)
+
 
 def _decorated_inner(node: Node) -> Node | None:
     """Get the inner definition from a decorated_definition node."""

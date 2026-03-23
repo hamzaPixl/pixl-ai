@@ -16,12 +16,12 @@ import logging
 import re
 import subprocess
 from collections.abc import Callable
-from dataclasses import dataclass, field
 from pathlib import Path, PurePath, PurePosixPath
 from typing import TYPE_CHECKING
 
 from pixl.execution.contract_constants import STUB_PATTERNS
 from pixl.execution.review_validator import normalize_review_payload
+from pixl.execution.validation.models import ContractValidationResult, ContractViolation
 
 logger = logging.getLogger(__name__)
 
@@ -29,36 +29,6 @@ if TYPE_CHECKING:
     from pixl.models.stage_output import StageOutput
     from pixl.models.workflow_config import StageContract
 
-@dataclass
-class ContractViolation:
-    """A single contract violation."""
-
-    rule: str
-    message: str
-
-@dataclass
-class ContractValidationResult:
-    """Aggregated result of contract validation."""
-
-    violations: list[ContractViolation] = field(default_factory=list)
-    git_unavailable_checks: list[str] = field(default_factory=list)
-    warnings: list[str] = field(default_factory=list)
-
-    @property
-    def passed(self) -> bool:
-        return len(self.violations) == 0
-
-    @property
-    def has_warnings(self) -> bool:
-        return len(self.warnings) > 0
-
-    @property
-    def violation_messages(self) -> list[str]:
-        return [f"[{v.rule}] {v.message}" for v in self.violations]
-
-    @property
-    def warning_messages(self) -> list[str]:
-        return list(self.warnings)
 
 class ContractValidator:
     """Validates stage outputs against a StageContract.
@@ -516,7 +486,7 @@ class ContractValidator:
                 if not dst_valid:
                     unknown_refs.add(str(dst))
                 if src_valid and dst_valid:
-                    dependency_map[dst].add(src)  # dst depends on src
+                    dependency_map[dst].add(src)  # type: ignore[index]  # dst is str after dst_valid check
 
         # Chain waves
         waves = chain_plan.get("waves") or []

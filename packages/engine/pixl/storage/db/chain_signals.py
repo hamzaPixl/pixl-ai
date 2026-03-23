@@ -8,7 +8,6 @@ never block, making this safe for parallel agent dispatch.
 from __future__ import annotations
 
 import json
-import sqlite3
 from typing import Any
 
 from pixl.storage.db.base import BaseStore
@@ -24,6 +23,7 @@ _VALID_SIGNAL_TYPES = frozenset(
         "judge_finding",
     }
 )
+
 
 class ChainSignalDB(BaseStore):
     """CRUD helpers for chain inter-node signals."""
@@ -164,7 +164,9 @@ class ChainSignalDB(BaseStore):
             )
             return cur.rowcount
 
+
 # Helpers
+
 
 def _row_to_dict(row: tuple[Any, ...]) -> dict[str, Any]:
     return {
@@ -175,6 +177,7 @@ def _row_to_dict(row: tuple[Any, ...]) -> dict[str, Any]:
         "payload": _parse_json(row[4]),
         "created_at": row[5],
     }
+
 
 def _parse_json(raw: str | None) -> Any:
     if not raw:

@@ -19,6 +19,7 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+
 def create_feature_worktree(
     project_path: Path,
     feature_id: str,
@@ -39,16 +40,18 @@ def create_feature_worktree(
         feature_id=feature_id,
         base_ref=base_ref,
     )
-    if error or worktree_path is None:
+    if error or worktree_path is None or branch_name is None:
         raise RuntimeError(f"Failed to create feature worktree: {error}")
     logger.info("Feature worktree ready: %s on branch %s", worktree_path, branch_name)
     return worktree_path, branch_name
+
 
 def cleanup_feature_worktree(project_path: Path, feature_id: str) -> None:
     """Remove the worktree for a feature (keeps the branch)."""
     from pixl.execution.git_utils import cleanup_feature_worktree as _cleanup
 
     _cleanup(project_path, feature_id)
+
 
 def create_state_bridge(project_path: Path, event_callback=None):
     """Create a WorkflowStateBridge for entity state transitions.
@@ -68,12 +71,14 @@ def create_state_bridge(project_path: Path, event_callback=None):
     except Exception:
         return None
 
+
 def has_waiting_gates(session) -> bool:
     """Check if session has gates waiting for approval."""
     for instance in session.node_instances.values():
         if instance.get("state") == NodeState.GATE_WAITING.value:
             return True
     return False
+
 
 def get_waiting_gate_node(session) -> str | None:
     """Get the first waiting gate node ID."""
@@ -82,7 +87,9 @@ def get_waiting_gate_node(session) -> str | None:
             return node_id
     return None
 
+
 # Shared baton + PR helpers (used by CLI, API, and chain execution paths)
+
 
 def set_worktree_baton_context(
     db: PixlDB,
@@ -109,6 +116,7 @@ def set_worktree_baton_context(
         "workspace_root": workspace_root,
     }
     db.sessions.update_session(session_id, baton=json.dumps(baton))
+
 
 def ensure_pr_for_feature(
     *,

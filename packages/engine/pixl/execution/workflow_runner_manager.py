@@ -15,10 +15,12 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+
 @dataclass(frozen=True)
 class _RunnerKey:
     db_path: str
     session_id: str
+
 
 class WorkflowRunnerManager:
     """In-process workflow runner supervisor (one thread per running session)."""
@@ -150,7 +152,9 @@ class WorkflowRunnerManager:
             logger.info("Interrupt signal sent to session %s", session_id)
             return True
 
-        logger.debug("No orchestrator found for session %s (may not be in an active query)", session_id)
+        logger.debug(
+            "No orchestrator found for session %s (may not be in an active query)", session_id
+        )
         return False
 
     @classmethod

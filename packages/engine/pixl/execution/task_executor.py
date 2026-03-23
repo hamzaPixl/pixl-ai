@@ -8,7 +8,6 @@ baton patching, and console streaming.
 from __future__ import annotations
 
 import logging
-from datetime import UTC
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -53,6 +52,7 @@ def _estimate_cost(input_tokens: int, output_tokens: int, model: str) -> float:
         if key in model:
             return (input_tokens * inp_rate + output_tokens * out_rate) / 1_000_000
     return 0.0
+
 
 def execute_with_orchestrator(
     executor: GraphExecutor,
@@ -197,7 +197,7 @@ def execute_with_orchestrator(
                 query_kwargs["prompt"] = current_prompt + error_context
 
             # Phase 4B: Look up adapter session for resume
-            if hasattr(executor, 'db') and executor.db:
+            if hasattr(executor, "db") and executor.db:
                 task_session = executor.db.task_sessions.get_task_session(
                     executor.session.id, f"{node.id}:{(instance or {}).get('attempt', 0)}"
                 )
@@ -239,14 +239,14 @@ def execute_with_orchestrator(
                     provider_session_id=metadata["provider_session_id"],
                 )
             # Phase 4B: Persist adapter session state
-            if hasattr(executor, 'db') and executor.db and metadata.get("sdk_session_id"):
+            if hasattr(executor, "db") and executor.db and metadata.get("sdk_session_id"):
                 executor.db.task_sessions.upsert_task_session(
                     session_id=executor.session.id,
                     node_id=node.id,
                     task_key=f"{node.id}:{(instance or {}).get('attempt', 0)}",
                     adapter_name=metadata.get("provider", "claude_sdk"),
                     adapter_session_id=metadata["sdk_session_id"],
-                    last_run_id=getattr(executor, '_current_run_id', None),
+                    last_run_id=getattr(executor, "_current_run_id", None),
                 )
 
             # SDK sessions can expire between attempts. If resume fails, retry
@@ -753,11 +753,13 @@ def execute_with_orchestrator(
                     cost_usd=usage.get("cost_usd", 0.0),
                 )
                 # Phase 4A: Record cost event + check budget
-                if hasattr(executor, 'db') and executor.db:
+                if hasattr(executor, "db") and executor.db:
                     from pixl.execution.budget import record_cost
+
                     budget_ok = record_cost(
-                        executor.db, executor.session.id,
-                        run_id=getattr(executor, '_current_run_id', None),
+                        executor.db,
+                        executor.session.id,
+                        run_id=getattr(executor, "_current_run_id", None),
                         node_id=node.id,
                         adapter_name=metadata.get("provider"),
                         model_name=metadata.get("model"),
@@ -777,7 +779,7 @@ def execute_with_orchestrator(
                 "final_event_payload": final_payload,
             }
             # Phase 4A: Signal budget exceeded to caller
-            if hasattr(executor, 'db') and executor.db and not budget_ok:
+            if hasattr(executor, "db") and executor.db and not budget_ok:
                 result["budget_exceeded"] = True
             if metadata.get("trace_text"):
                 result["trace_text"] = metadata["trace_text"]
@@ -824,6 +826,7 @@ def execute_with_orchestrator(
     finally:
         executor.orchestrator.clear_sdk_event_callback()
 
+
 def is_resume_session_error(message: str) -> bool:
     """Detect provider errors that indicate an invalid/expired resume session."""
     text = message.lower()
@@ -840,6 +843,7 @@ def is_resume_session_error(message: str) -> bool:
         "does not exist",
     )
     return any(marker in text for marker in markers)
+
 
 def stream_message_to_console(message) -> None:
     """Stream SDK message content to console in real-time.
@@ -864,6 +868,7 @@ def stream_message_to_console(message) -> None:
             # Text block
             console.stream_text(block.text)
 
+
 def _build_stage_output_format() -> dict[str, Any] | None:
     """Build SDK output_format spec from StageOutput JSON Schema.
 
@@ -880,6 +885,7 @@ def _build_stage_output_format() -> dict[str, Any] | None:
         }
     except Exception:
         return None
+
 
 def _provider_writable_dirs(executor: GraphExecutor) -> list[str]:
     """Directories external providers may write during a stage."""
@@ -903,10 +909,12 @@ def _provider_writable_dirs(executor: GraphExecutor) -> list[str]:
         resolved_dirs.append(value)
     return resolved_dirs
 
+
 def _tail_excerpt(text: str, limit: int = RAW_OUTPUT_EXCERPT_CHARS) -> str:
     if not text:
         return ""
     return text[-limit:] if len(text) > limit else text
+
 
 def execute_simulated(node: Node, instance: dict) -> dict:
     """Execute task in simulation mode (no SDK call).

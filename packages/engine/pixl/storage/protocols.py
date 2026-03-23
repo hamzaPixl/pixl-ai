@@ -36,6 +36,7 @@ from typing import Any, Protocol, runtime_checkable
 
 # Backlog store (roadmaps, epics, features)
 
+
 @runtime_checkable
 class BacklogStore(Protocol):
     """Interface for roadmap -> epic -> feature hierarchy management."""
@@ -148,7 +149,9 @@ class BacklogStore(Protocol):
 
     def add_note(self, entity_type: str, entity_id: str, content: str) -> None: ...
 
+
 # Knowledge / RAG store
+
 
 @runtime_checkable
 class KnowledgeStore(Protocol):
@@ -215,7 +218,9 @@ class KnowledgeStore(Protocol):
 
     def clear(self) -> None: ...
 
+
 # Artifact store
+
 
 @runtime_checkable
 class ArtifactStore(Protocol):
@@ -342,7 +347,9 @@ class ArtifactStore(Protocol):
         feature_id: str | None = None,
     ) -> str: ...
 
+
 # Event / audit store
+
 
 @runtime_checkable
 class EventStore(Protocol):
@@ -396,6 +403,7 @@ class EventStore(Protocol):
         entity_type: str | None = None,
         entity_id: str | None = None,
         payload: dict[str, Any] | None = None,
+        created_at: str | None = None,
     ) -> int: ...
 
     def get_events(
@@ -422,7 +430,9 @@ class EventStore(Protocol):
         entity_type: str | None = None,
     ) -> list[dict[str, Any]]: ...
 
+
 # Session store (workflow + SDK sessions)
+
 
 @runtime_checkable
 class SessionStore(Protocol):
@@ -507,7 +517,9 @@ class SessionStore(Protocol):
 
     def requeue_stale_session_report_jobs(self, max_running_seconds: int = 900) -> int: ...
 
-    def list_stalled_running_sessions(self, stale_after_seconds: int | None = None) -> list[str]: ...
+    def list_stalled_running_sessions(
+        self, stale_after_seconds: int | None = None
+    ) -> list[str]: ...
 
     def upsert_node_instance(
         self,
@@ -546,7 +558,9 @@ class SessionStore(Protocol):
 
     def cleanup_orphaned_snapshots(self, active_hashes: set[str]) -> int: ...
 
+
 # Top-level storage backend
+
 
 @runtime_checkable
 class StorageBackend(Protocol):

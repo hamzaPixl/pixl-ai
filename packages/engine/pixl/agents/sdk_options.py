@@ -47,6 +47,7 @@ def _resolve_crew_plugin_path() -> str | None:
 
     return None
 
+
 # Optional hooks subsystem — gracefully degrade if not yet extracted.
 try:
     from pixl.agents.hooks import (
@@ -67,6 +68,7 @@ except ImportError:
     def create_sdk_hooks_from_registry(registry: Any) -> dict:  # type: ignore[misc]
         return {}
 
+
 ThinkingConfigAdaptive = getattr(sdk_types, "ThinkingConfigAdaptive", None)
 ThinkingConfigDisabled = getattr(sdk_types, "ThinkingConfigDisabled", None)
 ThinkingConfigEnabled = getattr(sdk_types, "ThinkingConfigEnabled", None)
@@ -77,28 +79,30 @@ if (
     and ThinkingConfigEnabled is not None
     and ThinkingConfigDisabled is not None
 ):
-    ThinkingConfig = ThinkingConfigAdaptive | ThinkingConfigEnabled | ThinkingConfigDisabled
+    ThinkingConfig = ThinkingConfigAdaptive | ThinkingConfigEnabled | ThinkingConfigDisabled  # type: ignore[reportInvalidTypeForm]
 
-def _build_thinking_config(kind: str, budget_tokens: int | None = None) -> ThinkingConfig:
+
+def _build_thinking_config(kind: str, budget_tokens: int | None = None) -> Any:
     if ThinkingConfigAdaptive is None:
-        payload = {"type": kind}
+        payload: dict[str, Any] = {"type": kind}
         if budget_tokens is not None:
             payload["budget_tokens"] = budget_tokens
         return payload
 
     if kind == "adaptive":
-        return ThinkingConfigAdaptive(type="adaptive")
+        return ThinkingConfigAdaptive(type="adaptive")  # type: ignore[reportInvalidTypeForm]
     if kind == "enabled":
-        return ThinkingConfigEnabled(
+        return ThinkingConfigEnabled(  # type: ignore[reportInvalidTypeForm]
             type="enabled", budget_tokens=32_000 if budget_tokens is None else budget_tokens
         )
     if kind == "disabled":
-        return ThinkingConfigDisabled(type="disabled")
+        return ThinkingConfigDisabled(type="disabled")  # type: ignore[reportInvalidTypeForm]
     raise ValueError(f"Unknown thinking kind: {kind!r}")
 
+
 def resolve_thinking_config(
-    spec: "str | dict[str, Any] | ThinkingConfig | None",
-) -> ThinkingConfig | None:
+    spec: "str | dict[str, Any] | Any | None",
+) -> Any:
     """Convert a thinking spec to a typed SDK config.
 
     Accepts:
@@ -136,6 +140,7 @@ def resolve_thinking_config(
 
     return None
 
+
 def build_sdk_options(
     *,
     project_path: Path,
@@ -155,7 +160,7 @@ def build_sdk_options(
     fallback_model: str | None = None,
     output_format: dict[str, Any] | None = None,
     fork_session: bool = False,
-    thinking: "str | dict[str, Any] | ThinkingConfig | None" = None,
+    thinking: "str | dict[str, Any] | Any | None" = None,
     effort: "Literal['low', 'medium', 'high', 'max'] | None" = None,
     load_crew_plugin: bool = True,
     agent_registry: Any = None,
@@ -175,7 +180,7 @@ def build_sdk_options(
             if tool not in allowed_tools:
                 allowed_tools.append(tool)
 
-    hooks: HooksDict = {}
+    hooks: HooksDict = {}  # type: ignore[reportInvalidTypeForm]
 
     # Wire orchestration hooks (tool budget, context window, output truncation)
     if enable_safety_hooks and _HOOKS_AVAILABLE:
@@ -253,7 +258,7 @@ def build_sdk_options(
         hooks=hooks if hooks else None,
         setting_sources=["user", "project"],
         agents=agents,
-        plugins=plugins,
+        plugins=plugins,  # type: ignore[arg-type]
         extra_args={"debug-to-stderr": None},
     )
 
@@ -303,6 +308,7 @@ def build_sdk_options(
 
     return options
 
+
 def _create_tool_callback_hook(
     callback: Callable[[str, dict[str, Any]], None],
 ) -> HookCallback:
@@ -318,4 +324,4 @@ def _create_tool_callback_hook(
         callback(tool_name, tool_input)
         return {}
 
-    return hook
+    return hook  # type: ignore[return-value]

@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import click
 
-from pixl_cli._output import emit_error, emit_json
+from pixl_cli._output import emit_json
 from pixl_cli.main import get_ctx
 
 
@@ -72,7 +72,9 @@ def knowledge_search(
 
 
 @knowledge.command("build")
-@click.option("--code", "include_code", is_flag=True, default=False, help="Index source code files.")
+@click.option(
+    "--code", "include_code", is_flag=True, default=False, help="Index source code files."
+)
 @click.option("--full", "full_rebuild", is_flag=True, default=False, help="Force full rebuild.")
 @click.pass_context
 def knowledge_build(ctx: click.Context, include_code: bool, full_rebuild: bool) -> None:

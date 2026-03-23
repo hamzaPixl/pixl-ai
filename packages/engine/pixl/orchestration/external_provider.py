@@ -14,20 +14,22 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
-logger = logging.getLogger(__name__)
-
 from pixl.config.providers import ProvidersConfig
 from pixl.models.event import Event
 from pixl.output import console, is_json_mode
 from pixl.providers import ProviderRegistry
 
+logger = logging.getLogger(__name__)
+
 # Lightweight duck-typed message blocks for stream callbacks
+
 
 class _TextBlock:
     __slots__ = ("text",)
 
     def __init__(self, text: str) -> None:
         self.text = text
+
 
 class _ToolCallBlock:
     __slots__ = ("name", "input")
@@ -36,11 +38,13 @@ class _ToolCallBlock:
         self.name = name
         self.input = tool_input
 
+
 class _ThinkingBlock:
     __slots__ = ("thinking",)
 
     def __init__(self, text: str) -> None:
         self.thinking = text
+
 
 class _StreamMessage:
     __slots__ = ("content",)
@@ -48,21 +52,27 @@ class _StreamMessage:
     def __init__(self, blocks: list) -> None:
         self.content = blocks
 
+
 # Message factory helpers
+
 
 def make_text_message(text: str) -> Any:
     """Create a duck-typed message object compatible with stream callbacks."""
     return _StreamMessage([_TextBlock(text)])
 
+
 def make_tool_call_message(tool_name: str, tool_input: dict[str, Any]) -> Any:
     """Create a duck-typed tool-call message for stream callbacks."""
     return _StreamMessage([_ToolCallBlock(tool_name, tool_input)])
+
 
 def make_thinking_message(content: str) -> Any:
     """Create a duck-typed thinking message for stream callbacks."""
     return _StreamMessage([_ThinkingBlock(content)])
 
+
 # Utility helpers
+
 
 def truncate_tool_input(tool_input: dict[str, Any], limit: int = 500) -> dict[str, Any]:
     """Truncate string values in a tool input dict for event payloads."""
@@ -70,6 +80,7 @@ def truncate_tool_input(tool_input: dict[str, Any], limit: int = 500) -> dict[st
         k: (v[:limit] + "..." if isinstance(v, str) and len(v) > limit else v)
         for k, v in tool_input.items()
     }
+
 
 def normalize_external_usage(raw_usage: dict[str, Any]) -> dict[str, Any]:
     """Normalize external-provider usage payloads to common token keys."""
@@ -131,18 +142,23 @@ def normalize_external_usage(raw_usage: dict[str, Any]) -> dict[str, Any]:
 
     return normalized
 
+
 # Provider helpers
+
 
 def get_provider_name(providers_config: ProvidersConfig, model: str) -> str:
     """Extract provider name from a model string."""
     provider_name, _ = providers_config.parse_model_string(model)
     return provider_name
 
+
 def is_sdk_provider(providers_config: ProvidersConfig, model: str, sdk_providers: set[str]) -> bool:
     """Check if a model string maps to a provider using claude_agent_sdk."""
     return get_provider_name(providers_config, model) in sdk_providers
 
+
 # External provider query
+
 
 async def query_external_provider(
     prompt: str,
@@ -223,7 +239,7 @@ async def query_external_provider(
 
     provider_session_id: str | None = None
 
-    async for chunk in result_iter:
+    async for chunk in result_iter:  # type: ignore[union-attr]
         chunk_type = chunk.get("type", "")
         content = chunk.get("content", "")
 

@@ -18,6 +18,7 @@ from typing import TYPE_CHECKING, Any, Protocol
 if TYPE_CHECKING:
     from pixl.storage.db.backlog import BacklogDB
 
+
 @dataclass(frozen=True)
 class EffectResult:
     """Result of an effect execution."""
@@ -25,6 +26,7 @@ class EffectResult:
     effect_name: str
     applied: bool
     detail: str | None = None
+
 
 class Effect(Protocol):
     """Protocol for transition side effects."""
@@ -41,7 +43,9 @@ class Effect(Protocol):
         context: dict[str, Any],
     ) -> EffectResult: ...
 
+
 # Built-in effects
+
 
 class SetTimestamps:
     """Set lifecycle timestamps based on the new status.
@@ -98,6 +102,7 @@ class SetTimestamps:
 
         return EffectResult(self.name, applied=True, detail=f"set {col}")
 
+
 class RecordTransition:
     """Record the transition in the state_transitions audit table.
 
@@ -142,6 +147,7 @@ class RecordTransition:
             detail=f"{old_status} → {new_status} (trigger={trigger})",
         )
 
+
 class AddTransitionNote:
     """Add a note recording the transition, if a note is provided in context."""
 
@@ -162,6 +168,7 @@ class AddTransitionNote:
 
         store.add_note(entity_type, entity_id, note)
         return EffectResult(self.name, applied=True, detail=note[:50])
+
 
 class PropagateStatus:
     """Propagate feature status changes upward through the hierarchy.
@@ -199,6 +206,7 @@ class PropagateStatus:
 
         return EffectResult(self.name, applied=False, detail="no parent to propagate to")
 
+
 class ClearBlockedFields:
     """Clear blocked_by and blocked_reason when unblocking.
 
@@ -224,6 +232,7 @@ class ClearBlockedFields:
             return EffectResult(self.name, applied=True, detail="cleared blocked fields")
 
         return EffectResult(self.name, applied=False, detail="only applies to features")
+
 
 class SetBlockedFields:
     """Set blocked_by and blocked_reason from context when blocking."""
@@ -253,6 +262,7 @@ class SetBlockedFields:
             return EffectResult(self.name, applied=True, detail=str(updates))
 
         return EffectResult(self.name, applied=False, detail="no blocking context provided")
+
 
 # Default effect registry
 

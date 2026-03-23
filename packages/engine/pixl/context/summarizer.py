@@ -17,6 +17,7 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
+
 class ArtifactSummarizer:
     """Generates and caches artifact summaries.
 
@@ -339,5 +340,6 @@ class ArtifactSummarizer:
         to_remove = [k for k in self._cache if k.startswith(f"{artifact_name}:")]
         for k in to_remove:
             del self._cache[k]
+
 
 __all__ = ["ArtifactSummarizer"]

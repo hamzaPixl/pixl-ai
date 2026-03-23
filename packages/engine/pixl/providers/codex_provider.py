@@ -33,6 +33,7 @@ from pixl.providers.chunk_types import (
 )
 from pixl.providers.rate_limits import parse_int, parse_reset_ms
 
+
 class CodexProvider(LLMProvider):
     """Codex provider wrapping the OpenAI Codex CLI tool.
 
@@ -377,5 +378,6 @@ class CodexProvider(LLMProvider):
                 available=False,
                 error=f"Failed to fetch limits: {e!s}",
             )
+
 
 __all__ = ["CodexProvider"]

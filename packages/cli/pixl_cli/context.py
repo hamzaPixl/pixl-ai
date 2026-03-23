@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from typing import Any
 
 from pixl.paths import canonical_project_root, get_pixl_dir, get_project_id
 from pixl.storage import create_storage
@@ -78,7 +77,7 @@ class CLIContext:
         latest = self.db.sessions.get_latest_session(feature_id="cli-manual")
         if latest:
             self.session_id = latest["id"]
-            return self.session_id
+            return str(self.session_id)
 
         # Create a CLI feature and session
         feature = self.db.backlog.add_feature(
@@ -91,7 +90,7 @@ class CLIContext:
             snapshot_hash="cli-manual",
         )
         self.session_id = session["id"]
-        return self.session_id
+        return str(self.session_id)
 
     def close(self) -> None:
         """Close storage if it was initialized."""

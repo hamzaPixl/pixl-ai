@@ -222,9 +222,7 @@ class TestSandboxExecStreaming:
         """When --no-stream is set, exec should use synchronous call."""
         from pixl_cli.commands.sandbox import sandbox
 
-        mock_client = _make_client(
-            exec_result={"success": True, "stdout": "sync result"}
-        )
+        mock_client = _make_client(exec_result={"success": True, "stdout": "sync result"})
         mock_get_client.return_value = mock_client
         mock_get_ctx.return_value = _make_cli_ctx(is_json=False)
 
@@ -241,9 +239,7 @@ class TestSandboxExecStreaming:
         """When --json is active, exec should use sync path."""
         from pixl_cli.commands.sandbox import sandbox
 
-        mock_client = _make_client(
-            exec_result={"success": True, "stdout": "output"}
-        )
+        mock_client = _make_client(exec_result={"success": True, "stdout": "output"})
         mock_get_client.return_value = mock_client
         mock_get_ctx.return_value = _make_cli_ctx(is_json=True)
 

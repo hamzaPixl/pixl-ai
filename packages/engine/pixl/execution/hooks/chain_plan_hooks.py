@@ -18,9 +18,11 @@ from typing import Any
 from pixl.execution.hooks import HookContext, HookResult, register_hook
 from pixl.storage.db.connection import PixlDB
 
+
 def _slug(value: str) -> str:
     cleaned = re.sub(r"[^a-zA-Z0-9]+", "-", value.strip().lower()).strip("-")
     return cleaned or "node"
+
 
 def _detect_cycle_nodes(dependency_map: dict[str, set[str]]) -> list[str]:
     color: dict[str, int] = dict.fromkeys(dependency_map, 0)
@@ -46,6 +48,7 @@ def _detect_cycle_nodes(dependency_map: dict[str, set[str]]) -> list[str]:
             dfs(node)
     return sorted(cycle_nodes)
 
+
 def _get_decompose_payload(ctx: HookContext) -> dict[str, Any]:
     source_node_id = str(ctx.params.get("source_node_id", "decompose"))
     structured = ctx.session.structured_outputs.get(source_node_id, {})
@@ -53,6 +56,7 @@ def _get_decompose_payload(ctx: HookContext) -> dict[str, Any]:
         return {}
     payload = structured.get("payload", {})
     return payload if isinstance(payload, dict) else {}
+
 
 def _write_chain_plan_artifacts(
     artifacts_dir: Path,
@@ -87,6 +91,7 @@ def _write_chain_plan_artifacts(
     lines.append("")
 
     (artifacts_dir / "chain-plan.md").write_text("\n".join(lines), encoding="utf-8")
+
 
 @register_hook("materialize-chain-plan")
 def materialize_chain_plan_hook(ctx: HookContext) -> HookResult:

@@ -25,12 +25,14 @@ logger = logging.getLogger(__name__)
 
 # SDK hook events that can be bridged. SessionStart is handled separately
 # by the plugin system and is not an SDK HookMatcher event.
-_SUPPORTED_EVENTS = frozenset({
-    "PreToolUse",
-    "PostToolUse",
-    "Stop",
-    "Notification",
-})
+_SUPPORTED_EVENTS = frozenset(
+    {
+        "PreToolUse",
+        "PostToolUse",
+        "Stop",
+        "Notification",
+    }
+)
 
 # Profile rank for filtering — higher rank includes all lower levels.
 _PROFILE_RANK = {"minimal": 0, "standard": 1, "strict": 2}
@@ -68,13 +70,16 @@ def _create_crew_hook(script_path: str) -> HookCallback:
     """Create an SDK HookCallback that delegates to a crew shell script."""
 
     async def hook(
-        input_data: dict[str, Any],
+        input_data: Any,
         tool_use_id: str | None,
         context: HookContext,
     ) -> HookJSONOutput:
-        return await _run_shell_hook(script_path, input_data)
+        raw = await _run_shell_hook(
+            script_path, dict(input_data) if hasattr(input_data, "__iter__") else {}
+        )
+        return raw  # type: ignore[return-value]
 
-    return hook
+    return hook  # type: ignore[return-value]
 
 
 def _extract_profile_level(command: str) -> str | None:

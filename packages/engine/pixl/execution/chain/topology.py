@@ -6,6 +6,7 @@ from typing import Any
 
 from pixl.execution.chain_constants import CHAIN_TERMINAL_STATES
 
+
 def toposort_ready_nodes(
     *,
     nodes: list[dict[str, Any]],
@@ -55,6 +56,7 @@ def toposort_ready_nodes(
     )
     return runnable, blocked
 
+
 def descendants(
     *,
     start_node_id: str,
@@ -78,6 +80,7 @@ def descendants(
             seen.add(child)
             queue.append(child)
     return sorted(seen)
+
 
 def detect_completed_wave(nodes: list[dict[str, Any]]) -> int | None:
     """Return wave number if all nodes in that wave are terminal and next wave has pending nodes."""

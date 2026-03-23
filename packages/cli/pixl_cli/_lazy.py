@@ -29,12 +29,12 @@ class LazyGroup(click.Group):
         lazy = sorted(self._lazy_subcommands.keys())
         return base + lazy
 
-    def get_command(self, ctx: click.Context, cmd_name: str) -> click.BaseCommand | None:
+    def get_command(self, ctx: click.Context, cmd_name: str) -> click.Command | None:
         if cmd_name in self._lazy_subcommands:
             return self._load_command(cmd_name)
         return super().get_command(ctx, cmd_name)
 
-    def _load_command(self, cmd_name: str) -> click.BaseCommand:
+    def _load_command(self, cmd_name: str) -> click.Command:
         module_path = self._lazy_subcommands[cmd_name]
         module = importlib.import_module(module_path)
         # Convention: each command module exposes a click group/command

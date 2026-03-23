@@ -11,6 +11,7 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+
 def filter_conflicting_nodes(
     db: PixlDB,
     chain_id: str,
@@ -57,6 +58,7 @@ def filter_conflicting_nodes(
 
     return dispatched if dispatched else candidates[:1]
 
+
 def emit_file_claims(
     db: PixlDB,
     chain_id: str,
@@ -77,6 +79,7 @@ def emit_file_claims(
             )
     except Exception:
         logger.debug("Non-critical: file claim emission failed for node %s", node_id, exc_info=True)
+
 
 def extract_and_persist_signals(
     db: PixlDB,
@@ -121,6 +124,7 @@ def extract_and_persist_signals(
         )
     except Exception:
         logger.debug("Signal extraction failed for node %s", node_id, exc_info=True)
+
 
 def refresh_file_claims_from_session(
     db: PixlDB,

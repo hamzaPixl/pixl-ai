@@ -43,11 +43,14 @@ logger = logging.getLogger(__name__)
 # Subprocess buffer limit: 4 MiB to handle large tool outputs.
 _SUBPROCESS_BUFFER = 4 * 1024 * 1024
 
+
 class CLINotFoundError(RuntimeError):
     """Raised when the ``gemini`` binary is not on ``$PATH``."""
 
+
 class OAuthNotConfiguredError(RuntimeError):
     """Raised when OAuth credentials have not been set up."""
+
 
 class GeminiCLIClient:
     """Async Python client wrapping the Gemini CLI binary.
@@ -371,6 +374,7 @@ class GeminiCLIClient:
         elif process.returncode and process.returncode != 0:
             message = stderr_text or "Gemini CLI JSON fallback failed"
             yield ErrorEvent(message=f"Gemini CLI error: {message}")
+
 
 __all__ = [
     "GeminiCLIClient",

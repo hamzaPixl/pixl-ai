@@ -34,9 +34,7 @@ class BackgroundManager:
         self._project_path = project_path or Path.cwd()
         self._providers_config = load_providers_config(self._project_path)
         config = concurrency_config or ConcurrencyConfig()
-        self._concurrency = ConcurrencyManager(
-            config, providers_config=self._providers_config
-        )
+        self._concurrency = ConcurrencyManager(config, providers_config=self._providers_config)
 
     _MAX_FINISHED_TASKS = 500
 

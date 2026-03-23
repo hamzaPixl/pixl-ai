@@ -25,6 +25,7 @@ from pathlib import Path
 from pixl.models.workflow_config import BlockConfig
 from pixl.paths import get_global_pixl_dir, get_workflows_dir
 
+
 class BlockLoadError(Exception):
     """Error loading a block from YAML."""
 
@@ -37,6 +38,7 @@ class BlockLoadError(Exception):
         if self.path:
             return f"Error loading block from {self.path}: {self.message}"
         return self.message
+
 
 class BlockLoader:
     """Loads reusable stage blocks with cascading resolution.
@@ -201,6 +203,7 @@ class BlockLoader:
                 return True
 
         return False
+
 
 __all__ = [
     "BlockLoadError",

@@ -23,6 +23,7 @@ from typing import Any
 
 from pixl.storage.db.base import BaseStore
 
+
 class EventDB(BaseStore):
     """Event and state transition store.
 
@@ -182,7 +183,15 @@ class EventDB(BaseStore):
                    (entity_type, entity_id, from_status, to_status,
                     trigger, trigger_id, metadata)
                    VALUES (?, ?, ?, ?, ?, ?, ?)""",
-                (entity_type, entity_id, from_status, to_status, trigger, trigger_id, metadata_json),
+                (
+                    entity_type,
+                    entity_id,
+                    from_status,
+                    to_status,
+                    trigger,
+                    trigger_id,
+                    metadata_json,
+                ),
             )
             conn.commit()
         self._notify()
@@ -350,7 +359,15 @@ class EventDB(BaseStore):
                     """INSERT INTO events
                        (event_type, session_id, node_id, entity_type, entity_id, payload_json, created_at)
                        VALUES (?, ?, ?, ?, ?, ?, ?)""",
-                    (event_type, session_id, node_id, entity_type, entity_id, payload_json, created_at),
+                    (
+                        event_type,
+                        session_id,
+                        node_id,
+                        entity_type,
+                        entity_id,
+                        payload_json,
+                        created_at,
+                    ),
                 )
             else:
                 cursor = conn.execute(
@@ -378,10 +395,11 @@ class EventDB(BaseStore):
             return
         try:
             from types import SimpleNamespace
+
             event = SimpleNamespace(
-                type=event_type,        # Match Event model field name
+                type=event_type,  # Match Event model field name
                 event_type=event_type,  # Keep for bus filtering
-                data=payload,           # Match Event model field name
+                data=payload,  # Match Event model field name
                 session_id=session_id,
                 node_id=node_id,
                 entity_type=entity_type,

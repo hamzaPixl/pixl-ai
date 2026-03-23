@@ -8,7 +8,7 @@ the session is paused and a BUDGET_EXCEEDED event is emitted.
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from pixl.models.budget import BudgetConfig
 
@@ -16,6 +16,7 @@ if TYPE_CHECKING:
     from pixl.storage.db.connection import PixlDB
 
 logger = logging.getLogger(__name__)
+
 
 def get_budget(db: PixlDB) -> BudgetConfig:
     """Read budget config from the config table."""
@@ -25,9 +26,11 @@ def get_budget(db: PixlDB) -> BudgetConfig:
         spent_monthly_usd=db.cost_events.total_cost_for_month(),
     )
 
+
 def set_budget(db: PixlDB, monthly_usd: float) -> None:
     """Set the monthly budget limit."""
     db.set_config("budget:monthly_usd", str(monthly_usd))
+
 
 def record_cost(
     db: PixlDB,
@@ -93,7 +96,9 @@ def record_cost(
     if budget.is_exceeded:
         logger.warning(
             "Budget exceeded for session %s: $%.2f / $%.2f",
-            session_id, budget.spent_monthly_usd, budget.monthly_usd,
+            session_id,
+            budget.spent_monthly_usd,
+            budget.monthly_usd,
         )
 
         try:

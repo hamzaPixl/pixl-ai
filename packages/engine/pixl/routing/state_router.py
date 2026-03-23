@@ -21,6 +21,7 @@ from pixl.routing.models import RouterResult, WorkKind, get_allowed_workflows
 
 # State context — what the router knows about current backlog
 
+
 @dataclass
 class EntityMatch:
     """An entity from the backlog that appears related to the prompt."""
@@ -30,6 +31,7 @@ class EntityMatch:
     title: str
     status: str
     score: float  # How well the entity matches the prompt (0.0–1.0)
+
 
 @dataclass
 class StateContext:
@@ -47,6 +49,7 @@ class StateContext:
     @property
     def has_blocked(self) -> bool:
         return len(self.blocked_features) > 0
+
 
 # Workflow suggestion rules
 
@@ -73,6 +76,7 @@ _WORKFLOW_BY_STATUS: dict[str, dict[str, str]] = {
     },
 }
 
+
 def suggest_workflow_for_state(entity_type: str, status: str) -> str | None:
     """Suggest a workflow based on entity type and current status.
 
@@ -84,6 +88,7 @@ def suggest_workflow_for_state(entity_type: str, status: str) -> str | None:
         return suggestion
     return None
 
+
 def map_entity_type_to_work_kind(entity_type: str) -> WorkKind:
     """Map entity type string to WorkKind enum."""
     return {
@@ -92,13 +97,16 @@ def map_entity_type_to_work_kind(entity_type: str) -> WorkKind:
         "roadmap": WorkKind.ROADMAP,
     }.get(entity_type, WorkKind.FEATURE)
 
+
 # Title similarity (lightweight, no external deps)
+
 
 def _normalize(text: str) -> set[str]:
     """Extract lowercase word tokens from text."""
     import re
 
     return set(re.findall(r"[a-z][a-z0-9_]{2,}", text.lower()))
+
 
 def title_similarity(prompt: str, title: str) -> float:
     """Jaccard similarity between prompt and entity title tokens."""
@@ -110,7 +118,9 @@ def title_similarity(prompt: str, title: str) -> float:
     union = prompt_tokens | title_tokens
     return len(intersection) / len(union) if union else 0.0
 
+
 # StateAwareRouter
+
 
 class StateAwareRouter:
     """Enriches routing decisions with backlog state context.

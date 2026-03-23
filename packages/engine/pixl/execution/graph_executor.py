@@ -74,6 +74,7 @@ from pixl.storage import BacklogStore
 
 logger = logging.getLogger(__name__)
 
+
 class GraphExecutor:
     """Executes workflow graphs with checkpoint/resume support.
 
@@ -321,12 +322,12 @@ class GraphExecutor:
             loop = asyncio.get_running_loop()
             async with asyncio.TaskGroup() as tg:
                 for nid in nodes_to_run:
+
                     async def _run(node_id: str = nid) -> None:
                         # Run synchronous node execution in a thread to avoid blocking
-                        result = await loop.run_in_executor(
-                            None, _execute_single_node, node_id
-                        )
+                        result = await loop.run_in_executor(None, _execute_single_node, node_id)
                         node_results[node_id] = result
+
                     tg.create_task(_run())
 
             merged["executed"] = any(r.get("executed") for r in node_results.values())
@@ -387,17 +388,29 @@ class GraphExecutor:
             if frozen_check is not None:
                 result["executed"] = True
                 update_node_instance_state(
-                    self.session, node.id, NodeState.TASK_FAILED,
-                    {"failure_kind": "frozen_violation", "error": frozen_check["error"], "error_type": "contract_error"},
+                    self.session,
+                    node.id,
+                    NodeState.TASK_FAILED,
+                    {
+                        "failure_kind": "frozen_violation",
+                        "error": frozen_check["error"],
+                        "error_type": "contract_error",
+                    },
                 )
                 cursor = self.session.executor_cursor
                 if cursor:
                     cursor.current_node_id = None
                     cursor.remove_from_ready_queue(node_id)
                 fail_event = self._commit_transition(
-                    event_type=EventType.TASK_FAILED, node_id=node_id,
-                    payload={"error": frozen_check["error"], "failure_kind": "frozen_violation", "error_type": "contract_error"},
-                    from_state=None, to_state=NodeState.TASK_FAILED,
+                    event_type=EventType.TASK_FAILED,
+                    node_id=node_id,
+                    payload={
+                        "error": frozen_check["error"],
+                        "failure_kind": "frozen_violation",
+                        "error_type": "contract_error",
+                    },
+                    from_state=None,
+                    to_state=NodeState.TASK_FAILED,
                 )
                 result["events"] = frozen_check["events"] + [fail_event]
                 return result
@@ -431,23 +444,34 @@ class GraphExecutor:
 
         # Recovery check for non-exception task failures
         if new_state == NodeState.TASK_FAILED and node.type == NodeType.TASK:
-            retry_result = try_recovery_for_result(self, node_id, execution_result, events, persisted_events)
+            retry_result = try_recovery_for_result(
+                self, node_id, execution_result, events, persisted_events
+            )
             if retry_result is not None:
                 return retry_result
 
         if self.state_bridge and node.type == NodeType.TASK and self.session.feature_id:
-            self._trigger_entity_transition(node_id, execution_result.get("success", False), execution_result.get("error"))
+            self._trigger_entity_transition(
+                node_id, execution_result.get("success", False), execution_result.get("error")
+            )
 
         # Version stage outputs on success
         if node.type == NodeType.TASK and execution_result.get("success", False):
             self._version_stage_outputs(node_id)
 
         # Follow outgoing edges
-        next_nodes = follow_edges(self, node_id, execution_result.get("result_state", "failed"), execution_result.get("failure_kind"))
+        next_nodes = follow_edges(
+            self,
+            node_id,
+            execution_result.get("result_state", "failed"),
+            execution_result.get("failure_kind"),
+        )
 
         source_reset_deferred = False
         if next_nodes and execution_result.get("success", False):
-            source_reset_deferred = process_condition_loop_resets(self, node_id, next_nodes, defer_source_reset=True)
+            source_reset_deferred = process_condition_loop_resets(
+                self, node_id, next_nodes, defer_source_reset=True
+            )
 
         cursor = self.session.executor_cursor
         if cursor:
@@ -460,12 +484,19 @@ class GraphExecutor:
 
         final_event_type = execution_result.get("final_event_type")
         if not isinstance(final_event_type, EventType):
-            raise StateError("Execution result missing final_event_type", invariant="final_event_type", details=str(final_event_type))
+            raise StateError(
+                "Execution result missing final_event_type",
+                invariant="final_event_type",
+                details=str(final_event_type),
+            )
 
         final_payload = execution_result.get("final_event_payload", {})
         final_event = self._commit_transition(
-            event_type=final_event_type, node_id=node_id,
-            payload=final_payload, from_state=None, to_state=new_state,
+            event_type=final_event_type,
+            node_id=node_id,
+            payload=final_payload,
+            from_state=None,
+            to_state=new_state,
         )
 
         if source_reset_deferred:
@@ -574,7 +605,10 @@ class GraphExecutor:
             node_instance = get_or_create_node_instance(self.session, node_id)
             result["node_id"] = node_id
 
-            if node.type in (NodeType.TASK, NodeType.SUB_WORKFLOW) and self.session.frozen_artifacts:
+            if (
+                node.type in (NodeType.TASK, NodeType.SUB_WORKFLOW)
+                and self.session.frozen_artifacts
+            ):
                 frozen_check = self._pre_execution_frozen_check(node)
                 if frozen_check is not None:
                     # Frozen artifact violated — fail before executing
@@ -632,9 +666,7 @@ class GraphExecutor:
                 persisted_events.extend(execution_result.get("persisted_events", []))
             elif node.type == NodeType.SUB_WORKFLOW:
                 depth = getattr(self, "_sub_workflow_depth", 0)
-                execution_result = self._execute_sub_workflow(
-                    node, node_instance, _depth=depth
-                )
+                execution_result = self._execute_sub_workflow(node, node_instance, _depth=depth)
                 events.extend(execution_result["events"])
                 persisted_events.extend(execution_result.get("persisted_events", []))
             else:
@@ -1219,7 +1251,7 @@ class GraphExecutor:
                 )
 
         # Phase 5: Acquire node execution lock
-        run_id = getattr(self, '_current_run_id', None) or 'unknown'
+        run_id = getattr(self, "_current_run_id", None) or "unknown"
         locked = False
         if self.db:
             locked = self.db.sessions.lock_node(self.session.id, node.id, run_id)
@@ -1747,9 +1779,7 @@ class GraphExecutor:
     # Maximum sub-workflow nesting depth to prevent circular references
     _MAX_SUB_WORKFLOW_DEPTH = 5
 
-    def _execute_sub_workflow(
-        self, node: Node, instance: dict, *, _depth: int = 0
-    ) -> dict:
+    def _execute_sub_workflow(self, node: Node, instance: dict, *, _depth: int = 0) -> dict:
         """Execute a sub-workflow node by spawning a child GraphExecutor.
 
         The child workflow:
@@ -2017,6 +2047,7 @@ class GraphExecutor:
             artifacts_dir=self.artifacts_dir,
         )
 
+
 def _collect_init_stage_ids(snapshot: WorkflowSnapshot) -> list[str]:
     """Collect stage IDs from the init block in a workflow snapshot.
 
@@ -2036,6 +2067,7 @@ def _collect_init_stage_ids(snapshot: WorkflowSnapshot) -> list[str]:
         if node_id in known_init_stages:
             init_ids.append(node_id)
     return init_ids
+
 
 def resume_session(session_dir: Path, project_root: Path | None = None) -> GraphExecutor:
     """Resume a workflow session.

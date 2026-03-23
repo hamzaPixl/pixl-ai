@@ -62,6 +62,7 @@ MODEL_BUDGETS: dict[str, int] = {
 # Default budget if model not recognized
 DEFAULT_BUDGET = 32_000
 
+
 def _resolve_budget(model: str) -> int:
     """Resolve token budget for a model string.
 
@@ -86,6 +87,7 @@ def _resolve_budget(model: str) -> int:
 
     return DEFAULT_BUDGET
 
+
 def _estimate_tokens(text: str) -> int:
     """Estimate token count using content-type-aware ratio.
 
@@ -99,6 +101,7 @@ def _estimate_tokens(text: str) -> int:
 
     return estimate_tokens(text, "markdown")
 
+
 def _compute_file_hash(path: Path) -> str:
     """Compute SHA256 hash of a file.
 
@@ -111,6 +114,7 @@ def _compute_file_hash(path: Path) -> str:
     h = hashlib.sha256()
     h.update(path.read_bytes())
     return h.hexdigest()
+
 
 def _extract_sections(content: str, section_names: list[str]) -> str | None:
     """Extract specific markdown sections by heading name.
@@ -166,6 +170,7 @@ def _extract_sections(content: str, section_names: list[str]) -> str | None:
     if not result_parts:
         return None
     return "\n".join(result_parts)
+
 
 def _include_artifact(
     artifact_path: Path,
@@ -350,6 +355,7 @@ def _include_artifact(
         ),
         content,
     )
+
 
 class UnifiedContextCompiler:
     """Assembles minimal, auditable prompts with baton context integration.
@@ -864,6 +870,7 @@ class UnifiedContextCompiler:
             lines.append("")
 
         return "\n".join(lines)
+
 
 __all__ = [
     "UnifiedContextCompiler",

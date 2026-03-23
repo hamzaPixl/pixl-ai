@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import click
 
-from pixl_cli._output import emit_detail, emit_json, emit_table
+from pixl_cli._output import emit_json, emit_table
 from pixl_cli.main import get_ctx
 
 

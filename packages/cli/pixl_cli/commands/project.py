@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from pathlib import Path
-
 import click
 
 from pixl_cli._output import emit_detail, emit_error, emit_json, emit_table
@@ -96,11 +94,13 @@ def project_init(ctx: click.Context) -> None:
     ensure_project_config(cli.project_path)
 
     if cli.is_json:
-        emit_json({
-            "project_id": cli.project_id,
-            "pixl_dir": str(cli.pixl_dir),
-            "status": "initialized",
-        })
+        emit_json(
+            {
+                "project_id": cli.project_id,
+                "pixl_dir": str(cli.pixl_dir),
+                "status": "initialized",
+            }
+        )
     else:
         click.echo(f"Initialized pixl project: {cli.project_id}")
         click.echo(f"  Storage: {cli.pixl_dir}")

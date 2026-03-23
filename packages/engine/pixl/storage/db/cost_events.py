@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from pixl.storage.db.base import BaseStore
 
@@ -29,14 +29,22 @@ class CostEventDB(BaseStore):
                    (session_id, run_id, node_id, adapter_name, model_name,
                     input_tokens, output_tokens, cost_usd)
                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
-                (session_id, run_id, node_id, adapter_name, model_name,
-                 input_tokens, output_tokens, cost_usd),
+                (
+                    session_id,
+                    run_id,
+                    node_id,
+                    adapter_name,
+                    model_name,
+                    input_tokens,
+                    output_tokens,
+                    cost_usd,
+                ),
             )
             conn.commit()
 
     def total_cost_for_month(self) -> float:
         """Sum cost_usd for the current calendar month."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
         row = self._conn.execute(
             "SELECT COALESCE(SUM(cost_usd), 0.0) AS total FROM cost_events WHERE created_at >= ?",

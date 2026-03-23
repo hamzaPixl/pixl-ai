@@ -28,6 +28,7 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+
 class WorkflowSessionStore:
     """Manages workflow session persistence with atomic writes and event logging."""
 

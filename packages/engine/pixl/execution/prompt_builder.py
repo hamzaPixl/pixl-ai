@@ -21,6 +21,7 @@ if TYPE_CHECKING:
     from pixl.models.workflow import Node, WorkflowSnapshot
     from pixl.storage import WorkflowSessionStore
 
+
 def build_validation_followup_prompt(
     *,
     node_id: str,
@@ -151,6 +152,7 @@ def build_validation_followup_prompt(
         "```"
     )
 
+
 def build_structured_output_repair_prompt(
     *,
     node_id: str,
@@ -189,6 +191,7 @@ def build_structured_output_repair_prompt(
         "```"
     )
 
+
 def _build_schema_contract_guidance(output_schema_path: str | None) -> str:
     """Build a compact schema-derived payload contract section."""
     if not output_schema_path:
@@ -200,6 +203,7 @@ def _build_schema_contract_guidance(output_schema_path: str | None) -> str:
     if not section:
         return ""
     return section + "\n\n"
+
 
 def resolve_template_string(template: str, variables: dict[str, str]) -> str:
     """Resolve {{var}} and {var} patterns with iterative passes for nesting.
@@ -230,6 +234,7 @@ def resolve_template_string(template: str, variables: dict[str, str]) -> str:
             break  # No more substitutions possible
 
     return result
+
 
 def build_contract_variables(
     node_id: str,
@@ -294,6 +299,7 @@ def build_contract_variables(
 
     return variables
 
+
 def resolve_contract_data(
     contract_data: dict,
     node_id: str,
@@ -327,6 +333,7 @@ def resolve_contract_data(
         }
 
     return resolved
+
 
 def build_frozen_context(
     *,
@@ -385,6 +392,7 @@ def build_frozen_context(
 
     return "\n".join(lines)
 
+
 def build_change_request_context(
     node: Node,
     *,
@@ -425,6 +433,7 @@ def build_change_request_context(
     )
 
     return "\n".join(lines)
+
 
 def write_rejection_feedback(
     gate_id: str,
@@ -474,6 +483,7 @@ def write_rejection_feedback(
         store=store,
     )
     store.save_artifact(session.id, feedback_name, "\n".join(parts))
+
 
 def _append_predecessor_review_context(
     gate_id: str,
@@ -534,6 +544,7 @@ def _append_predecessor_review_context(
         parts.append("## Full Review\n")
         parts.append(content)
 
+
 def write_auto_review_feedback(
     review_node_id: str,
     *,
@@ -590,6 +601,7 @@ def write_auto_review_feedback(
         feedback_path = artifacts_dir / feedback_name
         feedback_path.write_text("\n".join(parts))
 
+
 def build_rejection_feedback_context(
     node: Node,
     *,
@@ -642,6 +654,7 @@ def build_rejection_feedback_context(
                 )
 
     return ""
+
 
 def load_feature_context(
     *,
@@ -697,6 +710,7 @@ def load_feature_context(
 
     return feature_title, feature_description
 
+
 def resolve_output_schema_path(
     schema_ref: str | None,
     *,
@@ -718,6 +732,7 @@ def resolve_output_schema_path(
         return str(bundled_schema)
 
     return None
+
 
 def initialize_baton(
     node: Node,
@@ -748,6 +763,7 @@ def initialize_baton(
         )
 
     session.baton = baton.model_dump()
+
 
 def build_unified_prompt(
     node: Node,
@@ -799,7 +815,7 @@ def build_unified_prompt(
     # the actual project directory, not the standalone storage dir.
     prompt_root = workspace_root or project_root
 
-    baton = Baton.from_dict(session.baton)
+    baton = Baton.from_dict(session.baton or {})
     context = PromptContext(
         workflow_id=snapshot.template_id,
         workflow_name=snapshot.name,
@@ -880,6 +896,7 @@ def build_unified_prompt(
 
     return "\n\n".join(parts)
 
+
 def _build_cli_tools_context(stage_config: dict[str, Any]) -> str:
     """Build CLI tools reference based on stage capabilities."""
     tools_doc = []
@@ -935,6 +952,7 @@ The SHA256 hash is returned by the command — no need to compute it manually.
             "",
         ]
     )
+
 
 def _auto_build_knowledge_index(index: Any, project_root: Path) -> None:
     """Auto-build RAG knowledge index if project has source files.

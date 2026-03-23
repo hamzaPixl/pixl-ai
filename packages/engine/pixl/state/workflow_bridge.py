@@ -56,6 +56,7 @@ _IMPLICIT_MAP: dict[str, dict[str, str]] = {
     "create-epics": {"on_complete": "in_progress"},
 }
 
+
 def _match_implicit(stage_id: str) -> dict[str, str]:
     """Find implicit transitions for a stage ID.
 
@@ -72,7 +73,9 @@ def _match_implicit(stage_id: str) -> dict[str, str]:
 
     return {}
 
+
 # TransitionSpec — parsed from YAML or implicit map
+
 
 @dataclass(frozen=True)
 class TransitionSpec:
@@ -93,7 +96,9 @@ class TransitionSpec:
             extra_context={k: v for k, v in config.items() if k not in ("status", "note")},
         )
 
+
 # WorkflowStateBridge
+
 
 class WorkflowStateBridge:
     """Bridges workflow stage events to entity state transitions.

@@ -23,6 +23,7 @@ from pixl.models.workflow import (
 )
 from pixl.paths import get_workflows_dir
 
+
 class WorkflowStore:
     """Manages workflow template persistence."""
 

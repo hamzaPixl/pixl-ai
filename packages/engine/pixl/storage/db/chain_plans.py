@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 import json
-import sqlite3
 from datetime import datetime
 from typing import Any
 
 from pixl.storage.db.base import BaseStore
+
 
 class ChainPlanDB(BaseStore):
     """CRUD and validation helpers for execution chain plans."""
@@ -90,9 +90,7 @@ class ChainPlanDB(BaseStore):
             results.append(chain)
         return results
 
-    def get_nodes(
-        self, chain_id: str, *, include_execution: bool = False
-    ) -> list[dict[str, Any]]:
+    def get_nodes(self, chain_id: str, *, include_execution: bool = False) -> list[dict[str, Any]]:
         """Return chain nodes, optionally including execution/runtime columns."""
         if include_execution:
             cols = """chain_id, node_id, feature_id, feature_ref, wave, parallel_group,
@@ -834,6 +832,7 @@ class ChainPlanDB(BaseStore):
         self._conn.commit()
         return self.get_chain(chain_id) or {}
 
+
 def _resolve_node_id(
     *,
     node_ref: str | None,
@@ -847,6 +846,7 @@ def _resolve_node_id(
         return node_ids_by_ref[feature_ref]
     return None
 
+
 _PR_PHASE_ERROR_PREFIXES = (
     "pr_automation_failed:",
     "pr_closed:",
@@ -858,13 +858,16 @@ _PR_PHASE_ERROR_PREFIXES = (
     "missing_feature_id",
 )
 
+
 def _is_pr_phase_error(error: str | None) -> bool:
     """Return True if the error indicates a PR-phase failure (not a session failure)."""
     if not error:
         return False
     return any(error.startswith(p) for p in _PR_PHASE_ERROR_PREFIXES)
 
+
 _parse_json_dict = BaseStore._parse_json_dict
+
 
 def _parse_validation(value: str | None) -> dict[str, Any]:
     parsed = _parse_json_dict(value)
@@ -874,6 +877,7 @@ def _parse_validation(value: str | None) -> dict[str, Any]:
         "orphan_nodes": list(parsed.get("orphan_nodes", [])),
         "notes": list(parsed.get("notes", [])),
     }
+
 
 def _analyze_graph(
     *,
@@ -900,6 +904,7 @@ def _analyze_graph(
         if indegree.get(node_id, 0) == 0 and outdegree.get(node_id, 0) == 0
     )
     return cycle_nodes, sorted(dangling_refs), orphan_nodes
+
 
 def _detect_cycle_nodes(adjacency: dict[str, set[str]]) -> list[str]:
     color: dict[str, int] = dict.fromkeys(adjacency, 0)

@@ -23,6 +23,7 @@ from typing import Any
 from pixl.storage.db.base import BaseStore
 from pixl.storage.db.fts import prepare_fts_query
 
+
 @dataclass(frozen=True)
 class IncidentRecord:
     """Immutable record of a recovery incident."""
@@ -56,6 +57,7 @@ class IncidentRecord:
             "created_at": self.created_at,
             "resolved_at": self.resolved_at,
         }
+
 
 class IncidentDB(BaseStore):
     """Incident tracking database with FTS5 search.
@@ -328,6 +330,7 @@ class IncidentDB(BaseStore):
         """
         stats = self.get_stats(days=days, error_type=error_type)
         return float(stats["success_rate"])
+
 
 def _row_to_incident(row: sqlite3.Row) -> IncidentRecord:
     """Convert a database row to IncidentRecord."""

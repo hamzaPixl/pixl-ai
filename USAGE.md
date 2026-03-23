@@ -1,4 +1,4 @@
-# pixl — Usage Guide (v9.1.0)
+# pixl — Usage Guide (v9.0.2)
 
 How to use pixl for a new project, from install to workflow execution.
 
@@ -18,7 +18,7 @@ uv tool install pixl && pixl setup
 Verify:
 
 ```bash
-pixl --version      # 9.1.0
+pixl --version      # 9.0.2
 pixl --help         # lists all commands
 ```
 

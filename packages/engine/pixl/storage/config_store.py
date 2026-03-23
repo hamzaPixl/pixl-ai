@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field
 
 from pixl.paths import get_pixl_dir
 
+
 class PixlConfig(BaseModel):
     """Pixl project configuration."""
 
@@ -120,6 +121,7 @@ class PixlConfig(BaseModel):
             "go.mod",
         ]
     )
+
 
 class ConfigStore:
     """Manages pixl configuration persistence."""

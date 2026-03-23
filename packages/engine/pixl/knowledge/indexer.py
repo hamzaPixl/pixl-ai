@@ -10,6 +10,7 @@ from pixl.models.knowledge import Chunk
 from pixl.paths import get_pixl_dir
 from pixl.storage import create_storage
 
+
 class KnowledgeIndex:
     """Manages the knowledge index."""
 

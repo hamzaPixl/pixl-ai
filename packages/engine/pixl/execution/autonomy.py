@@ -441,7 +441,9 @@ def should_auto_approve_waiting_gate(
             reason = "confidence_threshold_met" if approve else "below_threshold"
 
     if mode == "autopilot":
-        persist_reason = reason if reason != "confidence_threshold_met" else f"{level_reason}:{reason}"
+        persist_reason = (
+            reason if reason != "confidence_threshold_met" else f"{level_reason}:{reason}"
+        )
     else:
         persist_reason = reason
 
@@ -583,4 +585,6 @@ def record_autonomy_outcome(db: Any, session: Any) -> None:
         )
         conn.commit()
     except Exception:
-        logger.warning("Failed to persist autonomy outcome for session %s", session.id, exc_info=True)
+        logger.warning(
+            "Failed to persist autonomy outcome for session %s", session.id, exc_info=True
+        )

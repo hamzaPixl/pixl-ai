@@ -18,11 +18,13 @@ from typing import TYPE_CHECKING, Any, Protocol
 if TYPE_CHECKING:
     from pixl.storage.db.backlog import BacklogDB
 
+
 class Severity(StrEnum):
     """Guard severity level."""
 
     HARD = "hard"  # Blocks the transition
     SOFT = "soft"  # Warning only, transition proceeds
+
 
 @dataclass(frozen=True)
 class GuardResult:
@@ -41,6 +43,7 @@ class GuardResult:
     def fail(name: str, reason: str, severity: Severity = Severity.HARD) -> GuardResult:
         return GuardResult(passed=False, guard_name=name, severity=severity, reason=reason)
 
+
 class Guard(Protocol):
     """Protocol for transition guard functions."""
 
@@ -54,7 +57,9 @@ class Guard(Protocol):
         store: BacklogDB,
     ) -> GuardResult: ...
 
+
 # Feature guards
+
 
 class DependenciesMet:
     """All dependencies must be done before starting work.
@@ -85,6 +90,7 @@ class DependenciesMet:
             f"Unmet dependencies: {', '.join(unmet_ids)}",
         )
 
+
 class HasPlan:
     """Feature should have a plan before starting execution.
 
@@ -112,6 +118,7 @@ class HasPlan:
             "No plan_path set. Consider running 'pixl plan' first.",
             severity=Severity.SOFT,
         )
+
 
 class BlockReasonRequired:
     """A blocked_by or blocked_reason must be provided when blocking.
@@ -141,7 +148,9 @@ class BlockReasonRequired:
             severity=Severity.SOFT,
         )
 
+
 # Epic guards
+
 
 class EpicHasFeatures:
     """Epic must have at least one feature before decomposed/in_progress.
@@ -169,6 +178,7 @@ class EpicHasFeatures:
             self.name,
             "Epic has no features. Decompose it first.",
         )
+
 
 class EpicAllFeaturesDone:
     """All features must be done before epic can be completed.
@@ -205,7 +215,9 @@ class EpicAllFeaturesDone:
 
         return GuardResult.ok(self.name)
 
+
 # Roadmap guards
+
 
 class RoadmapHasEpics:
     """Roadmap must have at least one epic before planned/in_progress.
@@ -233,6 +245,7 @@ class RoadmapHasEpics:
             self.name,
             "Roadmap has no epics.",
         )
+
 
 class RoadmapAllEpicsDone:
     """All epics must be completed before roadmap can be completed.
@@ -269,6 +282,7 @@ class RoadmapAllEpicsDone:
             )
 
         return GuardResult.ok(self.name)
+
 
 # Default guard registry
 

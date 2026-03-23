@@ -22,7 +22,7 @@ from pathlib import Path
 from typing import Any
 
 from pixl.paths import get_pixl_dir
-from pixl.storage.db.schema import SCHEMA_VERSION, get_rebuild_sql, get_schema_sql
+from pixl.storage.db.schema import SCHEMA_VERSION, get_schema_sql
 from pixl.storage.protocols import (
     ArtifactStore,
     BacklogStore,
@@ -30,6 +30,7 @@ from pixl.storage.protocols import (
     KnowledgeStore,
     SessionStore,
 )
+
 
 class _ThreadLocalConn(threading.local):
     """Thread-local storage for SQLite connections.
@@ -47,6 +48,7 @@ class _ThreadLocalConn(threading.local):
 
     def __init__(self) -> None:
         self.conn = None
+
 
 class PixlDB:
     """SQLite implementation of StorageBackend.
@@ -165,7 +167,9 @@ class PixlDB:
     @property
     def events(self) -> EventStore:
         return self._lazy_store(
-            "events", "pixl.storage.db.events", "EventDB",
+            "events",
+            "pixl.storage.db.events",
+            "EventDB",
             on_commit=self._on_event_commit,
             event_bus=self._event_bus,
         )
@@ -214,9 +218,7 @@ class PixlDB:
 
     @property
     def task_sessions(self):
-        return self._lazy_store(
-            "task_sessions", "pixl.storage.db.task_sessions", "TaskSessionDB"
-        )
+        return self._lazy_store("task_sessions", "pixl.storage.db.task_sessions", "TaskSessionDB")
 
     @property
     def summaries(self):

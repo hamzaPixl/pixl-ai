@@ -15,6 +15,7 @@ logger = logging.getLogger(__name__)
 
 DIFFS_DIR = ".diffs"
 
+
 class ArtifactDiffer:
     """Generates and caches diffs between artifact versions.
 
@@ -193,5 +194,6 @@ class ArtifactDiffer:
             artifact_name: Artifact filename.
         """
         self._cleanup_old_diffs(artifact_name)
+
 
 __all__ = ["ArtifactDiffer"]

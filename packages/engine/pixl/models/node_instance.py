@@ -13,6 +13,7 @@ from datetime import datetime
 from enum import StrEnum
 from typing import Any
 
+
 class NodeState(StrEnum):
     """Runtime state for ANY node type.
 
@@ -109,6 +110,7 @@ class NodeState(StrEnum):
             return False
 
         return False
+
 
 class NodeInstance:
     """Mutable runtime state for a node in a session.

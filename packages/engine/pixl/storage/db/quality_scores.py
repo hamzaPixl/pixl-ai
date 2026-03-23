@@ -6,12 +6,12 @@ features, or epics.  Supports trend queries for the dashboard.
 
 from __future__ import annotations
 
-import sqlite3
 from typing import Any
 
 from pixl.storage.db.base import BaseStore
 
 _VALID_SCOPE_TYPES = frozenset({"chain", "node", "session", "feature", "epic"})
+
 
 class QualityScoreDB(BaseStore):
     """CRUD helpers for quality metrics."""

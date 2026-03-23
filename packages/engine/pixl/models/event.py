@@ -13,6 +13,7 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
+
 class EventType(StrEnum):
     """Types of events in the workflow execution log."""
 
@@ -117,16 +118,18 @@ class EventType(StrEnum):
 
 
 # SDK events are streamed via WS as transient messages but NOT persisted to DB.
-TRANSIENT_EVENT_TYPES: frozenset[str] = frozenset({
-    EventType.SDK_QUERY_STARTED,
-    EventType.SDK_QUERY_COMPLETED,
-    EventType.SDK_TOOL_CALL_STARTED,
-    EventType.SDK_TOOL_CALL_COMPLETED,
-    EventType.SDK_THINKING_STARTED,
-    EventType.SDK_THINKING_COMPLETED,
-    EventType.SDK_TEXT_DELTA,
-    EventType.SDK_ERROR,
-})
+TRANSIENT_EVENT_TYPES: frozenset[str] = frozenset(
+    {
+        EventType.SDK_QUERY_STARTED,
+        EventType.SDK_QUERY_COMPLETED,
+        EventType.SDK_TOOL_CALL_STARTED,
+        EventType.SDK_TOOL_CALL_COMPLETED,
+        EventType.SDK_THINKING_STARTED,
+        EventType.SDK_THINKING_COMPLETED,
+        EventType.SDK_TEXT_DELTA,
+        EventType.SDK_ERROR,
+    }
+)
 
 
 class Event(BaseModel):

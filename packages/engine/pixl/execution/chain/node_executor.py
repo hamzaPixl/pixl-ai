@@ -25,6 +25,7 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+
 def build_worktree_context(
     db: PixlDB,
     chain_id: str,
@@ -75,6 +76,7 @@ def build_worktree_context(
         "parallel_features": parallel_features[:20],
         "claimed_files": claimed_files[:50],
     }
+
 
 def dispatch_node_session(
     *,
@@ -234,6 +236,7 @@ def dispatch_node_session(
     logger.info("Dispatched node %s for chain %s as session %s", node_id, chain_id, session.id)
     return session.id, None
 
+
 def dispatch_node_pr_retry(
     *,
     db: PixlDB,
@@ -294,6 +297,7 @@ def dispatch_node_pr_retry(
     )
     return True, None
 
+
 def refine_node(
     *,
     db: PixlDB,
@@ -332,6 +336,7 @@ def refine_node(
         node_id,
         updates={"needs_refinement": False, "refinement_error": "agent_not_wired"},
     )
+
 
 def query_architectural_context(
     *,

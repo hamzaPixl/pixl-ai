@@ -15,8 +15,10 @@ ROUTER_PROMPT_PATH = (
     Path(__file__).parent.parent / "assets" / "prompts" / "router" / "classify.yaml"
 )
 
+
 class ClassificationError(Exception):
     """Raised when prompt classification fails."""
+
 
 class PromptClassifier:
     """Classifies user prompts into feature/epic/roadmap categories.

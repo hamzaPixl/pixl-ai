@@ -25,6 +25,7 @@ DEFAULT_VARIABLES = {
     "pixl_version": "1.0.0",
 }
 
+
 class PromptContext(BaseModel):
     """Context for prompt template rendering."""
 
@@ -53,6 +54,7 @@ class PromptContext(BaseModel):
             "artifacts_dir": str(self.artifacts_dir),
             "pixl_dir": str(self.pixl_dir),
         }
+
 
 class PromptTemplateResolver:
     """Resolves and renders prompt templates for workflow stages.
@@ -392,6 +394,7 @@ Focus on quality and correctness. Follow existing patterns in the codebase.
         add_from_dir(self.bundled_prompts_dir, "bundled")
 
         return sorted(seen_names.values(), key=lambda t: (t["source"], t["name"]))
+
 
 __all__ = [
     "PromptContext",

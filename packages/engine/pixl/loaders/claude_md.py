@@ -7,6 +7,7 @@ from pathlib import Path
 
 from pixl.loaders.types import LoadedClaudeMd
 
+
 class ClaudeMdLoader:
     """Loader for CLAUDE.md files."""
 
@@ -151,6 +152,7 @@ class ClaudeMdLoader:
             patterns.extend(items[:10])
 
         return patterns
+
 
 def load_claude_md(project_path: Path) -> LoadedClaudeMd | None:
     """Load CLAUDE.md from project.

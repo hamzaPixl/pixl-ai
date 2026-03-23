@@ -168,7 +168,10 @@ def sandbox_create(
             if not cli.is_json:
                 click.echo("  Session imported successfully.")
         except Exception as exc:
-            emit_error(f"Session fork failed (sandbox created but session not imported): {exc}", is_json=cli.is_json)
+            emit_error(
+                f"Session fork failed (sandbox created but session not imported): {exc}",
+                is_json=cli.is_json,
+            )
 
     duration_ms = int((time.monotonic() - start) * 1000)
 
@@ -195,7 +198,10 @@ def sandbox_create(
 
     if cli.is_json:
         if source_sandbox_id:
-            result["forked_from"] = {"sandbox_id": source_sandbox_id, "session_id": source_session_id}
+            result["forked_from"] = {
+                "sandbox_id": source_sandbox_id,
+                "session_id": source_session_id,
+            }
         emit_json(result)
     else:
         emit_detail(result, is_json=False)
@@ -287,18 +293,14 @@ def sandbox_workflow(
     # -- Streaming path (default for interactive terminals) --------------------
     if use_stream:
         collected = _consume_stream(
-            client.workflow_stream(
-                project_id, prompt, workflow=workflow_id, yes=auto_approve
-            )
+            client.workflow_stream(project_id, prompt, workflow=workflow_id, yes=auto_approve)
         )
         if collected:
             # Stream succeeded — derive status from collected events
             duration_ms = int((time.monotonic() - start) * 1000)
             last = collected[-1] if collected else {}
             op_status = "completed" if last.get("success", True) else "failed"
-            _log_operation(
-                cli, project_id, "workflow", status=op_status, duration_ms=duration_ms
-            )
+            _log_operation(cli, project_id, "workflow", status=op_status, duration_ms=duration_ms)
             try:
                 cli.db.sandboxes.update_project(project_id, status="ready")
             except Exception:
@@ -460,8 +462,12 @@ def sandbox_export_session(
         duration_ms = int((time.monotonic() - start) * 1000)
         emit_error(f"Failed to export session: {exc}", is_json=cli.is_json)
         _log_operation(
-            cli, project_id, "session_export",
-            status="failed", duration_ms=duration_ms, error=str(exc),
+            cli,
+            project_id,
+            "session_export",
+            status="failed",
+            duration_ms=duration_ms,
+            error=str(exc),
         )
         raise SystemExit(1) from None
     duration_ms = int((time.monotonic() - start) * 1000)
@@ -510,8 +516,12 @@ def sandbox_import_session(
         duration_ms = int((time.monotonic() - start) * 1000)
         emit_error(f"Failed to import session: {exc}", is_json=cli.is_json)
         _log_operation(
-            cli, project_id, "session_import",
-            status="failed", duration_ms=duration_ms, error=str(exc),
+            cli,
+            project_id,
+            "session_import",
+            status="failed",
+            duration_ms=duration_ms,
+            error=str(exc),
         )
         raise SystemExit(1) from None
     duration_ms = int((time.monotonic() - start) * 1000)
@@ -706,7 +716,6 @@ def sandbox_sync(ctx: click.Context, project_id: str) -> None:
                     entity_type=e.get("entity_type"),
                     entity_id=e.get("entity_id"),
                     payload=e.get("payload"),
-                    created_at=e.get("created_at"),
                 )
                 counts["events"] += 1
             except Exception:

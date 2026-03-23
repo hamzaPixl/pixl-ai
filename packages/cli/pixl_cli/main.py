@@ -28,8 +28,16 @@ COMMAND_MODULES = {
 
 
 @click.group(cls=LazyGroup, lazy_subcommands=COMMAND_MODULES)
-@click.option("--json", "use_json", is_flag=True, default=False, help="Output JSON instead of human-readable text.")
-@click.option("--project", "project_path", default=None, type=str, help="Project root path (default: cwd).")
+@click.option(
+    "--json",
+    "use_json",
+    is_flag=True,
+    default=False,
+    help="Output JSON instead of human-readable text.",
+)
+@click.option(
+    "--project", "project_path", default=None, type=str, help="Project root path (default: cwd)."
+)
 @click.version_option(package_name="pixl-cli")
 @click.pass_context
 def cli(ctx: click.Context, use_json: bool, project_path: str | None) -> None:

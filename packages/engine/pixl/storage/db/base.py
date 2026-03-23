@@ -36,7 +36,9 @@ class BaseStore:
         return self._db.conn
 
     @staticmethod
-    def _deserialize_json(row: dict[str, Any], mappings: dict[str, str], *, defaults: dict[str, Any] | None = None) -> dict[str, Any]:
+    def _deserialize_json(
+        row: dict[str, Any], mappings: dict[str, str], *, defaults: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
         """Deserialize JSON string fields in a row dict.
 
         Args:

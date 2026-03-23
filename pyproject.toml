@@ -8,7 +8,7 @@ license = "MIT"
 dependencies = ["pixl-engine", "pixl-cli"]
 
 [project.optional-dependencies]
-dev = ["pytest>=8.0", "pytest-asyncio>=0.24", "ruff>=0.9"]
+dev = ["pytest>=8.0", "pytest-asyncio>=0.24", "ruff>=0.9", "pyright>=1.1"]
 
 [tool.uv]
 package = false
@@ -29,6 +29,15 @@ markers = [
     "e2e: marks end-to-end integration tests",
     "edge_cases: marks edge case tests",
 ]
+
+[tool.pyright]
+pythonVersion = "3.12"
+typeCheckingMode = "basic"
+include = ["packages/engine/pixl", "packages/cli/pixl_cli"]
+reportMissingTypeStubs = false
+reportMissingImports = "warning"
+reportOptionalMemberAccess = false
+reportAttributeAccessIssue = false
 
 [tool.ruff]
 target-version = "py312"

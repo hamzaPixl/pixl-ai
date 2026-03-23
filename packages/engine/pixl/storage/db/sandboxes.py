@@ -138,4 +138,3 @@ class SandboxDB(BaseStore):
             )
             conn.commit()
         return cursor.lastrowid  # type: ignore[return-value]
-

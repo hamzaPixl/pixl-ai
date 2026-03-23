@@ -17,6 +17,7 @@ from pixl.providers.gemini.models import GeminiEvent, parse_event
 
 # Line-level parsing
 
+
 def parse_line(line: str) -> GeminiEvent | None:
     """Parse a single JSONL line into a typed event.
 
@@ -36,7 +37,9 @@ def parse_line(line: str) -> GeminiEvent | None:
 
     return parse_event(raw)
 
+
 # JSON payload helpers (used by the ``--output-format json`` fallback)
+
 
 def parse_json_payload(text: str) -> dict[str, Any] | None:
     """Best-effort parse of a full JSON payload from CLI stdout.
@@ -65,7 +68,9 @@ def parse_json_payload(text: str) -> dict[str, Any] | None:
             pass
     return None
 
+
 # Usage / stats extraction
+
 
 def extract_usage_from_stream_stats(stats: Any) -> dict[str, Any] | None:
     """Extract token counts from a ``result`` event's ``stats`` field."""
@@ -79,6 +84,7 @@ def extract_usage_from_stream_stats(stats: Any) -> dict[str, Any] | None:
             usage[key] = value
 
     return usage or None
+
 
 def extract_usage_from_json_stats(stats: Any) -> dict[str, Any] | None:
     """Extract token counts from the ``json`` fallback ``stats`` field.
@@ -135,6 +141,7 @@ def extract_usage_from_json_stats(stats: Any) -> dict[str, Any] | None:
         "output_tokens": output_tokens,
         "total_tokens": total_tokens,
     }
+
 
 __all__ = [
     "parse_line",

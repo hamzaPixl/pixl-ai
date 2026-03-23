@@ -20,11 +20,13 @@ _ENVELOPE_RE = re.compile(
     re.DOTALL,
 )
 
+
 def _extract_tag(body: str, tag: str) -> str | None:
     """Extract text from a simple XML-like tag."""
     pattern = re.compile(rf"<{tag}>\s*(.*?)\s*</{tag}>", re.DOTALL | re.IGNORECASE)
     match = pattern.search(body)
     return match.group(1).strip() if match else None
+
 
 def _parse_optional_json(value: str | None, default: object) -> object:
     """Parse JSON when present, returning a default on parse failure."""
@@ -37,6 +39,7 @@ def _parse_optional_json(value: str | None, default: object) -> object:
         return json.loads(value)
     except json.JSONDecodeError:
         return default
+
 
 def _coerce_xml_like_envelope(body: str) -> dict | None:
     """Coerce XML-like envelope content into a StageOutput-compatible dict.
@@ -125,12 +128,14 @@ def _coerce_xml_like_envelope(body: str) -> dict | None:
         coerced["error"] = error_data
     return coerced
 
+
 def _sanitize_json(json_str: str) -> str:
     """Strip comments and trailing commas from LLM-produced JSON."""
     text = re.sub(r"//[^\n]*", "", json_str)
     text = re.sub(r"/\*.*?\*/", "", text, flags=re.DOTALL)
     text = re.sub(r",\s*([}\]])", r"\1", text)
     return text
+
 
 def _try_parse_json(json_str: str) -> dict | None:
     """Parse JSON with escalating repair strategies.
@@ -170,12 +175,14 @@ def _try_parse_json(json_str: str) -> dict | None:
 
     return None
 
+
 def _validate_stage_output(data: dict) -> StageOutput | None:
     """Validate a dict as a StageOutput, returning None on failure."""
     try:
         return StageOutput.model_validate(data)
     except Exception:
         return None
+
 
 def _extract_fallback_json(text: str) -> dict | None:
     """Scan agent output for a JSON object that looks like a StageOutput.
@@ -222,6 +229,7 @@ def _extract_fallback_json(text: str) -> dict | None:
             return data
 
     return None
+
 
 def extract_envelope(text: str) -> tuple[StageOutput | None, str | None]:
     """Extract a structured output envelope from agent result text.
@@ -276,5 +284,6 @@ def extract_envelope(text: str) -> tuple[StageOutput | None, str | None]:
     if data is not None:
         return None, "StageOutput validation failed"
     return None, "Invalid JSON in <pixl_output> envelope"
+
 
 __all__ = ["extract_envelope"]

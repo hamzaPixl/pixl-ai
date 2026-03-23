@@ -1,4 +1,4 @@
-.PHONY: setup install crew-setup test test-engine test-cli check format release clean help
+.PHONY: setup install crew-setup test test-engine test-cli check typecheck format release clean help
 
 # Load .env file if present
 ifneq (,$(wildcard .env))
@@ -26,9 +26,13 @@ test-engine:  ## Engine tests only
 test-cli:  ## CLI tests only
 	$(PYTEST) packages/cli/tests/
 
-check:  ## Lint check
+check:  ## Lint + type check
 	uv run ruff check packages/engine/ packages/cli/
 	uv run ruff format --check packages/engine/ packages/cli/
+	uv run pyright
+
+typecheck:  ## Type check only
+	uv run pyright
 
 format:  ## Auto-format
 	uv run ruff check --fix packages/engine/ packages/cli/

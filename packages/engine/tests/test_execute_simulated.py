@@ -2,8 +2,6 @@
 
 from unittest.mock import MagicMock
 
-import pytest
-
 from pixl.execution.task_executor import execute_simulated
 from pixl.models.event import EventType
 from pixl.models.node_instance import NodeState

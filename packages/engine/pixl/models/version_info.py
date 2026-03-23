@@ -10,6 +10,7 @@ from typing import Any
 
 from pydantic import BaseModel, Field, field_validator
 
+
 def get_git_hash() -> str | None:
     """Get the current git commit hash."""
     try:
@@ -25,6 +26,7 @@ def get_git_hash() -> str | None:
         pass
     return None
 
+
 def extract_python_version(version_string: str) -> str:
     """Extract Python version from sys.version string."""
     # sys.version format: "3.11.7 (main, Dec  4 2023, 18:10:11) [Clang 15.0.0 ...]"
@@ -32,6 +34,7 @@ def extract_python_version(version_string: str) -> str:
     if match:
         return match.group(1)
     return version_string  # Fallback to original string
+
 
 class VersionInfo(BaseModel):
     """Comprehensive version information for Pixl.

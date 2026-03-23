@@ -13,6 +13,7 @@ from pixl.providers.rate_limits import parse_int, parse_reset_iso
 
 PermissionMode = Literal["default", "acceptEdits", "plan", "bypassPermissions"]
 
+
 class AnthropicProvider(LLMProvider):
     """Anthropic provider wrapping Claude Code SDK.
 
@@ -224,4 +225,3 @@ class AnthropicProvider(LLMProvider):
                 available=False,
                 error=f"Failed to fetch limits: {e!s}",
             )
-

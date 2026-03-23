@@ -17,6 +17,7 @@ from pydantic import BaseModel, Field, computed_field
 if TYPE_CHECKING:
     from pixl.models.workflow import WorkflowSnapshot
 
+
 class SessionStatus(StrEnum):
     """Status of a workflow session.
 
@@ -32,10 +33,12 @@ class SessionStatus(StrEnum):
     COMPLETED = "completed"
     CANCELLED = "cancelled"
 
+
 # If heartbeat_at/last_updated_at is older than this threshold and no nodes
 # are active, the session is considered stalled (zombie detection).
 # Reduced from 150s to 60s thanks to heartbeat run liveness tracking.
 STALENESS_THRESHOLD_SECONDS = 60
+
 
 class ExecutorCursor(BaseModel):
     """Precise checkpoint for session resumption.
@@ -86,6 +89,7 @@ class ExecutorCursor(BaseModel):
         """Create from dictionary."""
         return cls.model_validate(data)
 
+
 class LoopState(BaseModel):
     """State for a single loop in a session.
 
@@ -134,6 +138,7 @@ class LoopState(BaseModel):
         """Create from dictionary."""
         return cls.model_validate(data)
 
+
 def create_node_instance(
     node_id: str,
     state: str = "task_pending",
@@ -175,6 +180,7 @@ def create_node_instance(
     if agent_name is not None:
         instance["agent_name"] = agent_name
     return instance
+
 
 class WorkflowSession(BaseModel):
     """A workflow execution session.
@@ -250,9 +256,7 @@ class WorkflowSession(BaseModel):
     )
 
     # Current heartbeat run
-    current_run_id: str | None = Field(
-        default=None, description="Active heartbeat run ID"
-    )
+    current_run_id: str | None = Field(default=None, description="Active heartbeat run ID")
 
     # Baton context (for context_mode: baton)
     baton: dict | None = Field(

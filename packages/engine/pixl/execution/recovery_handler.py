@@ -55,6 +55,7 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+
 def _interruptible_sleep(session_id: str, seconds: float) -> None:
     """Sleep for *seconds* but wake early if the session's stop_event is set."""
     try:
@@ -69,6 +70,7 @@ def _interruptible_sleep(session_id: str, seconds: float) -> None:
     import time
 
     time.sleep(seconds)
+
 
 def _maybe_finalize_terminal(ex: GraphExecutor, result: dict[str, Any]) -> None:
     """If result is terminal, emit completion event and mark session ended."""
@@ -90,6 +92,7 @@ def _maybe_finalize_terminal(ex: GraphExecutor, result: dict[str, Any]) -> None:
     result["events"].append(terminal_committed)
     ex._mark_session_ended()
     ex._save_session_summary()
+
 
 def _build_step_result(
     ex: GraphExecutor,
@@ -115,6 +118,7 @@ def _build_step_result(
         result["error"] = error
     return result
 
+
 def _extract_diff_from_output(text: str) -> str:
     """Extract a unified diff block from LLM output text."""
     import re
@@ -133,6 +137,7 @@ def _extract_diff_from_output(text: str) -> str:
         return "\n".join(diff_lines)
     return ""
 
+
 def _extract_affected_files_from_diff(diff: str) -> list[str]:
     """Extract file paths from diff headers."""
     import re
@@ -144,7 +149,9 @@ def _extract_affected_files_from_diff(diff: str) -> list[str]:
             files.add(path)
     return sorted(files)
 
+
 # Error construction
+
 
 def error_from_result(execution_result: dict[str, Any]) -> PixlError:
     """Build a typed PixlError from an execution_result dict.
@@ -183,7 +190,9 @@ def error_from_result(execution_result: dict[str, Any]) -> PixlError:
         is_transient=failure_kind == "transient",
     )
 
+
 # Recovery orchestration functions
+
 
 def handle_pixl_error(
     ex: GraphExecutor,
@@ -305,6 +314,7 @@ def handle_pixl_error(
 
     return result
 
+
 def reset_node_for_retry(
     ex: GraphExecutor,
     node_id: str,
@@ -355,6 +365,7 @@ def reset_node_for_retry(
             )
         )
 
+
 def escalate_recovery(
     ex: GraphExecutor,
     node_id: str,
@@ -374,6 +385,7 @@ def escalate_recovery(
             data=data,
         )
     )
+
 
 def try_recovery_for_result(
     ex: GraphExecutor,
@@ -482,6 +494,7 @@ def try_recovery_for_result(
     execution_result["final_event_payload"]["recovery_reason"] = decision.reason
     return None
 
+
 def attempt_contract_repair(
     ex: GraphExecutor,
     node_id: str,
@@ -557,6 +570,7 @@ def attempt_contract_repair(
         remaining_violations=repair_result.violations_after,
     )
     return None
+
 
 def attempt_patch_and_test(
     ex: GraphExecutor,
@@ -688,6 +702,7 @@ def attempt_patch_and_test(
     )
     return None
 
+
 def finalize_repair_success(
     ex: GraphExecutor,
     node_id: str,
@@ -751,7 +766,9 @@ def finalize_repair_success(
 
     return result
 
+
 # Missing input recovery
+
 
 def attempt_missing_input_recovery(
     ex: GraphExecutor,
@@ -864,6 +881,7 @@ def attempt_missing_input_recovery(
         terminal=False,
     )
 
+
 def infer_missing_input_producers(
     ex: GraphExecutor,
     node_id: str,
@@ -917,6 +935,7 @@ def infer_missing_input_producers(
 
     return sorted(producers)
 
+
 def collect_path_nodes(
     ex: GraphExecutor,
     source_id: str,
@@ -953,6 +972,7 @@ def collect_path_nodes(
     ex._path_nodes_cache[cache_key] = set(collected)
     return collected
 
+
 def reset_nodes_for_reexecution(ex: GraphExecutor, node_ids: set[str]) -> None:
     """Reset task nodes to TASK_PENDING for deterministic re-execution."""
     for nid in sorted(node_ids):
@@ -969,7 +989,9 @@ def reset_nodes_for_reexecution(ex: GraphExecutor, node_ids: set[str]) -> None:
             clear_blocked_reason=True,
         )
 
+
 # Human escalation
+
 
 def pause_for_human(
     ex: GraphExecutor,
@@ -1039,7 +1061,9 @@ def pause_for_human(
         terminal=False,
     )
 
+
 # Diagnostic artifact writers
+
 
 def write_missing_input_feedback(
     ex: GraphExecutor,
@@ -1075,6 +1099,7 @@ def write_missing_input_feedback(
     )
     ex.store.save_artifact(ex.session.id, artifact_name, "\n".join(lines))
     return path
+
 
 def write_human_blocker_artifact(
     ex: GraphExecutor,

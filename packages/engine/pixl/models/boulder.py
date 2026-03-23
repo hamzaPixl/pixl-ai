@@ -10,6 +10,7 @@ from pathlib import Path
 
 from pydantic import BaseModel, Field
 
+
 class PlanProgress(BaseModel):
     """Progress through a plan's checkboxes."""
 
@@ -31,6 +32,7 @@ class PlanProgress(BaseModel):
     def __str__(self) -> str:
         """Human-readable progress string."""
         return f"{self.completed}/{self.total} ({self.percentage:.0f}%)"
+
 
 class BoulderState(BaseModel):
     """Manages the active work plan state for orchestration.

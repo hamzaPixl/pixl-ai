@@ -2,6 +2,7 @@
 
 import re
 from pathlib import Path
+from typing import Any
 
 from pixl.models.knowledge import Chunk, ChunkType, SearchResult
 from pixl.storage import create_storage
@@ -102,6 +103,7 @@ _PROCEDURE_SIGNALS = frozenset(
     }
 )
 
+
 def detect_query_intent(terms: list[str]) -> dict[ChunkType, float]:
     """Detect which chunk types are most relevant for a query.
 
@@ -134,6 +136,7 @@ def detect_query_intent(terms: list[str]) -> dict[ChunkType, float]:
 
     return boosts
 
+
 # Language extension mapping for scope filtering
 
 _LANG_EXTENSIONS: dict[str, set[str]] = {
@@ -143,6 +146,7 @@ _LANG_EXTENSIONS: dict[str, set[str]] = {
     "markdown": {".md", ".mdx"},
     "yaml": {".yaml", ".yml"},
 }
+
 
 def _source_matches_scope(source: str, scope: str) -> bool:
     """Check if a chunk source matches a scope filter.
@@ -164,7 +168,9 @@ def _source_matches_scope(source: str, scope: str) -> bool:
     # Path substring
     return scope in source
 
+
 # Cross-reference index
+
 
 class CrossReferenceIndex:
     """Index of related chunks from the same source file.
@@ -197,7 +203,9 @@ class CrossReferenceIndex:
         siblings = self._by_source.get(chunk.source, [])
         return [s for s in siblings if s.id != chunk.id and s.title.startswith(prefix)]
 
+
 # Main search class
+
 
 class KnowledgeSearch:
     """Search over knowledge chunks with SQLite FTS and type-aware boosts."""
@@ -356,7 +364,7 @@ class KnowledgeSearch:
         """Detect whether query uses explicit FTS syntax."""
         return '"' in query or " AND " in query or " OR " in query or " NOT " in query
 
-    def _row_to_chunk(self, row: dict[str, object]) -> Chunk:
+    def _row_to_chunk(self, row: dict[str, Any]) -> Chunk:  # noqa: D102
         """Convert a SQLite row dict into a Chunk model."""
         chunk_type = row.get("chunk_type", "concept")
         try:
@@ -374,9 +382,9 @@ class KnowledgeSearch:
             content=str(row.get("content", "")),
             source=str(row.get("source", "")),
             chunk_type=parsed_type,
-            keywords=list(keywords),
-            line_start=row.get("line_start"),
-            line_end=row.get("line_end"),
+            keywords=list(keywords) if isinstance(keywords, (list, tuple)) else [],
+            line_start=int(str(row["line_start"])) if row.get("line_start") is not None else None,
+            line_end=int(str(row["line_end"])) if row.get("line_end") is not None else None,
         )
 
     def _score_result(

@@ -25,6 +25,7 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
+
 @dataclass
 class PRConfig:
     """Configuration for auto-PR creation."""
@@ -49,6 +50,7 @@ class PRConfig:
             body=data.get("body"),
         )
 
+
 @dataclass
 class PRResult:
     """Result of PR creation."""
@@ -57,6 +59,7 @@ class PRResult:
     pr_url: str | None = None
     error: str | None = None
     branch: str | None = None
+
 
 def create_pr(
     project_root: Path,
@@ -128,10 +131,15 @@ def create_pr(
         body = config.body or session_summary or "Auto-generated PR from pixl workflow."
 
         cmd = [
-            "gh", "pr", "create",
-            "--title", title,
-            "--body", body,
-            "--base", config.base_branch,
+            "gh",
+            "pr",
+            "create",
+            "--title",
+            title,
+            "--body",
+            body,
+            "--base",
+            config.base_branch,
         ]
 
         if config.draft:

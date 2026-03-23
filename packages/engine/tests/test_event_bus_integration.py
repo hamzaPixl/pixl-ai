@@ -10,7 +10,6 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-
 from pixl.events.bus import EventBus
 from pixl.storage.db.connection import PixlDB
 

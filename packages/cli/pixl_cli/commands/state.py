@@ -6,7 +6,7 @@ from typing import Any
 
 import click
 
-from pixl_cli._output import emit_detail, emit_error, emit_json
+from pixl_cli._output import emit_error, emit_json
 from pixl_cli.main import get_ctx
 
 

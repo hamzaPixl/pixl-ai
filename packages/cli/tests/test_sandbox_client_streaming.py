@@ -142,8 +142,10 @@ class TestWorkflowStream:
             list(client.workflow_stream("proj-1", "risky op", yes=False))
 
         call_kwargs = mock_stream.call_args
-        assert call_kwargs[1]["json"].get("autoApprove") is None or \
-            call_kwargs[1]["json"]["autoApprove"] is False
+        assert (
+            call_kwargs[1]["json"].get("autoApprove") is None
+            or call_kwargs[1]["json"]["autoApprove"] is False
+        )
 
     def test_yields_parsed_events(self, client: SandboxClient) -> None:
         lines = [
@@ -165,17 +167,13 @@ class TestStreamErrorHandling:
     """Verify graceful degradation on connection errors."""
 
     def test_connection_error_yields_nothing(self, client: SandboxClient) -> None:
-        with patch.object(
-            client._client, "stream", side_effect=httpx.ConnectError("refused")
-        ):
+        with patch.object(client._client, "stream", side_effect=httpx.ConnectError("refused")):
             events = list(client.exec_stream("proj-1", "ls"))
 
         assert events == []
 
     def test_timeout_error_yields_nothing(self, client: SandboxClient) -> None:
-        with patch.object(
-            client._client, "stream", side_effect=httpx.TimeoutException("timeout")
-        ):
+        with patch.object(client._client, "stream", side_effect=httpx.TimeoutException("timeout")):
             events = list(client.workflow_stream("proj-1", "build"))
 
         assert events == []

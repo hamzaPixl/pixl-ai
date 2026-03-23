@@ -292,7 +292,9 @@ def generate_session_report(
         artifact_type="review",
         task_id=REPORT_TASK_ID,
         name="session-audit.md",
-        feature_id=session.get("feature_id") if (session.get("feature_id") or "").startswith("feat-") else None,
+        feature_id=session.get("feature_id")
+        if (session.get("feature_id") or "").startswith("feat-")
+        else None,
         tags=["session-report", "audit", "llm"],
         extra={
             "report_kind": "terminal" if trigger == "auto_terminal" else "draft",
@@ -417,9 +419,7 @@ class SessionReportManager:
             session_id = str(job["session_id"])
             trigger = str(job.get("trigger") or "manual_draft")
             terminal_status = (
-                str(job.get("terminal_status"))
-                if job.get("terminal_status") is not None
-                else None
+                str(job.get("terminal_status")) if job.get("terminal_status") is not None else None
             )
             try:
                 artifact_id = generate_session_report(

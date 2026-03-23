@@ -4,7 +4,6 @@ from pixl.agents.hooks.todo_bridge import create_todo_tracking_callback
 
 
 class TestTodoTrackingCallback:
-
     def test_ignores_non_todowrite_tools(self):
         events: list[dict] = []
         cb = create_todo_tracking_callback(lambda **kw: events.append(kw))
@@ -18,9 +17,18 @@ class TestTodoTrackingCallback:
             session_id="sess-1",
             node_id="node-1",
         )
-        cb("TodoWrite", {"todos": [
-            {"content": "Write tests", "status": "in_progress", "activeForm": "Writing tests"},
-        ]})
+        cb(
+            "TodoWrite",
+            {
+                "todos": [
+                    {
+                        "content": "Write tests",
+                        "status": "in_progress",
+                        "activeForm": "Writing tests",
+                    },
+                ]
+            },
+        )
         assert len(events) == 1
         assert events[0]["event_type"] == "todo_update"
         assert events[0]["session_id"] == "sess-1"
@@ -32,10 +40,15 @@ class TestTodoTrackingCallback:
     def test_emits_multiple_todos(self):
         events: list[dict] = []
         cb = create_todo_tracking_callback(lambda **kw: events.append(kw))
-        cb("TodoWrite", {"todos": [
-            {"content": "Task 1", "status": "completed"},
-            {"content": "Task 2", "status": "pending"},
-        ]})
+        cb(
+            "TodoWrite",
+            {
+                "todos": [
+                    {"content": "Task 1", "status": "completed"},
+                    {"content": "Task 2", "status": "pending"},
+                ]
+            },
+        )
         assert len(events) == 2
         assert events[0]["payload"]["content"] == "Task 1"
         assert events[0]["payload"]["status"] == "completed"

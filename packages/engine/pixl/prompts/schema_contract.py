@@ -7,8 +7,9 @@ deterministic guidance directly from schema files.
 from __future__ import annotations
 
 import json
+from collections.abc import Mapping
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any
 
 
 def load_json_schema(schema_path: str | Path) -> dict[str, Any] | None:

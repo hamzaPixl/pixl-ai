@@ -10,7 +10,6 @@ from pixl.output.context import (
 )
 from pixl.output.json_output import JsonOutput
 
-
 __all__ = [
     "Console",
     "console",

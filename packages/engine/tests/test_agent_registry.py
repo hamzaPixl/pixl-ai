@@ -5,12 +5,11 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
-
-from pixl.agents.registry import AgentRegistry, CrewAgent
+from pixl.agents.registry import AgentRegistry
 from pixl.agents.sdk_options import _resolve_crew_plugin_path
 
-
 # ── Fixtures ──────────────────────────────────────────────────────────────
+
 
 @pytest.fixture()
 def crew_root(tmp_path: Path) -> Path:
@@ -22,8 +21,14 @@ def crew_root(tmp_path: Path) -> Path:
     return crew
 
 
-def _write_agent(agents_dir: Path, name: str, *, model: str = "sonnet",
-                 tools: str = "[Read, Write]", body: str = "You are helpful.") -> None:
+def _write_agent(
+    agents_dir: Path,
+    name: str,
+    *,
+    model: str = "sonnet",
+    tools: str = "[Read, Write]",
+    body: str = "You are helpful.",
+) -> None:
     (agents_dir / f"{name}.md").write_text(
         f"---\nname: {name}\ndescription: Test agent {name}\n"
         f"model: {model}\ntools: {tools}\nmaxTurns: 30\n---\n{body}\n"
@@ -32,8 +37,8 @@ def _write_agent(agents_dir: Path, name: str, *, model: str = "sonnet",
 
 # ── _resolve_crew_plugin_path ─────────────────────────────────────────────
 
-class TestResolveCrewPluginPath:
 
+class TestResolveCrewPluginPath:
     def test_returns_env_override(self, crew_root: Path) -> None:
         with patch.dict(os.environ, {"PIXL_CREW_ROOT": str(crew_root)}):
             result = _resolve_crew_plugin_path()
@@ -54,8 +59,8 @@ class TestResolveCrewPluginPath:
 
 # ── AgentRegistry ─────────────────────────────────────────────────────────
 
-class TestAgentRegistry:
 
+class TestAgentRegistry:
     def test_load_from_crew(self, crew_root: Path) -> None:
         _write_agent(crew_root / "agents", "backend-engineer")
         _write_agent(crew_root / "agents", "frontend-engineer", model="inherit")
@@ -144,11 +149,12 @@ class TestAgentRegistry:
 
 # ── EventBus ──────────────────────────────────────────────────────────────
 
-class TestEventBus:
 
+class TestEventBus:
     def test_publish_subscribe(self) -> None:
-        from pixl.events.bus import EventBus
         from types import SimpleNamespace
+
+        from pixl.events.bus import EventBus
 
         bus = EventBus()
         received = []
@@ -159,8 +165,9 @@ class TestEventBus:
         assert received[0].event_type == "test"
 
     def test_filtered_subscribe(self) -> None:
-        from pixl.events.bus import EventBus
         from types import SimpleNamespace
+
+        from pixl.events.bus import EventBus
 
         bus = EventBus()
         received = []
@@ -180,8 +187,9 @@ class TestEventBus:
         assert bus.subscriber_count == 0
 
     def test_callback_error_does_not_crash(self) -> None:
-        from pixl.events.bus import EventBus
         from types import SimpleNamespace
+
+        from pixl.events.bus import EventBus
 
         bus = EventBus()
         received = []

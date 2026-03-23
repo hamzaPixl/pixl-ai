@@ -18,6 +18,7 @@ from pixl.output import console
 # Rejects: ../, ..\\, /etc/, ~/, etc.
 SAFE_ARTIFACT_PATTERN = re.compile(r"^[a-zA-Z0-9_\-./**]+$")
 
+
 def validate_artifact_pattern(pattern: str, project_root: Path) -> bool:
     """Validate an artifact pattern is safe and within project bounds.
 
@@ -54,6 +55,7 @@ def validate_artifact_pattern(pattern: str, project_root: Path) -> bool:
     except (ValueError, RuntimeError):
         # Path escapes project root
         return False
+
 
 class InteractiveGateHandler:
     """Handles interactive gate approval in CLI.
@@ -160,7 +162,7 @@ class InteractiveGateHandler:
         except (ValueError, TypeError):
             return None
 
-        timeout = timedelta(minutes=gate_config.timeout_minutes)
+        timeout = timedelta(minutes=gate_config.timeout_minutes or 0)
         elapsed = datetime.now() - ready_at
 
         if elapsed < timeout:
@@ -447,5 +449,6 @@ class InteractiveGateHandler:
         """
         console.warning(f"Auto-approving gate: {gate_config.name}")
         return True
+
 
 __all__ = ["InteractiveGateHandler", "validate_artifact_pattern"]

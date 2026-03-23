@@ -15,6 +15,7 @@ from typing import Any
 # when an event loop is already running.
 _coroutine_pool = concurrent.futures.ThreadPoolExecutor(max_workers=2)
 
+
 def run_coroutine_sync(coro: Any) -> Any:
     """Run a coroutine from sync code, even if an event loop is already running."""
     try:

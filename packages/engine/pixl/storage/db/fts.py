@@ -6,6 +6,7 @@ Used by ArtifactDB, IncidentDB, and KnowledgeDB.
 
 from __future__ import annotations
 
+
 def prepare_fts_query(query: str) -> str:
     """Prepare a user query for FTS5 MATCH syntax.
 

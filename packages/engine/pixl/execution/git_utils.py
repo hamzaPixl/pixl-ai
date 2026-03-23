@@ -13,6 +13,7 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
+
 def git_set_remote(project_path: Path, name: str, url: str) -> tuple[bool, str | None]:
     """Add or update a git remote.
 
@@ -86,6 +87,7 @@ def git_symbolic_head(project_path: Path) -> tuple[str | None, str | None]:
         return None, "detached_head"
     return branch, None
 
+
 def git_rev_parse(project_path: Path, ref: str) -> tuple[str | None, str | None]:
     """Resolve a git ref to a commit hash.
 
@@ -104,6 +106,7 @@ def git_rev_parse(project_path: Path, ref: str) -> tuple[str | None, str | None]
     if result.returncode != 0:
         return None, (result.stderr or result.stdout or "git rev-parse failed").strip()
     return (result.stdout or "").strip(), None
+
 
 def git_fetch(project_path: Path, *, remote: str, branch: str) -> tuple[bool, str | None]:
     """Fetch a branch from a remote.
@@ -124,6 +127,7 @@ def git_fetch(project_path: Path, *, remote: str, branch: str) -> tuple[bool, st
         return False, (result.stderr or result.stdout or "git fetch failed").strip()
     return True, None
 
+
 def git_has_remote(project_path: Path, remote: str) -> bool:
     """Check whether a named remote exists."""
     try:
@@ -137,6 +141,7 @@ def git_has_remote(project_path: Path, remote: str) -> bool:
     except Exception:
         return False
     return result.returncode == 0
+
 
 def refresh_base_ref(
     project_path: Path,
@@ -155,6 +160,7 @@ def refresh_base_ref(
     if err or not ref:
         return None, err or "failed_to_resolve_base_ref"
     return ref, None
+
 
 def ensure_git_available(project_path: Path) -> tuple[bool, str | None]:
     """Quick check that git is usable in *project_path*.
@@ -175,6 +181,7 @@ def ensure_git_available(project_path: Path) -> tuple[bool, str | None]:
         return False, (result.stderr or result.stdout or "git rev-parse failed").strip()
     return True, None
 
+
 def _branch_exists_local(project_path: Path, branch_name: str) -> bool:
     """Check if a local branch exists."""
     try:
@@ -188,6 +195,7 @@ def _branch_exists_local(project_path: Path, branch_name: str) -> bool:
     except Exception:
         return False
     return result.returncode == 0
+
 
 def _ensure_project_git_repo(
     project_path: Path,
@@ -249,6 +257,7 @@ def _ensure_project_git_repo(
             logger.warning("Failed to set remote origin: %s", err)
 
     return project_path, None
+
 
 def create_worktree_for_feature(
     project_path: Path,
@@ -332,6 +341,7 @@ def create_worktree_for_feature(
     except Exception as exc:
         return None, None, str(exc)
 
+
 def auto_push_feature_branch(
     worktree_path: Path,
     *,
@@ -403,6 +413,7 @@ def auto_push_feature_branch(
     except Exception as exc:
         return False, str(exc)
 
+
 def cleanup_feature_worktree(project_path: Path, feature_id: str) -> None:
     """Remove the worktree for a feature (keeps the branch)."""
     worktree_dir = project_path / ".pixl" / "worktrees" / feature_id
@@ -416,6 +427,7 @@ def cleanup_feature_worktree(project_path: Path, feature_id: str) -> None:
     )
     if worktree_dir.exists():
         shutil.rmtree(worktree_dir, ignore_errors=True)
+
 
 def git_changed_files(
     project_root: Path,
@@ -439,6 +451,7 @@ def git_changed_files(
         return {line.strip() for line in proc.stdout.splitlines() if line.strip()}, None
     except (subprocess.TimeoutExpired, FileNotFoundError):
         return None, "git command not available"
+
 
 def git_diff_line_count(
     project_root: Path,

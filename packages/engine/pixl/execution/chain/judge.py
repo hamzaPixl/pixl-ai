@@ -13,6 +13,7 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+
 def check_and_run_judge(
     *,
     db: PixlDB,

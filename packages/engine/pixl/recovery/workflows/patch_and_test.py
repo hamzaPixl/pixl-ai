@@ -17,6 +17,7 @@ from pixl.errors import PixlError
 
 # Data Models
 
+
 @dataclass(frozen=True)
 class PatchProposal:
     """LLM-proposed patch with metadata.
@@ -39,6 +40,7 @@ class PatchProposal:
             raise ValueError(
                 f"PatchProposal confidence must be between 0 and 1, got {self.confidence}"
             )
+
 
 @dataclass(frozen=True)
 class PatchConstraints:
@@ -64,6 +66,7 @@ class PatchConstraints:
     require_tests: bool = True
     auto_apply_confidence_threshold: float = 0.7
 
+
 @dataclass
 class PatchResult:
     """Result of patch evaluation and application.
@@ -88,7 +91,9 @@ class PatchResult:
     sandbox_path: Path | None = None
     sandbox_cleanup_required: bool = False
 
+
 # Constraint Validation
+
 
 def count_diff_lines(diff: str) -> int:
     """Parse unified diff format to count insertions + deletions.
@@ -115,6 +120,7 @@ def count_diff_lines(diff: str) -> int:
             total += 1
     return total
 
+
 def touches_protected_path(
     affected_files: list[str],
     constraints: PatchConstraints,
@@ -139,6 +145,7 @@ def touches_protected_path(
             ):
                 return True
     return False
+
 
 def within_allowed_paths(
     affected_files: list[str],
@@ -175,6 +182,7 @@ def within_allowed_paths(
             return False
     return True
 
+
 def extract_files_from_diff(diff: str) -> list[str]:
     """Extract actual file paths from unified diff content.
 
@@ -201,6 +209,7 @@ def extract_files_from_diff(diff: str) -> list[str]:
             files.add(path)
 
     return list(files)
+
 
 def validate_constraints(
     proposal: PatchProposal,
@@ -243,7 +252,9 @@ def validate_constraints(
 
     return violations
 
+
 # Sandbox Operations
+
 
 def create_sandbox_worktree(
     project_root: Path,
@@ -301,6 +312,7 @@ def create_sandbox_worktree(
     except (subprocess.TimeoutExpired, FileNotFoundError, OSError):
         return None, None
 
+
 def remove_sandbox_worktree(
     project_root: Path,
     session_id: str,
@@ -330,6 +342,7 @@ def remove_sandbox_worktree(
         return result.returncode == 0
     except (subprocess.TimeoutExpired, FileNotFoundError, OSError):
         return False
+
 
 def apply_patch_in_sandbox(
     worktree_root: Path,
@@ -371,6 +384,7 @@ def apply_patch_in_sandbox(
         return True, ""
     except (subprocess.TimeoutExpired, FileNotFoundError, OSError) as e:
         return False, str(e)
+
 
 def run_tests(
     worktree_root: Path,
@@ -433,6 +447,7 @@ def run_tests(
             "summary": "error",
         }
 
+
 def should_auto_apply(
     proposal: PatchProposal,
     constraints: PatchConstraints,
@@ -462,6 +477,7 @@ def should_auto_apply(
         return False
 
     return not proposal.confidence < constraints.auto_apply_confidence_threshold
+
 
 def execute(
     proposal: PatchProposal,
@@ -580,6 +596,7 @@ def execute(
         sandbox_path=worktree_path if not cleanup_success else None,
         sandbox_cleanup_required=not cleanup_success,
     )
+
 
 class PatchAndTestError(PixlError):
     """Error raised during patch-and-test workflow."""

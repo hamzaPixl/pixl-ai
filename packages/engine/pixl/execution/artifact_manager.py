@@ -17,6 +17,7 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+
 def artifact_name_for_path(
     file_path: Path,
     *,
@@ -33,6 +34,7 @@ def artifact_name_for_path(
             return str(file_path.resolve().relative_to(root))
         except ValueError:
             return file_path.name
+
 
 def infer_artifact_type(file_path: Path) -> Any:
     """Infer artifact type from filename."""
@@ -59,6 +61,7 @@ def infer_artifact_type(file_path: Path) -> Any:
         return ArtifactType.DOCUMENT
 
     return ArtifactType.OTHER
+
 
 def upsert_artifact_metadata(
     *,
@@ -129,6 +132,7 @@ def upsert_artifact_metadata(
         store=store,
     )
 
+
 def persist_artifact_to_db(
     *,
     artifact_name: str,
@@ -186,6 +190,7 @@ def persist_artifact_to_db(
 
     except Exception as exc:
         logger.warning(f"Failed to persist artifact {artifact_name} to database: {exc}")
+
 
 def version_stage_outputs(
     *,

@@ -71,6 +71,7 @@ run_shell_command(command="pixl artifact stage-output --file /tmp/stage_output.j
 The JSON must conform to the StageOutput schema (stage_id, status, summary, etc.).
 """
 
+
 class GeminiProvider(LLMProvider):
     """Gemini provider wrapping the Gemini CLI tool.
 
@@ -252,5 +253,6 @@ class GeminiProvider(LLMProvider):
             available=False,
             error="Usage limits are not implemented for Gemini CLI provider.",
         )
+
 
 __all__ = ["GeminiProvider"]

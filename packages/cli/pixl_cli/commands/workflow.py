@@ -168,7 +168,10 @@ def _run_workflow_sync(
                     if not cli.is_json:
                         click.echo(f"    Auto-approving gate: {gate_node_id}")
                     session = session_manager.approve_gate(
-                        session.id, gate_node_id, approver="auto", snapshot=snapshot,
+                        session.id,
+                        gate_node_id,
+                        approver="auto",
+                        snapshot=snapshot,
                     )
                 else:
                     if not cli.is_json:
@@ -194,13 +197,15 @@ def _run_workflow_sync(
             click.echo(f"  Workflow complete ({final_status}, {step_count} steps).")
 
         if cli.is_json:
-            emit_json({
-                "session_id": session_id,
-                "feature_id": feature_id,
-                "workflow_id": config.id,
-                "status": final_status,
-                "steps": step_count,
-            })
+            emit_json(
+                {
+                    "session_id": session_id,
+                    "feature_id": feature_id,
+                    "workflow_id": config.id,
+                    "status": final_status,
+                    "steps": step_count,
+                }
+            )
 
     except ImportError as exc:
         emit_error(f"Execution requires additional dependencies: {exc}", is_json=cli.is_json)
@@ -208,10 +213,12 @@ def _run_workflow_sync(
     except Exception as exc:
         emit_error(f"Workflow execution failed: {exc}", is_json=cli.is_json)
         if cli.is_json:
-            emit_json({
-                "feature_id": feature_id,
-                "workflow_id": config.id if "config" in dir() else workflow_id,
-                "status": "failed",
-                "error": str(exc),
-            })
+            emit_json(
+                {
+                    "feature_id": feature_id,
+                    "workflow_id": config.id if "config" in dir() else workflow_id,
+                    "status": "failed",
+                    "error": str(exc),
+                }
+            )
         raise SystemExit(1) from None

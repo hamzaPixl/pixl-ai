@@ -107,6 +107,7 @@ def get_pixl_dir(project_path: Path) -> Path:
 def get_sessions_dir(project_path: Path) -> Path:
     return get_pixl_dir(project_path) / "sessions"
 
+
 def get_workflows_dir(project_path: Path) -> Path:
     return get_pixl_dir(project_path) / "workflows"
 

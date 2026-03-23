@@ -32,6 +32,7 @@ _SESSION_TOUCH_INTERVAL_SECONDS = 30
 _executor_lock = threading.Lock()
 _executing_sessions: dict[str, tuple[str, str]] = {}  # session_id -> (project_id, owner_id)
 
+
 @contextlib.contextmanager
 def _heartbeat_during_step(session_store, session_id, interval=_SESSION_TOUCH_INTERVAL_SECONDS):
     """Keep last_updated_at fresh while executor.step() blocks."""
@@ -52,10 +53,12 @@ def _heartbeat_during_step(session_store, session_id, interval=_SESSION_TOUCH_IN
         stop.set()
         t.join(timeout=5)
 
+
 def _mark_execution_active(session_id: str, owner_id: str, project_id: str = "") -> None:
     """Best-effort in-process marker (observability only, not correctness)."""
     with _executor_lock:
         _executing_sessions[session_id] = (project_id, owner_id)
+
 
 def _release_execution(session_id: str, owner_id: str) -> None:
     """Clear in-process marker for *session_id* if owner matches."""
@@ -64,12 +67,15 @@ def _release_execution(session_id: str, owner_id: str) -> None:
         if current and current[1] == owner_id:
             _executing_sessions.pop(session_id, None)
 
+
 def get_active_sessions_for_project(project_id: str) -> list[str]:
     """Return in-process active sessions for the given project."""
     with _executor_lock:
         return [sid for sid, meta in _executing_sessions.items() if meta[0] == project_id]
 
+
 # Core workflow execution
+
 
 def run_workflow(
     project_path: Path,
@@ -95,7 +101,11 @@ def run_workflow(
         from pixl.models.heartbeat_run import HeartbeatRun
 
         run_id = HeartbeatRun.generate_id()
-        invocation = "start" if workflow_id not in ("resumed", "retry") else workflow_id.replace("resumed", "resume")
+        invocation = (
+            "start"
+            if workflow_id not in ("resumed", "retry")
+            else workflow_id.replace("resumed", "resume")
+        )
         try:
             db.heartbeat_runs.create_run(run_id, session_id, invocation=invocation)
         except Exception:
@@ -111,8 +121,13 @@ def run_workflow(
 
         _mark_execution_active(session_id, owner_id, project_id)
         _run_workflow_inner(
-            project_path, session_id, workflow_id, skip_approval, db,
-            stop_event, run_id=run_id,
+            project_path,
+            session_id,
+            workflow_id,
+            skip_approval,
+            db,
+            stop_event,
+            run_id=run_id,
         )
     finally:
         # Complete the heartbeat run
@@ -138,6 +153,7 @@ def run_workflow(
             logger.exception("Failed defensive ended_at for %s", session_id)
 
         _release_execution(session_id, owner_id)
+
 
 def _auto_push_if_enabled(worktree_path: Path | None, feature_id: str) -> bool:
     """Push the feature branch if a worktree exists. Returns True if pushed."""
@@ -255,9 +271,7 @@ def _run_workflow_inner(
                         payload={"error": str(e), "phase": "worktree_creation"},
                     )
                 except Exception:
-                    logger.exception(
-                        "Failed to emit error event for session %s", session_id
-                    )
+                    logger.exception("Failed to emit error event for session %s", session_id)
                 return
 
         session_manager = SessionManager(project_path)
@@ -268,6 +282,7 @@ def _run_workflow_inner(
         def _event_notify(event):
             try:
                 from pixl_api.ws import notify_new_events
+
                 notify_new_events()
             except ImportError:
                 pass
@@ -404,7 +419,8 @@ def _run_workflow_inner(
                     from pixl.execution.budget import record_cost
 
                     budget_ok = record_cost(
-                        db, session_id,
+                        db,
+                        session_id,
                         run_id=run_id,
                         node_id=node_id,
                         input_tokens=usage.get("input_tokens", 0),
@@ -437,7 +453,7 @@ def _run_workflow_inner(
             wt = Path(session.workspace_root) if session.workspace_root else None
             pushed = _auto_push_if_enabled(wt, feature_id)
 
-            if pushed:
+            if pushed and wt is not None:
                 # Deterministic PR creation on successful completion
                 if session.status == SessionStatus.COMPLETED:
                     with contextlib.suppress(Exception):
@@ -472,9 +488,7 @@ def _run_workflow_inner(
                 ended_at=datetime.now().isoformat(),
             )
         except Exception:
-            logger.exception(
-                "ZOMBIE SESSION %s: failed to set ended_at after crash", session_id
-            )
+            logger.exception("ZOMBIE SESSION %s: failed to set ended_at after crash", session_id)
         try:
             db.events.emit(
                 event_type="error",

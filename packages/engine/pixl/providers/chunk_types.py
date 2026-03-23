@@ -25,9 +25,11 @@ START = "start"
 
 # Factory helpers – build well-typed chunks
 
+
 def text_chunk(content: str) -> dict[str, Any]:
     """Create a text chunk."""
     return {"type": TEXT, "content": content}
+
 
 def tool_call_chunk(
     name: str,
@@ -44,6 +46,7 @@ def tool_call_chunk(
         chunk["exit_code"] = exit_code
     return chunk
 
+
 def file_change_chunk(change_type: str, file_path: str, *, diff: str = "") -> dict[str, Any]:
     """Create a file-change chunk."""
     chunk: dict[str, Any] = {
@@ -55,21 +58,26 @@ def file_change_chunk(change_type: str, file_path: str, *, diff: str = "") -> di
         chunk["diff"] = diff
     return chunk
 
+
 def thinking_chunk(content: str) -> dict[str, Any]:
     """Create a thinking chunk."""
     return {"type": THINKING, "content": content}
+
 
 def progress_chunk(message: str) -> dict[str, Any]:
     """Create a progress chunk."""
     return {"type": PROGRESS, "message": message}
 
+
 def turn_end_chunk(usage: dict[str, Any]) -> dict[str, Any]:
     """Create a turn-end chunk with usage metadata."""
     return {"type": TURN_END, "usage": usage}
 
+
 def error_chunk(content: str) -> dict[str, Any]:
     """Create an error chunk."""
     return {"type": ERROR, "content": content}
+
 
 __all__ = [
     "ERROR",

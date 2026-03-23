@@ -23,6 +23,7 @@ from pixl.errors import (
 if TYPE_CHECKING:
     from pixl.recovery.incident_store import IncidentStore
 
+
 class RecoveryAction(StrEnum):
     """Actions the recovery engine can prescribe."""
 
@@ -32,6 +33,7 @@ class RecoveryAction(StrEnum):
     CONTRACT_REPAIR = "contract_repair"
     PATCH_AND_TEST = "patch_and_test"
     REQUIRE_HUMAN = "require_human"
+
 
 @dataclass(frozen=True)
 class RecoveryDecision:
@@ -45,6 +47,7 @@ class RecoveryDecision:
     jitter_range: float = 0.0
     should_execute: bool = False
     metadata: dict[str, Any] = field(default_factory=dict)
+
 
 def _exponential_backoff(
     attempt: int,
@@ -62,6 +65,7 @@ def _exponential_backoff(
         Backoff duration in seconds (deterministic).
     """
     return min(base * (2**attempt), max_seconds)
+
 
 def decide_recovery(
     error: PixlError,
@@ -184,6 +188,7 @@ def decide_recovery(
         current_attempt=attempt,
     )
 
+
 def _decide_provider_recovery(
     error: ProviderError,
     attempt: int,
@@ -249,6 +254,7 @@ def _decide_provider_recovery(
         current_attempt=attempt,
         metadata={"http_status": http_status},
     )
+
 
 def _apply_incident_bias(
     error: PixlError,

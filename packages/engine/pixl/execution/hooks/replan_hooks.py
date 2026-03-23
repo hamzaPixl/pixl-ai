@@ -19,6 +19,7 @@ from typing import Any
 from pixl.execution.hooks import HookContext, HookResult, register_hook
 from pixl.storage.db.connection import PixlDB
 
+
 def _get_triage_payload(ctx: HookContext) -> dict[str, Any]:
     """Extract the structured payload from the triage stage output."""
     source_node_id = str(ctx.params.get("source_node_id", "triage"))
@@ -28,6 +29,7 @@ def _get_triage_payload(ctx: HookContext) -> dict[str, Any]:
     payload = structured.get("payload", {})
     return payload if isinstance(payload, dict) else {}
 
+
 def _has_active_sessions(db: PixlDB, feature_id: str) -> bool:
     """Check if a feature has any running or paused sessions."""
     sessions = db.sessions.list_sessions(feature_id=feature_id)
@@ -36,6 +38,7 @@ def _has_active_sessions(db: PixlDB, feature_id: str) -> bool:
         if ended_at is None:
             return True
     return False
+
 
 @register_hook("apply-triage-results")
 def apply_triage_results_hook(ctx: HookContext) -> HookResult:
@@ -97,7 +100,11 @@ def apply_triage_results_hook(ctx: HookContext) -> HookResult:
             applied["mark_done"].append(feature_id)
 
         elif action == "defer":
-            note = f"Deferred by replan triage | Reason: {reason}" if reason else "Deferred by replan triage"
+            note = (
+                f"Deferred by replan triage | Reason: {reason}"
+                if reason
+                else "Deferred by replan triage"
+            )
             db.backlog.update_feature_status(
                 feature_id,
                 status="deferred",
@@ -111,9 +118,9 @@ def apply_triage_results_hook(ctx: HookContext) -> HookResult:
             # Safety: refuse to remove features with active sessions
             if _has_active_sessions(db, feature_id):
                 note = (
-                    "Deferred instead of removed (active sessions exist)"
-                    f" | Reason: {reason}" if reason else
-                    "Deferred instead of removed (active sessions exist)"
+                    f"Deferred instead of removed (active sessions exist) | Reason: {reason}"
+                    if reason
+                    else "Deferred instead of removed (active sessions exist)"
                 )
                 db.backlog.update_feature_status(
                     feature_id,
@@ -135,9 +142,9 @@ def apply_triage_results_hook(ctx: HookContext) -> HookResult:
 
             db.backlog.update_feature(feature_id, priority=new_priority)
             note = (
-                f"Reprioritized to {new_priority} by replan triage"
-                f" | Reason: {reason}" if reason else
-                f"Reprioritized to {new_priority} by replan triage"
+                f"Reprioritized to {new_priority} by replan triage | Reason: {reason}"
+                if reason
+                else f"Reprioritized to {new_priority} by replan triage"
             )
             db.backlog.update_feature_status(
                 feature_id,

@@ -3,10 +3,9 @@
 from __future__ import annotations
 
 import threading
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from unittest.mock import MagicMock, patch
 
-import pytest
 from pixl_cli.sandbox_client import SandboxClient, _generate_jwt
 
 # Test-only signing key (not a real secret)
@@ -96,14 +95,14 @@ class TestTokenRefresh:
 
     def test_stores_token_generated_at(self) -> None:
         """SandboxClient with jwt_secret should record generation time."""
-        before = datetime.now(timezone.utc)
+        before = datetime.now(UTC)
         client = SandboxClient(
             "https://sandbox.example.com",
             "initial-key",
             jwt_secret=_TEST_HMAC_KEY,
             expiry_minutes=60,
         )
-        after = datetime.now(timezone.utc)
+        after = datetime.now(UTC)
         assert client._token_generated_at is not None
         assert before <= client._token_generated_at <= after
 
@@ -128,7 +127,7 @@ class TestTokenRefresh:
             expiry_minutes=60,
         )
         # Simulate token generated 56 minutes ago (4 min until expiry)
-        old_generated_at = datetime.now(timezone.utc) - timedelta(minutes=56)
+        old_generated_at = datetime.now(UTC) - timedelta(minutes=56)
         client._token_generated_at = old_generated_at
 
         with patch(
@@ -138,7 +137,9 @@ class TestTokenRefresh:
             client._ensure_valid_token()
 
         mock_gen.assert_called_once_with(
-            _TEST_HMAC_KEY, 60, scope="admin",
+            _TEST_HMAC_KEY,
+            60,
+            scope="admin",
         )
         assert client._client.headers["authorization"] == "Bearer refreshed-token"
         assert client._token_generated_at > old_generated_at
@@ -162,7 +163,7 @@ class TestTokenRefresh:
             jwt_secret=_TEST_HMAC_KEY,
             expiry_minutes=60,
         )
-        old_time = datetime.now(timezone.utc) - timedelta(minutes=56)
+        old_time = datetime.now(UTC) - timedelta(minutes=56)
         client._token_generated_at = old_time
 
         client._ensure_valid_token()
@@ -178,9 +179,7 @@ class TestTokenRefresh:
             expiry_minutes=60,
         )
         # Force near-expiry
-        client._token_generated_at = (
-            datetime.now(timezone.utc) - timedelta(minutes=56)
-        )
+        client._token_generated_at = datetime.now(UTC) - timedelta(minutes=56)
 
         errors: list[Exception] = []
 

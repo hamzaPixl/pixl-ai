@@ -17,8 +17,8 @@ for each operation, making it safe for concurrent use.
 from __future__ import annotations
 
 import hashlib
-import re
 import json
+import re
 import sqlite3
 import uuid
 import zlib
@@ -38,6 +38,7 @@ INLINE_TEXT_THRESHOLD_BYTES = 256 * 1024
 CHUNK_SIZE_BYTES = 256 * 1024
 MAX_ARTIFACT_SIZE_BYTES = 16 * 1024 * 1024
 
+
 @dataclass(frozen=True)
 class _PreparedContent:
     """Normalized artifact content storage plan."""
@@ -50,6 +51,7 @@ class _PreparedContent:
     uncompressed_size_bytes: int | None
     compressed_size_bytes: int | None
     chunks: list[tuple[int, bytes, int]]
+
 
 class ArtifactDB(BaseStore):
     """Artifact store backed by SQLite with FTS5 search.
@@ -437,7 +439,9 @@ class ArtifactDB(BaseStore):
         ).fetchall()
         return [self._row_to_dict(r) for r in rows]
 
-    def list_by_type(self, artifact_type: str, limit: int = 100, offset: int = 0) -> list[dict[str, Any]]:
+    def list_by_type(
+        self, artifact_type: str, limit: int = 100, offset: int = 0
+    ) -> list[dict[str, Any]]:
         """List all artifacts of a specific type with pagination."""
         rows = self._conn.execute(
             "SELECT * FROM artifacts WHERE type = ? ORDER BY created_at DESC LIMIT ? OFFSET ?",
@@ -808,10 +812,13 @@ class ArtifactDB(BaseStore):
     def _row_to_dict(self, row: sqlite3.Row) -> dict[str, Any]:
         """Convert a row to dict with JSON fields deserialized."""
         d = dict(row)
-        self._deserialize_json(d, {
-            "tags_json": "tags",
-            "extra_json": "extra",
-            "references_json": "references",
-        }, defaults={"tags": [], "extra": {}, "references": []})
+        self._deserialize_json(
+            d,
+            {
+                "tags_json": "tags",
+                "extra_json": "extra",
+                "references_json": "references",
+            },
+            defaults={"tags": [], "extra": {}, "references": []},
+        )
         return d
-

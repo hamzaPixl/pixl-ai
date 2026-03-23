@@ -17,6 +17,7 @@ from pixl.errors import PixlError
 from pixl.models.event import Event, EventType
 from pixl.storage.db.connection import PixlDB
 
+
 @dataclass(frozen=True)
 class IncidentSimilarity:
     """Result of similarity search with recovery context."""
@@ -29,6 +30,7 @@ class IncidentSimilarity:
     recovery_action: str | None
     created_at: str
     attempt_count: int
+
 
 class IncidentStore:
     """Query incident history to bias recovery decisions.

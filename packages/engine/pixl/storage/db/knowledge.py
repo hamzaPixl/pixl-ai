@@ -19,11 +19,11 @@ THREAD SAFETY: Receives PixlDB and gets thread-local connections
 for each operation, making it safe for concurrent use.
 """
 
-import sqlite3
 from typing import Any
 
 from pixl.storage.db.base import BaseStore
 from pixl.storage.db.fts import prepare_fts_query
+
 
 class KnowledgeDB(BaseStore):
     """Knowledge/RAG store backed by SQLite FTS5.
@@ -367,4 +367,3 @@ class KnowledgeDB(BaseStore):
         self._conn.execute("DELETE FROM documents")
         self._conn.execute("DELETE FROM knowledge_manifest")
         self._conn.commit()
-

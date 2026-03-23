@@ -8,11 +8,9 @@ authoritative liveness detection (stalled = no heartbeat in 60s).
 from __future__ import annotations
 
 import json
-import sqlite3
 from datetime import datetime
 from typing import Any
 
-from pixl.models.heartbeat_run import HeartbeatRun, InvocationSource, RunStatus
 from pixl.storage.db.base import BaseStore
 
 
@@ -89,9 +87,14 @@ class HeartbeatRunDB(BaseStore):
                        steps_executed = ?, error_message = ?
                    WHERE id = ?""",
                 (
-                    status, now, now,
-                    input_tokens, output_tokens, cost_usd,
-                    steps_executed, error_message,
+                    status,
+                    now,
+                    now,
+                    input_tokens,
+                    output_tokens,
+                    cost_usd,
+                    steps_executed,
+                    error_message,
                     run_id,
                 ),
             )
@@ -103,14 +106,10 @@ class HeartbeatRunDB(BaseStore):
 
     def get_run(self, run_id: str) -> dict[str, Any] | None:
         """Get a single run by ID."""
-        row = self._conn.execute(
-            "SELECT * FROM heartbeat_runs WHERE id = ?", (run_id,)
-        ).fetchone()
+        row = self._conn.execute("SELECT * FROM heartbeat_runs WHERE id = ?", (run_id,)).fetchone()
         return dict(row) if row else None
 
-    def list_for_session(
-        self, session_id: str, *, limit: int = 50
-    ) -> list[dict[str, Any]]:
+    def list_for_session(self, session_id: str, *, limit: int = 50) -> list[dict[str, Any]]:
         """List runs for a session, most recent first."""
         rows = self._conn.execute(
             "SELECT * FROM heartbeat_runs WHERE session_id = ? ORDER BY created_at DESC LIMIT ?",

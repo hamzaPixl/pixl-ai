@@ -17,8 +17,12 @@ def template(ctx: click.Context) -> None:
 
 
 @template.command("list")
-@click.option("--source", default=None, type=click.Choice(["db", "filesystem", "imported"]),
-              help="Filter by source.")
+@click.option(
+    "--source",
+    default=None,
+    type=click.Choice(["db", "filesystem", "imported"]),
+    help="Filter by source.",
+)
 @click.option("--limit", default=50, type=int, help="Max results.")
 @click.pass_context
 def template_list(ctx: click.Context, source: str | None, limit: int) -> None:
@@ -61,11 +65,20 @@ def template_get(ctx: click.Context, template_id: str) -> None:
 
 @template.command("create")
 @click.argument("name")
-@click.option("--file", "yaml_file", required=True, type=click.Path(exists=True, path_type=Path),
-              help="Path to YAML workflow file.")
+@click.option(
+    "--file",
+    "yaml_file",
+    required=True,
+    type=click.Path(exists=True, path_type=Path),
+    help="Path to YAML workflow file.",
+)
 @click.option("--description", default=None, help="Template description.")
-@click.option("--source", default="db", type=click.Choice(["db", "filesystem", "imported"]),
-              help="Template source.")
+@click.option(
+    "--source",
+    default="db",
+    type=click.Choice(["db", "filesystem", "imported"]),
+    help="Template source.",
+)
 @click.pass_context
 def template_create(
     ctx: click.Context,
@@ -88,16 +101,21 @@ def template_create(
     if cli.is_json:
         emit_json(result)
     else:
-        name = result['name']
-        tid = result['id']
-        ver = result['version']
+        name = result["name"]
+        tid = result["id"]
+        ver = result["version"]
         click.echo(f"Created template: {name} (id={tid}, version={ver})")
 
 
 @template.command("update")
 @click.argument("template_id")
-@click.option("--file", "yaml_file", default=None, type=click.Path(exists=True, path_type=Path),
-              help="Path to updated YAML workflow file.")
+@click.option(
+    "--file",
+    "yaml_file",
+    default=None,
+    type=click.Path(exists=True, path_type=Path),
+    help="Path to updated YAML workflow file.",
+)
 @click.option("--description", default=None, help="Updated description.")
 @click.pass_context
 def template_update(

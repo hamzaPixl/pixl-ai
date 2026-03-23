@@ -17,7 +17,7 @@ def install_thread_excepthook() -> None:
         logger.error(
             "Uncaught exception in thread '%s'",
             args.thread.name if args.thread else "<unknown>",
-            exc_info=(args.exc_type, args.exc_value, args.exc_traceback),
+            exc_info=(args.exc_type, args.exc_value, args.exc_traceback),  # type: ignore[arg-type]
         )
 
     threading.excepthook = _hook

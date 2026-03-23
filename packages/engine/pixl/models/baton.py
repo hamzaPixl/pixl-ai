@@ -22,6 +22,7 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
+
 class ArtifactRef(BaseModel):
     """Lightweight artifact pointer (no content).
 
@@ -43,6 +44,7 @@ class ArtifactRef(BaseModel):
         if self.summary_ref:
             parts.append(f"summary: {self.summary_ref}")
         return " | ".join(parts)
+
 
 class Baton(BaseModel):
     """Internal tracking state for workflow progress.
@@ -264,6 +266,7 @@ class Baton(BaseModel):
     def from_dict(cls, data: dict[str, Any]) -> Baton:
         """Create baton from dictionary (e.g., session.baton)."""
         return cls.model_validate(data)
+
 
 __all__ = [
     "ArtifactRef",

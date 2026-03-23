@@ -17,12 +17,15 @@ from pydantic import BaseModel, Field
 
 # Base
 
+
 class _EventBase(BaseModel):
     """Common base for all stream-json events."""
 
     type: str
 
+
 # Concrete event types
+
 
 class InitEvent(_EventBase):
     """Session initialization metadata (emitted once at stream start)."""
@@ -31,12 +34,14 @@ class InitEvent(_EventBase):
     session_id: str = ""
     model: str = ""
 
+
 class MessageEvent(_EventBase):
     """An assistant or system message chunk."""
 
     type: Literal["message"] = "message"
     role: str = "assistant"
     content: str | None = None
+
 
 class ToolUseEvent(_EventBase):
     """The model has invoked a tool."""
@@ -45,6 +50,7 @@ class ToolUseEvent(_EventBase):
     tool_name: str = "Tool"
     tool_id: str = ""
     parameters: dict[str, Any] = Field(default_factory=dict)
+
 
 class ToolResultEvent(_EventBase):
     """Result of a previously invoked tool."""
@@ -55,12 +61,14 @@ class ToolResultEvent(_EventBase):
     output: str | None = None
     error: dict[str, Any] | str | None = None
 
+
 class ErrorEvent(_EventBase):
     """Error or warning emitted by the CLI."""
 
     type: Literal["error"] = "error"
     message: str = ""
     severity: str = "error"
+
 
 class ResultEvent(_EventBase):
     """End-of-turn result with optional usage stats."""
@@ -71,10 +79,12 @@ class ResultEvent(_EventBase):
     stats: dict[str, Any] | None = None
     error: dict[str, Any] | str | None = None
 
+
 class UnknownEvent(_EventBase):
     """Catch-all for unrecognised event types; preserves the raw payload."""
 
     raw: dict[str, Any] = Field(default_factory=dict)
+
 
 # Discriminated union
 
@@ -97,6 +107,7 @@ _EVENT_MAP: dict[str, type[_EventBase]] = {
     "result": ResultEvent,
 }
 
+
 def parse_event(raw: dict[str, Any]) -> GeminiEvent:
     """Construct the appropriate typed event from a raw JSON dict.
 
@@ -106,7 +117,8 @@ def parse_event(raw: dict[str, Any]) -> GeminiEvent:
     cls = _EVENT_MAP.get(event_type)
     if cls is None:
         return UnknownEvent(type=event_type, raw=raw)
-    return cls.model_validate(raw)
+    return cls.model_validate(raw)  # type: ignore[return-value]
+
 
 __all__ = [
     "GeminiEvent",

@@ -36,6 +36,7 @@ if TYPE_CHECKING:
     from pixl.models.stage_output import StageOutput
     from pixl.models.workflow_config import StageContract
 
+
 class ContractValidator:
     """Validates stage outputs against a StageContract.
 
@@ -87,9 +88,8 @@ class ContractValidator:
             or contract.verify_success_criteria
             or contract.require_regression_test
         ):
-            changed_files = self._git_changed_files(result)
-            if changed_files is not None:
-                changed_files = list(changed_files)
+            _changed = self._git_changed_files(result)
+            changed_files = list(_changed) if _changed is not None else None
 
         if contract.must_write:
             self._check_must_write(contract.must_write, result)
@@ -415,7 +415,7 @@ class ContractValidator:
                 if not dst_valid:
                     unknown_refs.add(str(dst))
                 if src_valid and dst_valid:
-                    dependency_map[dst].add(src)  # dst depends on src
+                    dependency_map[dst].add(src)  # type: ignore[index]  # dst is str after dst_valid check
 
         # Chain waves
         waves = chain_plan.get("waves") or []

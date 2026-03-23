@@ -9,6 +9,7 @@ from typing import Any
 
 from pixl.paths import get_global_pixl_dir
 
+
 def _load_config(project_dir: Path) -> dict[str, Any]:
     config_path = project_dir / "config.json"
     if not config_path.exists():
@@ -18,6 +19,7 @@ def _load_config(project_dir: Path) -> dict[str, Any]:
         return result
     except (json.JSONDecodeError, OSError):
         return {}
+
 
 def _project_info(project_dir: Path) -> dict[str, Any] | None:
     if not project_dir.is_dir():
@@ -42,6 +44,7 @@ def _project_info(project_dir: Path) -> dict[str, Any] | None:
 
     return info
 
+
 def list_projects(global_dir: Path | None = None) -> list[dict[str, Any]]:
     """List all known projects from the global pixl workspace."""
     base_dir = global_dir or get_global_pixl_dir()
@@ -57,11 +60,13 @@ def list_projects(global_dir: Path | None = None) -> list[dict[str, Any]]:
 
     return projects
 
+
 def get_project(project_id: str, global_dir: Path | None = None) -> dict[str, Any] | None:
     """Get project info by project_id."""
     base_dir = global_dir or get_global_pixl_dir()
     project_dir = base_dir / "projects" / project_id
     return _project_info(project_dir)
+
 
 def create_project(
     name: str,
@@ -128,6 +133,7 @@ def create_project(
 
     return info
 
+
 def ensure_project_config(project_path: Path) -> None:
     """Backfill ``project_root`` into config.json if missing.
 
@@ -164,6 +170,7 @@ def ensure_project_config(project_path: Path) -> None:
     config["project_root"] = str(resolved)
     config_path.parent.mkdir(parents=True, exist_ok=True)
     config_path.write_text(json.dumps(config, indent=2), encoding="utf-8")
+
 
 def delete_project(
     project_id: str,

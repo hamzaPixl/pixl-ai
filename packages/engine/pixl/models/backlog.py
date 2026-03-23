@@ -8,6 +8,7 @@ from pixl.models.epic import Epic
 from pixl.models.feature import Feature, FeatureStatus, FeatureType, Priority
 from pixl.models.roadmap import Roadmap
 
+
 class Backlog(BaseModel):
     """Collection of features, epics, and roadmaps with management operations."""
 

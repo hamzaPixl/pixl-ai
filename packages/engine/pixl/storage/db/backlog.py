@@ -12,7 +12,6 @@ for each operation, making it safe for concurrent use.
 """
 
 import json
-import sqlite3
 from datetime import datetime
 from typing import Any
 
@@ -68,11 +67,13 @@ _FEATURE_FIELDS = frozenset(
     }
 )
 
+
 def _validate_fields(fields: dict, allowed: frozenset) -> None:
     """Reject any field names not in the allowed set."""
     bad = set(fields) - allowed
     if bad:
         raise ValueError(f"Disallowed field(s): {bad}")
+
 
 class BacklogDB(BaseStore):
     """Relational store for the roadmap -> epic -> feature hierarchy.
@@ -465,11 +466,15 @@ class BacklogDB(BaseStore):
 
         feature = dict(row)
 
-        self._deserialize_json(feature, {
-            "acceptance_criteria_json": "acceptance_criteria",
-            "success_criteria_json": "success_criteria",
-            "assumptions_json": "assumptions",
-        }, defaults={"acceptance_criteria": [], "success_criteria": [], "assumptions": []})
+        self._deserialize_json(
+            feature,
+            {
+                "acceptance_criteria_json": "acceptance_criteria",
+                "success_criteria_json": "success_criteria",
+                "assumptions_json": "assumptions",
+            },
+            defaults={"acceptance_criteria": [], "success_criteria": [], "assumptions": []},
+        )
 
         dep_rows = self._conn.execute(
             "SELECT depends_on_id FROM feature_dependencies WHERE feature_id = ?",
@@ -573,13 +578,15 @@ class BacklogDB(BaseStore):
         feature_type: str | None = None,
     ) -> list[dict[str, Any]]:
         """List features with optional filters."""
-        where, params = self._build_where({
-            "status": status,
-            "epic_id": epic_id,
-            "roadmap_id": roadmap_id,
-            "priority": priority,
-            "type": feature_type,
-        })
+        where, params = self._build_where(
+            {
+                "status": status,
+                "epic_id": epic_id,
+                "roadmap_id": roadmap_id,
+                "priority": priority,
+                "type": feature_type,
+            }
+        )
         rows = self._conn.execute(
             f"SELECT id FROM features {where} ORDER BY priority, created_at", params
         ).fetchall()
@@ -859,7 +866,9 @@ class BacklogDB(BaseStore):
                 updates["completed_at"] = now
 
             self._build_update("roadmaps", roadmap_id, updates)
-            self._record_transition("roadmap", roadmap_id, current_status, new_status, "auto_propagation")
+            self._record_transition(
+                "roadmap", roadmap_id, current_status, new_status, "auto_propagation"
+            )
 
     # Notes (shared across entity types)
 

@@ -20,10 +20,12 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+
 @dataclass(frozen=True)
 class _RunnerKey:
     db_path: str
     chain_id: str
+
 
 class ChainRunnerManager:
     """In-process chain runner supervisor (one thread per running chain)."""
@@ -145,7 +147,6 @@ class ChainRunnerManager:
             )
             cls._threads[key] = thread
             thread.start()
-
 
     @classmethod
     def stop_chain(cls, key: _RunnerKey) -> None:

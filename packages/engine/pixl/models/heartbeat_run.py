@@ -46,9 +46,7 @@ class HeartbeatRun(BaseModel):
     cost_usd: float = 0.0
     steps_executed: int = 0
     error_message: str | None = None
-    context_snapshot: dict | None = Field(
-        default=None, description="Cursor + baton at run start"
-    )
+    context_snapshot: dict | None = Field(default=None, description="Cursor + baton at run start")
     created_at: datetime = Field(default_factory=datetime.now)
 
     @staticmethod

@@ -39,6 +39,7 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+
 def run_chain_loop(
     *,
     db: PixlDB,
@@ -160,7 +161,9 @@ def run_chain_loop(
                 except Exception:
                     logger.debug(
                         "Failed to update node metadata for %s:%s",
-                        chain_id, node_id, exc_info=True,
+                        chain_id,
+                        node_id,
+                        exc_info=True,
                     )
                 # Auto-push feature branch to preserve work
                 try:
@@ -168,13 +171,13 @@ def run_chain_loop(
                     if workspace_root_raw and Path(workspace_root_raw).exists():
                         feat_id = str(node.get("feature_id") or "")
                         if feat_id:
-                            auto_push_feature_branch(
-                                Path(workspace_root_raw), feature_id=feat_id
-                            )
+                            auto_push_feature_branch(Path(workspace_root_raw), feature_id=feat_id)
                 except Exception:
                     logger.warning(
                         "Auto-push failed for node %s:%s",
-                        chain_id, node_id, exc_info=True,
+                        chain_id,
+                        node_id,
+                        exc_info=True,
                     )
                 # Post-session behavior is PR-driven: a node is only considered "completed"
                 # once its PR is merged to the chain base branch.
@@ -195,7 +198,9 @@ def run_chain_loop(
                             store.pause_chain(chain_id)
                         except Exception:
                             logger.warning(
-                                "Failed to pause chain %s", chain_id, exc_info=True,
+                                "Failed to pause chain %s",
+                                chain_id,
+                                exc_info=True,
                             )
                         status = "paused"
                     continue
@@ -222,7 +227,9 @@ def run_chain_loop(
                             store.pause_chain(chain_id)
                         except Exception:
                             logger.warning(
-                                "Failed to pause chain %s", chain_id, exc_info=True,
+                                "Failed to pause chain %s",
+                                chain_id,
+                                exc_info=True,
                             )
                         status = "paused"
                     continue
@@ -262,7 +269,9 @@ def run_chain_loop(
                                 store.pause_chain(chain_id)
                             except Exception:
                                 logger.warning(
-                                    "Failed to pause chain %s", chain_id, exc_info=True,
+                                    "Failed to pause chain %s",
+                                    chain_id,
+                                    exc_info=True,
                                 )
                             status = "paused"
                         continue
@@ -306,7 +315,9 @@ def run_chain_loop(
                                     store.pause_chain(chain_id)
                                 except Exception:
                                     logger.warning(
-                                        "Failed to pause chain %s", chain_id, exc_info=True,
+                                        "Failed to pause chain %s",
+                                        chain_id,
+                                        exc_info=True,
                                     )
                                 status = "paused"
                     continue
@@ -326,7 +337,9 @@ def run_chain_loop(
                         store.pause_chain(chain_id)
                     except Exception:
                         logger.warning(
-                            "Failed to pause chain %s", chain_id, exc_info=True,
+                            "Failed to pause chain %s",
+                            chain_id,
+                            exc_info=True,
                         )
                     status = "paused"
                     try:
@@ -405,7 +418,9 @@ def run_chain_loop(
                 )
             except Exception:
                 logger.debug(
-                    "Failed to emit chain terminal event for %s", chain_id, exc_info=True,
+                    "Failed to emit chain terminal event for %s",
+                    chain_id,
+                    exc_info=True,
                 )
 
             # Auto-trigger consolidation workflow if enabled and chain completed
@@ -438,7 +453,8 @@ def run_chain_loop(
                     )
                 except Exception:
                     logger.debug(
-                        "Failed to emit chain_judge_blocked event", exc_info=True,
+                        "Failed to emit chain_judge_blocked event",
+                        exc_info=True,
                     )
                 idle_sleep = _active_sleep  # Reset on state change.
                 stop_event.wait(timeout=_active_sleep)

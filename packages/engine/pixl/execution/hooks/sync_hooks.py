@@ -17,6 +17,7 @@ from typing import Any
 from pixl.execution.hooks import HookContext, HookResult, register_hook
 from pixl.storage.db.connection import PixlDB
 
+
 def _get_scan_payload(ctx: HookContext) -> dict[str, Any]:
     """Extract the structured payload from the scan-main stage output."""
     source_node_id = str(ctx.params.get("source_node_id", "scan-main"))
@@ -25,6 +26,7 @@ def _get_scan_payload(ctx: HookContext) -> dict[str, Any]:
         return {}
     payload = structured.get("payload", {})
     return payload if isinstance(payload, dict) else {}
+
 
 @register_hook("materialize-sync-results")
 def materialize_sync_results_hook(ctx: HookContext) -> HookResult:

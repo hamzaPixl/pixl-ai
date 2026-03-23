@@ -916,6 +916,7 @@ CREATE TABLE IF NOT EXISTS workflow_templates (
 CREATE INDEX IF NOT EXISTS idx_wf_templates_name ON workflow_templates(name);
 """
 
+
 def get_schema_sql() -> str:
     """Return the full schema creation SQL."""
     return _SCHEMA_SQL
@@ -928,7 +929,6 @@ def get_rebuild_sql() -> str:
     the single source of truth — no incremental migrations needed.
     """
     return _DROP_ALL_SQL + "\n" + _SCHEMA_SQL
-
 
 
 # Drop all tables in reverse dependency order for clean rebuild.

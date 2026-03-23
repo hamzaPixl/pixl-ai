@@ -12,6 +12,7 @@ from pathlib import Path
 from pixl.execution.contract_constants import RULE_REQUIRED_AGENTS, RULE_REQUIRED_SKILLS
 from pixl.execution.validation.models import ContractValidationResult, ContractViolation
 
+
 def check_required_skills(
     required_skills: list[str],
     transcript_path: Path | None,
@@ -42,6 +43,7 @@ def check_required_skills(
                 )
             )
 
+
 def check_required_agents(
     required_agents: list[str],
     transcript_path: Path | None,
@@ -71,6 +73,7 @@ def check_required_agents(
                 )
             )
 
+
 def _extract_invoked_skills(transcript_path: Path | None) -> set[str]:
     """Extract skill names from Skill tool invocations in transcript."""
     if transcript_path is None or not transcript_path.exists():
@@ -95,6 +98,7 @@ def _extract_invoked_skills(transcript_path: Path | None) -> set[str]:
 
     return skills
 
+
 def _extract_skills_from_entry(entry: dict, skills: set[str]) -> None:
     """Extract skill names from a single transcript entry."""
     # Claude Code transcripts store tool uses in content blocks
@@ -111,6 +115,7 @@ def _extract_skills_from_entry(entry: dict, skills: set[str]) -> None:
             skill_name = tool_input.get("skill")
             if isinstance(skill_name, str) and skill_name:
                 skills.add(skill_name)
+
 
 def _extract_invoked_agents(transcript_path: Path | None) -> set[str]:
     """Extract agent subagent_type values from Agent tool invocations."""
@@ -134,6 +139,7 @@ def _extract_invoked_agents(transcript_path: Path | None) -> set[str]:
         pass
 
     return agents
+
 
 def _extract_agents_from_entry(entry: dict, agents: set[str]) -> None:
     """Extract agent types from a single transcript entry."""

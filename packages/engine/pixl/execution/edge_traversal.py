@@ -18,6 +18,7 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+
 def follow_edges(
     executor: GraphExecutor,
     from_node: str,
@@ -77,6 +78,7 @@ def follow_edges(
 
     return next_nodes
 
+
 def evaluate_condition(
     executor: GraphExecutor,
     condition: str,
@@ -118,6 +120,7 @@ def evaluate_condition(
     except ValueError:
         return False
 
+
 def can_enter_loop(executor: GraphExecutor, loop_constraint) -> bool:
     """Check if loop can be entered.
 
@@ -132,6 +135,7 @@ def can_enter_loop(executor: GraphExecutor, loop_constraint) -> bool:
     if not loop_state:
         return True  # First iteration
     return loop_state.can_enter()
+
 
 def record_loop_iteration(
     executor: GraphExecutor,

@@ -8,6 +8,7 @@ import subprocess
 
 from pixl.execution.hooks import HookContext, HookResult, register_hook
 
+
 @register_hook("init-git")
 def init_git_hook(ctx: HookContext) -> HookResult:
     """Create a git worktree + branch for this workflow session."""
@@ -80,6 +81,7 @@ def init_git_hook(ctx: HookContext) -> HookResult:
         return HookResult(success=False, error="git command timed out")
     except Exception as e:
         return HookResult(success=False, error=str(e))
+
 
 @register_hook("finalize-git")
 def finalize_git_hook(ctx: HookContext) -> HookResult:

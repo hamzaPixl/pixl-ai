@@ -57,7 +57,11 @@ class AgentRegistry:
         if not isinstance(meta, dict) or "name" not in meta:
             return None
         raw_tools = meta.get("tools", [])
-        tools = [t.strip() for t in raw_tools.split(",")] if isinstance(raw_tools, str) else list(raw_tools)
+        tools = (
+            [t.strip() for t in raw_tools.split(",")]
+            if isinstance(raw_tools, str)
+            else list(raw_tools)
+        )
         model = meta.get("model")
         return CrewAgent(
             name=meta["name"],
@@ -75,11 +79,15 @@ class AgentRegistry:
         if agent is None:
             return None
         tools = [t for t in agent.tools if t != "Agent"]
+        from typing import Literal, cast
+
         return AgentDefinition(
             description=agent.description,
             prompt=agent.prompt,
             tools=tools or None,
-            model=agent.model,
+            model=cast(Literal["sonnet", "opus", "haiku", "inherit"], agent.model)
+            if agent.model is not None
+            else None,
         )
 
     def get_all_definitions(self) -> dict[str, AgentDefinition]:

@@ -31,6 +31,7 @@ from pixl.state.effects import DEFAULT_EFFECTS, Effect, EffectResult
 from pixl.state.guards import DEFAULT_GUARDS, Guard, GuardResult, Severity
 from pixl.state.machine import MACHINES, StateMachine
 
+
 @dataclass(frozen=True)
 class TransitionResult:
     """Result of a transition attempt."""
@@ -52,6 +53,7 @@ class TransitionResult:
     def hard_failures(self) -> list[GuardResult]:
         """Get hard guard failures (blockers)."""
         return [g for g in self.guard_results if not g.passed and g.severity == Severity.HARD]
+
 
 class TransitionEngine:
     """Orchestrates state transitions with validation, guards, and effects.

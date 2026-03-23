@@ -16,6 +16,7 @@ import re
 from pathlib import Path
 from typing import Any
 
+
 class PixlExprEvaluator:
     """Restricted expression evaluator for edge conditions.
 
@@ -290,6 +291,7 @@ class PixlExprEvaluator:
             raise ValueError(f"Unknown function: {func_name}")
 
         raise ValueError(f"Unknown AST node type: {node_type}")
+
 
 # Convenience function for direct evaluation
 def evaluate_condition(

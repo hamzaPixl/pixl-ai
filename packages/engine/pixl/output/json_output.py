@@ -75,7 +75,7 @@ class JsonOutput:
         """Emit features as a list."""
         self._emit(
             "features",
-            data=[f.model_dump(mode="json") for f in features],
+            data=[f.model_dump(mode="json") for f in features],  # type: ignore[arg-type]
             title=title,
             count=len(features),
         )

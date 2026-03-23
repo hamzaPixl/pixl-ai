@@ -31,6 +31,7 @@ from pixl.models.session import WorkflowSession
 if TYPE_CHECKING:
     from pixl.models.workflow import WorkflowSnapshot
 
+
 class SessionMutationError(Exception):
     """Raised when a session mutation fails validation."""
 
@@ -49,6 +50,7 @@ class SessionMutationError(Exception):
             parts.append(f"node '{node_id}'")
         parts.append(message)
         super().__init__(": ".join(parts))
+
 
 class SessionManager:
     """Single source of truth for workflow session state mutations.

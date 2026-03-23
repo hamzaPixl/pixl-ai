@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import shutil
 import subprocess
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import click
@@ -55,7 +55,7 @@ def register_crew_plugin(crew_root: Path) -> str:
     payload.setdefault("version", 2)
     plugins = payload.setdefault("plugins", {})
 
-    now = datetime.now(timezone.utc).isoformat()
+    now = datetime.now(UTC).isoformat()
     plugins["pixl-crew@pixl-local"] = [
         {
             "scope": "user",

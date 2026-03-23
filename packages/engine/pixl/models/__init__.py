@@ -9,7 +9,6 @@ from pixl.models.backlog import Backlog
 from pixl.models.baton import ArtifactRef, Baton
 from pixl.models.boulder import BoulderState, PlanProgress
 from pixl.models.context_slice import ArtifactLayer, CompiledContext, ContextSlice
-
 from pixl.models.epic import Epic, EpicStatus
 
 # Event models

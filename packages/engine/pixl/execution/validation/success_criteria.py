@@ -8,6 +8,7 @@ from pathlib import Path
 
 from pixl.execution.validation.models import ContractValidationResult, ContractViolation
 
+
 def verify_success_criteria(
     success_criteria: list[str],
     changed_files: list[str],
@@ -61,6 +62,7 @@ def verify_success_criteria(
             )
 
     return criteria_status
+
 
 def extract_key_terms(text: str) -> list[str]:
     """Extract meaningful terms from a criterion for evidence search.

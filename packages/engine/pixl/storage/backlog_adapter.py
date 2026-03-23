@@ -28,6 +28,7 @@ from pixl.paths import get_pixl_dir
 
 logger = logging.getLogger("pixl.storage.backlog_adapter")
 
+
 def _parse_dt(value: Any) -> datetime | None:
     """Parse an ISO datetime string to datetime, or return None."""
     if value is None:
@@ -38,6 +39,7 @@ def _parse_dt(value: Any) -> datetime | None:
         return datetime.fromisoformat(str(value))
     except (ValueError, TypeError):
         return None
+
 
 def _dict_to_feature(d: dict[str, Any]) -> Feature:
     """Convert SQLite feature dict to Pydantic Feature model.
@@ -86,6 +88,7 @@ def _dict_to_feature(d: dict[str, Any]) -> Feature:
         )
         return Feature.model_construct(**kwargs)
 
+
 def _dict_to_epic(d: dict[str, Any]) -> Epic:
     """Convert SQLite epic dict to Pydantic Epic model.
 
@@ -114,6 +117,7 @@ def _dict_to_epic(d: dict[str, Any]) -> Epic:
         )
         return Epic.model_construct(**kwargs)
 
+
 def _dict_to_roadmap(d: dict[str, Any]) -> Roadmap:
     """Convert SQLite roadmap dict to Pydantic Roadmap model.
 
@@ -141,6 +145,7 @@ def _dict_to_roadmap(d: dict[str, Any]) -> Roadmap:
             exc,
         )
         return Roadmap.model_construct(**kwargs)
+
 
 def _feature_to_fields(feature: Feature) -> dict[str, Any]:
     """Extract updatable fields from a Feature model for SQLite update.
@@ -174,6 +179,7 @@ def _feature_to_fields(feature: Feature) -> dict[str, Any]:
         val = getattr(feature, dt_field)
         fields[dt_field] = val.isoformat() if val is not None else None
     return fields
+
 
 class BacklogStoreAdapter:
     """Wraps SQLite BacklogDB with a Pydantic model API.

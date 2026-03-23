@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+
 @dataclass(frozen=True)
 class Transition:
     """A single allowed state transition."""
@@ -18,6 +19,7 @@ class Transition:
 
     def __repr__(self) -> str:
         return f"{self.from_status} → {self.to_status}"
+
 
 @dataclass
 class StateMachine:
@@ -45,6 +47,7 @@ class StateMachine:
             statuses.add(t.from_status)
             statuses.add(t.to_status)
         return statuses
+
 
 # Feature state machine
 #
@@ -150,6 +153,7 @@ MACHINES: dict[str, StateMachine] = {
     "epic": EPIC_MACHINE,
     "roadmap": ROADMAP_MACHINE,
 }
+
 
 def get_machine(entity_id: str) -> StateMachine:
     """Look up the state machine for an entity by its ID prefix.

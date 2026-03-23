@@ -46,6 +46,7 @@ _PARENT_CONTEXT_FRAGMENT = """
                     ELSE COALESCE(f.title, '')
                 END AS display_title"""
 
+
 class ProjectionStore(BaseStore):
     """Read-only projection queries across the Pixl schema.
 

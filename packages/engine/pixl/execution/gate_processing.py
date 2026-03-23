@@ -17,6 +17,7 @@ from pixl.models.workflow import EdgeTrigger
 if TYPE_CHECKING:
     from pixl.execution.graph_executor import GraphExecutor
 
+
 def process_gate_rejections(executor: GraphExecutor) -> None:
     """Process gate rejections that have revision loops.
 
@@ -52,6 +53,7 @@ def process_gate_rejections(executor: GraphExecutor) -> None:
             for target_id in next_nodes:
                 cursor.add_to_ready_queue(target_id)
 
+
 def collect_nodes_on_path(executor: GraphExecutor, source: str, target: str) -> set[str]:
     """DFS to collect all nodes on the path from source to target (exclusive).
 
@@ -85,6 +87,7 @@ def collect_nodes_on_path(executor: GraphExecutor, source: str, target: str) -> 
     _dfs(source)
     return on_path
 
+
 def reset_revision_path(executor: GraphExecutor, target_id: str, gate_id: str) -> None:
     """Reset nodes on the path from target to gate for revision.
 
@@ -95,6 +98,7 @@ def reset_revision_path(executor: GraphExecutor, target_id: str, gate_id: str) -
 
     for node_id in to_reset:
         reset_instance_to_pending(executor.session, node_id)
+
 
 def process_condition_loop_resets(
     executor: GraphExecutor,

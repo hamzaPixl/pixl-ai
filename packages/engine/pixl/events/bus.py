@@ -21,9 +21,7 @@ class EventBus:
     def unsubscribe(self, callback: Callable[..., Any]) -> None:
         """Remove all subscriptions for a given callback."""
         with self._lock:
-            self._subscribers = [
-                (et, cb) for et, cb in self._subscribers if cb is not callback
-            ]
+            self._subscribers = [(et, cb) for et, cb in self._subscribers if cb is not callback]
 
     def publish(self, event: Any) -> None:
         """Publish an event to all matching subscribers.

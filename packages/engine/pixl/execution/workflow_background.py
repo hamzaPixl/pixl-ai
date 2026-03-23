@@ -20,6 +20,7 @@ from pathlib import Path
 from typing import Any
 
 from pixl.storage.db.connection import PixlDB
+
 _SESSION_TOUCH_INTERVAL_SECONDS = 30
 
 logger = logging.getLogger(__name__)
@@ -29,6 +30,7 @@ logger = logging.getLogger(__name__)
 _executor_lock = threading.Lock()
 _executing_sessions: set[str] = set()
 
+
 def _try_start_execution(session_id: str) -> bool:
     """Atomically claim execution for *session_id*. Returns False if already running."""
     with _executor_lock:
@@ -37,18 +39,23 @@ def _try_start_execution(session_id: str) -> bool:
         _executing_sessions.add(session_id)
         return True
 
+
 def _release_execution(session_id: str) -> None:
     """Release execution claim for *session_id*."""
     with _executor_lock:
         _executing_sessions.discard(session_id)
 
+
 # Autonomy — delegated to pixl.execution.autonomy
 
 from pixl.execution.autonomy import (  # noqa: F401
     record_autonomy_outcome,
-    resolve_latest_agent_task_pair as _resolve_latest_agent_task_pair,
     should_auto_approve_waiting_gate,
 )
+from pixl.execution.autonomy import (
+    resolve_latest_agent_task_pair as _resolve_latest_agent_task_pair,
+)
+
 
 def _create_state_bridge(project_path: Path, event_callback=None):
     try:
@@ -64,6 +71,7 @@ def _create_state_bridge(project_path: Path, event_callback=None):
     except Exception:
         return None
 
+
 def _has_waiting_gates(session: Any) -> bool:
     from pixl.models.node_instance import NodeState
 
@@ -72,6 +80,7 @@ def _has_waiting_gates(session: Any) -> bool:
             return True
     return False
 
+
 def _get_waiting_gate_node(session: Any) -> str | None:
     from pixl.models.node_instance import NodeState
 
@@ -79,6 +88,7 @@ def _get_waiting_gate_node(session: Any) -> str | None:
         if instance.get("state") == NodeState.GATE_WAITING.value:
             return node_id
     return None
+
 
 def run_workflow_background(
     *,
@@ -105,6 +115,7 @@ def run_workflow_background(
         )
     finally:
         _release_execution(session_id)
+
 
 def _run_workflow_inner(
     *,

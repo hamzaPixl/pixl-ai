@@ -13,6 +13,7 @@ from rich.table import Table
 from pixl.models.workflow_config import ParameterConfig, WorkflowConfigYaml
 from pixl.output import console
 
+
 class WorkflowParameterCollector:
     """Collects parameters interactively based on workflow YAML definition."""
 
@@ -113,7 +114,7 @@ class WorkflowParameterCollector:
     def _show_header(self) -> None:
         """Show workflow header."""
         console._console.print()
-        console.print(
+        console._console.print(
             Panel(
                 f"[bold]{self.config.name}[/bold]\n\n{self.config.description or 'No description'}",
                 title="Workflow Setup",
@@ -269,6 +270,7 @@ class WorkflowParameterCollector:
             table.add_row(param.label, display)
 
         console._console.print(table)
+
 
 def collect_workflow_parameters(
     workflow_config: WorkflowConfigYaml | dict,

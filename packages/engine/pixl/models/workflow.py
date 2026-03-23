@@ -15,6 +15,7 @@ from typing import Any
 
 from pydantic import BaseModel, Field, field_serializer
 
+
 class EdgeTrigger(StrEnum):
     """Edge traversal conditions."""
 
@@ -23,12 +24,14 @@ class EdgeTrigger(StrEnum):
     ALWAYS = "always"
     CONDITION = "condition"
 
+
 class TimeoutPolicy(StrEnum):
     """Gate timeout behavior."""
 
     REJECT = "reject"  # Timeout -> gate rejected (safe, default)
     CANCEL_SESSION = "cancel"  # Timeout -> cancel entire session
     AUTO_APPROVE = "auto"  # Timeout -> auto-approve (dangerous, opt-in)
+
 
 class NodeType(StrEnum):
     """Types of nodes in the execution graph."""
@@ -37,6 +40,7 @@ class NodeType(StrEnum):
     GATE = "gate"
     HOOK = "hook"  # Deterministic Python function execution
     SUB_WORKFLOW = "sub_workflow"  # Nested workflow execution
+
 
 class RetryPolicy(BaseModel):
     """Retry configuration for task nodes."""
@@ -58,6 +62,7 @@ class RetryPolicy(BaseModel):
             return any(pattern in error_message for pattern in self.retry_on)
         return True
 
+
 class TaskConfig(BaseModel):
     """Configuration for task nodes."""
 
@@ -74,6 +79,7 @@ class TaskConfig(BaseModel):
         default=None,
         description="Max input token budget for prompt. Context compiler will truncate to fit.",
     )
+
 
 class GateConfig(BaseModel):
     """Configuration for gate nodes (human approval points)."""
@@ -100,6 +106,7 @@ class GateConfig(BaseModel):
         description="Artifact paths to freeze (hash-lock) on gate approval",
     )
 
+
 class HookConfig(BaseModel):
     """Configuration for hook nodes (deterministic Python functions)."""
 
@@ -107,6 +114,7 @@ class HookConfig(BaseModel):
     params: dict[str, Any] = Field(
         default_factory=dict, description="Parameters passed to the hook function"
     )
+
 
 class Node(BaseModel):
     """A node in the execution graph.
@@ -163,6 +171,7 @@ class Node(BaseModel):
         """Check if this is a hook node."""
         return self.type == NodeType.HOOK
 
+
 class Edge(BaseModel):
     """A labeled edge in the execution graph.
 
@@ -208,6 +217,7 @@ class Edge(BaseModel):
         # For now, defer to executor
         return self.on == EdgeTrigger.CONDITION
 
+
 class LoopConstraint(BaseModel):
     """A loop constraint in the execution graph.
 
@@ -222,6 +232,7 @@ class LoopConstraint(BaseModel):
         default=EdgeTrigger.FAILURE,
         description="Which edge trigger activates this loop",
     )
+
 
 class ExecutionGraph(BaseModel):
     """Directed graph with nodes, edges, and loop constraints.
@@ -405,6 +416,7 @@ class ExecutionGraph(BaseModel):
 
         return reachable
 
+
 class WorkflowSnapshot(BaseModel):
     """Canonical snapshot of a workflow template.
 
@@ -444,6 +456,7 @@ class WorkflowSnapshot(BaseModel):
         """Update the snapshot_hash field based on current content."""
         self.snapshot_hash = self.compute_hash()
         return self
+
 
 class WorkflowTemplate(BaseModel):
     """A versioned workflow template.

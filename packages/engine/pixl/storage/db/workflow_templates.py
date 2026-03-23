@@ -153,9 +153,7 @@ class WorkflowTemplateDB(BaseStore):
             True if a row was deleted, False otherwise.
         """
         with self._db.write() as conn:
-            cursor = conn.execute(
-                "DELETE FROM workflow_templates WHERE id = ?", (template_id,)
-            )
+            cursor = conn.execute("DELETE FROM workflow_templates WHERE id = ?", (template_id,))
             conn.commit()
         return cursor.rowcount > 0
 

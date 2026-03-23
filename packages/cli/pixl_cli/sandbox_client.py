@@ -12,7 +12,7 @@ import logging
 import os
 import threading
 from collections.abc import Iterator
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import httpx
@@ -31,8 +31,8 @@ def _generate_jwt(secret: str, expiry_minutes: int = 60, *, scope: str = "admin"
 
     payload = {
         "iss": "pixl-cli",
-        "iat": datetime.now(timezone.utc),
-        "exp": datetime.now(timezone.utc) + timedelta(minutes=expiry_minutes),
+        "iat": datetime.now(UTC),
+        "exp": datetime.now(UTC) + timedelta(minutes=expiry_minutes),
         "scope": scope,
     }
     return jwt.encode(payload, secret, algorithm="HS256")
@@ -62,7 +62,7 @@ class SandboxClient:
         # When a jwt_secret is provided, generate a scoped token immediately
         if jwt_secret:
             api_key = _generate_jwt(jwt_secret, expiry_minutes, scope=scope)
-            self._token_generated_at = datetime.now(timezone.utc)
+            self._token_generated_at = datetime.now(UTC)
 
         self._client = httpx.Client(
             base_url=base_url.rstrip("/"),
@@ -75,23 +75,25 @@ class SandboxClient:
         if self._jwt_secret is None or self._token_generated_at is None:
             return
 
-        elapsed = datetime.now(timezone.utc) - self._token_generated_at
+        elapsed = datetime.now(UTC) - self._token_generated_at
         remaining = timedelta(minutes=self._expiry_minutes) - elapsed
         if remaining > timedelta(minutes=_REFRESH_BUFFER_MINUTES):
             return
 
         with self._refresh_lock:
             # Double-check after acquiring lock
-            elapsed = datetime.now(timezone.utc) - self._token_generated_at
+            elapsed = datetime.now(UTC) - self._token_generated_at
             remaining = timedelta(minutes=self._expiry_minutes) - elapsed
             if remaining > timedelta(minutes=_REFRESH_BUFFER_MINUTES):
                 return
 
             new_token = _generate_jwt(
-                self._jwt_secret, self._expiry_minutes, scope=self._scope,
+                self._jwt_secret,
+                self._expiry_minutes,
+                scope=self._scope,
             )
             self._client.headers["authorization"] = f"Bearer {new_token}"
-            self._token_generated_at = datetime.now(timezone.utc)
+            self._token_generated_at = datetime.now(UTC)
 
     def close(self) -> None:
         self._client.close()
@@ -236,7 +238,7 @@ class SandboxClient:
                         continue
                     if not line.startswith("data: "):
                         continue
-                    payload = line[len("data: "):]
+                    payload = line[len("data: ") :]
                     try:
                         yield json.loads(payload)
                     except (json.JSONDecodeError, ValueError):

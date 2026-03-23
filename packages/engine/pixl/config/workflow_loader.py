@@ -46,6 +46,7 @@ from pixl.paths import get_global_pixl_dir, get_workflows_dir
 
 logger = logging.getLogger(__name__)
 
+
 class WorkflowLoadError(Exception):
     """Error loading a workflow from YAML."""
 
@@ -59,12 +60,14 @@ class WorkflowLoadError(Exception):
             return f"Error loading workflow from {self.path}: {self.message}"
         return self.message
 
+
 class ModelIssueSeverity(StrEnum):
     """Severity levels for model validation issues."""
 
     ERROR = "error"  # Blocks execution
     WARNING = "warning"  # Warns, allows execution
     INFO = "info"  # Resolution details (for validate command)
+
 
 @dataclass
 class ModelValidationIssue:
@@ -76,6 +79,7 @@ class ModelValidationIssue:
     model_input: str
     resolved_to: str | None = None
     suggestion: str | None = None
+
 
 @dataclass
 class ModelValidationResult:
@@ -102,6 +106,7 @@ class ModelValidationResult:
     def is_valid(self) -> bool:
         """True if no errors (warnings are acceptable)."""
         return not self.has_errors
+
 
 class WorkflowLoader:
     """Loads and converts YAML workflows to ExecutionGraph.
@@ -715,9 +720,9 @@ class WorkflowLoader:
                     new_to = f"{prefix}{block_loop.to}" if prefix else block_loop.to
                     new_loop_id = f"{prefix}{block_loop.id}" if prefix else block_loop.id
 
-                    expanded_loop = LoopConfig(  # type: ignore[call-arg]
+                    expanded_loop = LoopConfig(
                         id=new_loop_id,
-                        from_=new_from,
+                        **{"from": new_from},
                         to=new_to,
                         trigger=block_loop.trigger,
                         max_iterations=block_loop.max_iterations,
@@ -860,6 +865,7 @@ class WorkflowLoader:
         # Token not resolved
         return None
 
+
 def load_workflow_from_yaml(project_path: Path, workflow_id: str | Path) -> WorkflowTemplate:
     """Load a workflow template from YAML.
 
@@ -879,6 +885,7 @@ def load_workflow_from_yaml(project_path: Path, workflow_id: str | Path) -> Work
     config = loader.load_workflow(workflow_id)
     return loader.convert_to_template(config)
 
+
 def list_yaml_workflows(project_path: Path) -> list[dict[str, Any]]:
     """List all available YAML workflows.
 
@@ -892,6 +899,7 @@ def list_yaml_workflows(project_path: Path) -> list[dict[str, Any]]:
     """
     loader = WorkflowLoader(project_path)
     return loader.list_workflows()
+
 
 __all__ = [
     "BlockLoadError",
