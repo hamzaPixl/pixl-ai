@@ -77,6 +77,7 @@ class PixlDB:
         self.pixl_dir = pixl_dir if pixl_dir is not None else get_pixl_dir(project_path)
         self.db_path = self.pixl_dir / "pixl.db"
         self._on_event_commit = on_event_commit
+        self._event_bus: Any = None  # Optional EventBus for real-time event distribution
 
         # Thread-local storage for connections - each thread gets its own
         self._thread_local = _ThreadLocalConn()
@@ -137,6 +138,18 @@ class PixlDB:
             self._stores[name] = cached
         return cached
 
+    def set_event_bus(self, bus: Any) -> None:
+        """Attach an EventBus for real-time event distribution.
+
+        Must be called before first access to ``self.events`` (before the
+        lazy store is created).  If the events store was already created,
+        the bus is injected directly.
+        """
+        self._event_bus = bus
+        # If events store already instantiated, inject the bus
+        if "events" in self._stores:
+            self._stores["events"]._event_bus = bus
+
     @property
     def backlog(self) -> BacklogStore:
         return self._lazy_store("backlog", "pixl.storage.db.backlog", "BacklogDB")
@@ -152,7 +165,9 @@ class PixlDB:
     @property
     def events(self) -> EventStore:
         return self._lazy_store(
-            "events", "pixl.storage.db.events", "EventDB", on_commit=self._on_event_commit
+            "events", "pixl.storage.db.events", "EventDB",
+            on_commit=self._on_event_commit,
+            event_bus=self._event_bus,
         )
 
     @property
@@ -206,6 +221,18 @@ class PixlDB:
     @property
     def summaries(self):
         return self._lazy_store("summaries", "pixl.storage.db.summaries", "SummaryDB")
+
+    @property
+    def sandboxes(self):
+        return self._lazy_store("sandboxes", "pixl.storage.db.sandboxes", "SandboxDB")
+
+    @property
+    def workflow_templates(self):
+        return self._lazy_store(
+            "workflow_templates",
+            "pixl.storage.db.workflow_templates",
+            "WorkflowTemplateDB",
+        )
 
     def _connect(self) -> sqlite3.Connection:
         """Create and configure SQLite connection."""
@@ -276,6 +303,74 @@ class PixlDB:
             self.conn.executescript("""
                 ALTER TABLE node_instances ADD COLUMN execution_run_id TEXT;
                 ALTER TABLE node_instances ADD COLUMN execution_locked_at TEXT;
+            """)
+
+        if from_version < 35:
+            # v34 → v35: add sandbox project tracking tables
+            self.conn.executescript("""
+            CREATE TABLE IF NOT EXISTS sandbox_projects (
+                id              TEXT PRIMARY KEY,
+                sandbox_url     TEXT NOT NULL,
+                repo_url        TEXT,
+                branch          TEXT NOT NULL DEFAULT 'main',
+                status          TEXT NOT NULL DEFAULT 'creating'
+                    CHECK (status IN (
+                        'creating','ready','running',
+                        'stopped','error','destroyed'
+                    )),
+                pixl_version    TEXT,
+                claude_version  TEXT,
+                env_keys_json   TEXT NOT NULL DEFAULT '[]',
+                config_json     TEXT NOT NULL DEFAULT '{}',
+                created_at      TEXT NOT NULL DEFAULT (datetime('now')),
+                updated_at      TEXT,
+                destroyed_at    TEXT
+            );
+
+            CREATE TABLE IF NOT EXISTS sandbox_operations (
+                id          INTEGER PRIMARY KEY AUTOINCREMENT,
+                project_id  TEXT NOT NULL
+                    REFERENCES sandbox_projects(id) ON DELETE CASCADE,
+                operation   TEXT NOT NULL,
+                status      TEXT NOT NULL DEFAULT 'started'
+                    CHECK (status IN ('started','completed','failed')),
+                duration_ms     INTEGER,
+                request_json    TEXT,
+                response_json   TEXT,
+                error           TEXT,
+                created_at  TEXT NOT NULL DEFAULT (datetime('now'))
+            );
+
+            CREATE INDEX IF NOT EXISTS idx_sandbox_ops_project
+                ON sandbox_operations(project_id);
+            CREATE INDEX IF NOT EXISTS idx_sandbox_ops_created
+                ON sandbox_operations(created_at);
+            """)
+
+        if from_version < 36:
+            # v35 → v36: add sandbox provenance columns for data sync (GAP-10)
+            self.conn.executescript("""
+                ALTER TABLE events ADD COLUMN sandbox_origin_id TEXT;
+                ALTER TABLE workflow_sessions ADD COLUMN sandbox_origin_id TEXT;
+                ALTER TABLE artifacts ADD COLUMN sandbox_origin_id TEXT;
+            """)
+
+        if from_version < 37:
+            # v36 → v37: add DB-backed workflow templates with versioning
+            self.conn.executescript("""
+                CREATE TABLE IF NOT EXISTS workflow_templates (
+                    id          TEXT PRIMARY KEY,
+                    name        TEXT NOT NULL,
+                    description TEXT,
+                    version     INTEGER NOT NULL DEFAULT 1,
+                    yaml_content TEXT NOT NULL,
+                    config_json  TEXT NOT NULL DEFAULT '{}',
+                    source       TEXT NOT NULL DEFAULT 'db'
+                        CHECK (source IN ('db', 'filesystem', 'imported')),
+                    created_at   TEXT NOT NULL DEFAULT (datetime('now')),
+                    updated_at   TEXT
+                );
+                CREATE INDEX IF NOT EXISTS idx_wf_templates_name ON workflow_templates(name);
             """)
 
         self.conn.execute(

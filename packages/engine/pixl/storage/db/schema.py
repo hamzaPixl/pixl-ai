@@ -17,7 +17,7 @@ The schema is designed to replace ALL existing JSON file stores:
 - config.json         -> config
 """
 
-SCHEMA_VERSION = 34
+SCHEMA_VERSION = 37
 
 _SCHEMA_SQL = """
 -- ============================================================================
@@ -209,7 +209,10 @@ CREATE TABLE IF NOT EXISTS workflow_sessions (
 
     -- Heartbeat execution state
     status                TEXT DEFAULT 'created',
-    current_run_id        TEXT
+    current_run_id        TEXT,
+
+    -- Sandbox provenance (GAP-10)
+    sandbox_origin_id     TEXT
 );
 CREATE INDEX IF NOT EXISTS idx_sessions_feature ON workflow_sessions(feature_id);
 CREATE INDEX IF NOT EXISTS idx_sessions_created ON workflow_sessions(created_at);
@@ -270,6 +273,7 @@ CREATE TABLE IF NOT EXISTS events (
     entity_type  TEXT,  -- roadmap, epic, feature (for non-session events)
     entity_id    TEXT,
     payload_json TEXT,  -- JSON blob with event-specific data
+    sandbox_origin_id TEXT,  -- sandbox provenance (GAP-10)
     created_at   TEXT NOT NULL DEFAULT (datetime('now'))
 );
 CREATE INDEX IF NOT EXISTS idx_events_session ON events(session_id);
@@ -319,6 +323,9 @@ CREATE TABLE IF NOT EXISTS artifacts (
     version_patch         INTEGER DEFAULT 0,
     previous_version_id   TEXT,
     change_description    TEXT,
+
+    -- Sandbox provenance (GAP-10)
+    sandbox_origin_id TEXT,
 
     created_at    TEXT NOT NULL DEFAULT (datetime('now'))
 );
@@ -853,6 +860,60 @@ CREATE TABLE IF NOT EXISTS env_vars (
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
+
+-- ============================================================================
+-- Sandbox project tracking
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS sandbox_projects (
+    id              TEXT PRIMARY KEY,
+    sandbox_url     TEXT NOT NULL,
+    repo_url        TEXT,
+    branch          TEXT NOT NULL DEFAULT 'main',
+    status          TEXT NOT NULL DEFAULT 'creating'
+                    CHECK (status IN ('creating','ready','running','stopped','error','destroyed')),
+    pixl_version    TEXT,
+    claude_version  TEXT,
+    env_keys_json   TEXT NOT NULL DEFAULT '[]',
+    config_json     TEXT NOT NULL DEFAULT '{}',
+    created_at      TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at      TEXT,
+    destroyed_at    TEXT
+);
+
+CREATE TABLE IF NOT EXISTS sandbox_operations (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    project_id      TEXT NOT NULL REFERENCES sandbox_projects(id) ON DELETE CASCADE,
+    operation       TEXT NOT NULL,
+    status          TEXT NOT NULL DEFAULT 'started'
+                    CHECK (status IN ('started','completed','failed')),
+    duration_ms     INTEGER,
+    request_json    TEXT,
+    response_json   TEXT,
+    error           TEXT,
+    created_at      TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_sandbox_ops_project ON sandbox_operations(project_id);
+CREATE INDEX IF NOT EXISTS idx_sandbox_ops_created ON sandbox_operations(created_at);
+
+-- ============================================================================
+-- Workflow templates (DB-backed with versioning)
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS workflow_templates (
+    id          TEXT PRIMARY KEY,
+    name        TEXT NOT NULL,
+    description TEXT,
+    version     INTEGER NOT NULL DEFAULT 1,
+    yaml_content TEXT NOT NULL,
+    config_json  TEXT NOT NULL DEFAULT '{}',
+    source       TEXT NOT NULL DEFAULT 'db'
+        CHECK (source IN ('db', 'filesystem', 'imported')),
+    created_at   TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at   TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_wf_templates_name ON workflow_templates(name);
 """
 
 def get_schema_sql() -> str:
@@ -893,7 +954,10 @@ DROP TRIGGER IF EXISTS chain_signals_ai;
 DROP TRIGGER IF EXISTS chain_signals_ad;
 DROP TRIGGER IF EXISTS chain_signals_au;
 -- Leaf tables (no dependents)
+DROP TABLE IF EXISTS workflow_templates;
 DROP TABLE IF EXISTS env_vars;
+DROP TABLE IF EXISTS sandbox_operations;
+DROP TABLE IF EXISTS sandbox_projects;
 DROP TABLE IF EXISTS wakeup_requests;
 DROP TABLE IF EXISTS cost_events;
 DROP TABLE IF EXISTS task_sessions;

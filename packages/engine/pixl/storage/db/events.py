@@ -43,9 +43,11 @@ class EventDB(BaseStore):
         db: "PixlDB",  # type: ignore[name-defined]  # noqa: F821
         *,
         on_commit: "Callable[[], None] | None" = None,
+        event_bus: Any | None = None,
     ) -> None:
         super().__init__(db)
         self._on_commit = on_commit
+        self._event_bus = event_bus
         self._batching: bool = False
 
         self._event_batch_buffer: list[
@@ -107,6 +109,9 @@ class EventDB(BaseStore):
         if not self._event_batch_buffer and not self._transition_batch_buffer:
             return
 
+        # Snapshot buffered events for bus publication after commit
+        pending_events = list(self._event_batch_buffer)
+
         with self._db.write() as conn:
             if self._event_batch_buffer:
                 conn.executemany(
@@ -129,6 +134,12 @@ class EventDB(BaseStore):
 
             conn.commit()
         self._notify()
+
+        # Publish batched events to EventBus after successful commit
+        for row in pending_events:
+            event_type, session_id, node_id, entity_type, entity_id, payload_json, _ = row
+            payload = json.loads(payload_json) if payload_json else None
+            self._publish_to_bus(event_type, session_id, node_id, entity_type, entity_id, payload)
 
     # State transitions
 
@@ -350,7 +361,35 @@ class EventDB(BaseStore):
                 )
             conn.commit()
         self._notify()
+        self._publish_to_bus(event_type, session_id, node_id, entity_type, entity_id, payload)
         return cursor.lastrowid  # type: ignore
+
+    def _publish_to_bus(
+        self,
+        event_type: str,
+        session_id: str | None,
+        node_id: str | None,
+        entity_type: str | None,
+        entity_id: str | None,
+        payload: dict[str, Any] | None,
+    ) -> None:
+        """Publish event to the bus if attached (best-effort)."""
+        if self._event_bus is None:
+            return
+        try:
+            from types import SimpleNamespace
+            event = SimpleNamespace(
+                type=event_type,        # Match Event model field name
+                event_type=event_type,  # Keep for bus filtering
+                data=payload,           # Match Event model field name
+                session_id=session_id,
+                node_id=node_id,
+                entity_type=entity_type,
+                entity_id=entity_id,
+            )
+            self._event_bus.publish(event)
+        except Exception:
+            pass
 
     def get_events(
         self,

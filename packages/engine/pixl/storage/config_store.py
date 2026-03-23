@@ -99,6 +99,16 @@ class PixlConfig(BaseModel):
         ]
     )
 
+    # Sandbox settings
+    sandbox_url: str | None = Field(
+        default=None,
+        description="URL for pixl-sandbox API (e.g. https://pixl-sandbox.account.workers.dev)",
+    )
+    sandbox_api_key: str | None = Field(
+        default=None,
+        description="API key for pixl-sandbox authentication",
+    )
+
     # High-value files to check first for context
     priority_files: list[str] = Field(
         default=[

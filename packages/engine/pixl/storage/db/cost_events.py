@@ -69,3 +69,83 @@ class CostEventDB(BaseStore):
                    GROUP BY adapter_name""",
             ).fetchall()
         return [dict(r) for r in rows]
+
+    def breakdown_by_model(self, session_id: str | None = None) -> list[dict]:
+        """Cost breakdown grouped by model_name.
+
+        Returns rows ordered by total cost descending, each containing:
+        model_name, event_count, input_tokens, output_tokens, cost_usd.
+        """
+        if session_id:
+            rows = self._conn.execute(
+                """SELECT model_name,
+                          COUNT(*) AS event_count,
+                          SUM(input_tokens) AS input_tokens,
+                          SUM(output_tokens) AS output_tokens,
+                          SUM(cost_usd) AS cost_usd
+                   FROM cost_events
+                   WHERE session_id = ?
+                   GROUP BY model_name
+                   ORDER BY SUM(cost_usd) DESC""",
+                (session_id,),
+            ).fetchall()
+        else:
+            rows = self._conn.execute(
+                """SELECT model_name,
+                          COUNT(*) AS event_count,
+                          SUM(input_tokens) AS input_tokens,
+                          SUM(output_tokens) AS output_tokens,
+                          SUM(cost_usd) AS cost_usd
+                   FROM cost_events
+                   GROUP BY model_name
+                   ORDER BY SUM(cost_usd) DESC""",
+            ).fetchall()
+        return [dict(r) for r in rows]
+
+    def total_by_session(self, limit: int = 20) -> list[dict]:
+        """Total cost per session, ranked by cost descending.
+
+        Returns rows containing: session_id, event_count,
+        input_tokens, output_tokens, cost_usd.
+        """
+        rows = self._conn.execute(
+            """SELECT session_id,
+                      COUNT(*) AS event_count,
+                      SUM(input_tokens) AS input_tokens,
+                      SUM(output_tokens) AS output_tokens,
+                      SUM(cost_usd) AS cost_usd
+               FROM cost_events
+               GROUP BY session_id
+               ORDER BY SUM(cost_usd) DESC
+               LIMIT ?""",
+            (limit,),
+        ).fetchall()
+        return [dict(r) for r in rows]
+
+    def summary(self) -> dict:
+        """Overall cost summary.
+
+        Returns a dict with: total_cost_usd, total_queries,
+        total_input_tokens, total_output_tokens, top_model.
+        """
+        row = self._conn.execute(
+            """SELECT COALESCE(SUM(cost_usd), 0.0) AS total_cost_usd,
+                      COUNT(*) AS total_queries,
+                      COALESCE(SUM(input_tokens), 0) AS total_input_tokens,
+                      COALESCE(SUM(output_tokens), 0) AS total_output_tokens
+               FROM cost_events""",
+        ).fetchone()
+
+        result = dict(row)
+
+        # Determine the model with the highest total cost
+        top = self._conn.execute(
+            """SELECT model_name
+               FROM cost_events
+               GROUP BY model_name
+               ORDER BY SUM(cost_usd) DESC
+               LIMIT 1""",
+        ).fetchone()
+        result["top_model"] = top["model_name"] if top else None
+
+        return result
