@@ -514,6 +514,18 @@ class GraphExecutor:
         node_id: str | None = None
 
         try:
+            # Check interrupt signal before processing (GAP-11)
+            if self.orchestrator and hasattr(self.orchestrator, "_interrupt_event"):
+                if self.orchestrator._interrupt_event.is_set():
+                    logger.info("Interrupt detected in GraphExecutor.step(), pausing session")
+                    self.session.status = SessionStatus.PAUSED
+                    self.session.pause_reason = "Interrupted by parent"
+                    checkpoint_event = self._checkpoint(reason="interrupted")
+                    result["events"].append(checkpoint_event)
+                    result["status"] = SessionStatus.PAUSED
+                    result["terminal"] = False
+                    return result
+
             cursor = self.session.executor_cursor
             if cursor is None:
                 cursor = self._initialize_cursor()

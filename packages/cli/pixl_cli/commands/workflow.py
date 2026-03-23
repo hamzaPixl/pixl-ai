@@ -2,10 +2,30 @@
 
 from __future__ import annotations
 
+import json as json_mod
+import sys
+
 import click
 
 from pixl_cli._output import emit_error, emit_json, emit_table
 from pixl_cli.main import get_ctx
+
+
+def _ndjson_event_callback(event) -> None:
+    """Emit an engine Event as an NDJSON line to stdout."""
+    try:
+        line = {
+            "event_type": event.type.value if hasattr(event.type, "value") else str(event.type),
+            "session_id": event.session_id,
+            "node_id": event.node_id,
+            "timestamp": event.timestamp.isoformat() if event.timestamp else None,
+        }
+        if event.data:
+            line["payload"] = event.data
+        sys.stdout.write(json_mod.dumps(line, default=str) + "\n")
+        sys.stdout.flush()
+    except Exception:
+        pass  # Best-effort — never crash the workflow loop
 
 
 @click.group()
@@ -116,12 +136,16 @@ def _run_workflow_sync(
         orchestrator = OrchestratorCore(cli.project_path)
         session_manager = SessionManager(cli.project_path)
 
+        # Stream NDJSON events in real-time when --json is active (GAP-08)
+        event_callback = _ndjson_event_callback if cli.is_json else None
+
         executor = GraphExecutor(
             session,
             snapshot,
             session_dir,
             project_root=cli.project_path,
             orchestrator=orchestrator,
+            event_callback=event_callback,
             session_manager=session_manager,
             db=db,
         )
