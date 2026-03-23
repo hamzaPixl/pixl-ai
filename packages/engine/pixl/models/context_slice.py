@@ -111,7 +111,9 @@ class ContextSlice(BaseModel):
         description="Line range (start, end) if layer is 'excerpt'",
     )
     reason: str = Field(
-        description="Why this slice was included (e.g., 'required_artifact', 'frozen', 'work_scope')",
+        description=(
+            "Why this slice was included (e.g., 'required_artifact', 'frozen', 'work_scope')"
+        ),
     )
     token_estimate: int = Field(
         description="Estimated token count of this slice",

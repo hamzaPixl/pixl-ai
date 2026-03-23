@@ -190,7 +190,8 @@ def record_loop_iteration(
             if not hasattr(executor.session, "warnings"):
                 executor.session.warnings = []
             executor.session.warnings.append(
-                f"Review loop exhausted: {loop_constraint.max_iterations} iterations without approval"
+                f"Review loop exhausted: {loop_constraint.max_iterations}"
+                " iterations without approval"
             )
         else:
             # Human-in-the-loop: escalate by pausing workflow

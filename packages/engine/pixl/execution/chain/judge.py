@@ -72,7 +72,9 @@ def check_and_run_judge(
                     {
                         "category": "file_conflict",
                         "severity": "warn",
-                        "description": f"File '{file_path}' modified by multiple nodes: {wave_claimants}",
+                        "description": (
+                            f"File '{file_path}' modified by multiple nodes: {wave_claimants}"
+                        ),
                         "affected_nodes": wave_claimants,
                     }
                 )

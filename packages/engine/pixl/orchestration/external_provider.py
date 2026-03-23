@@ -276,10 +276,10 @@ async def query_external_provider(
                 trace_chunk["exit_code"] = chunk.get("exit_code")
             trace_chunks.append(trace_chunk)
 
-            _tool_key = (
-                f"{tool_name}:"
-                f"{_hashlib.md5(_dedup_json.dumps(tool_input, sort_keys=True).encode()).hexdigest()}"
-            )
+            _tool_hash = _hashlib.md5(
+                _dedup_json.dumps(tool_input, sort_keys=True).encode()
+            ).hexdigest()
+            _tool_key = f"{tool_name}:{_tool_hash}"
             _now = _time.monotonic()
             _is_dup = _tool_key == _prev_tool_key and _now - _prev_tool_time < _tool_dedup_window
             _prev_tool_key = _tool_key

@@ -376,11 +376,13 @@ class ExecutionGraph(BaseModel):
         for constraint in self.loop_constraints:
             if constraint.from_node not in self.nodes:
                 errors.append(
-                    f"Loop constraint '{constraint.id}': from_node '{constraint.from_node}' not in nodes"
+                    f"Loop constraint '{constraint.id}': from_node"
+                    f" '{constraint.from_node}' not in nodes"
                 )
             if constraint.to_node not in self.nodes:
                 errors.append(
-                    f"Loop constraint '{constraint.id}': to_node '{constraint.to_node}' not in nodes"
+                    f"Loop constraint '{constraint.id}': to_node"
+                    f" '{constraint.to_node}' not in nodes"
                 )
 
         # Check for at least one entry node

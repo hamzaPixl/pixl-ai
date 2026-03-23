@@ -464,7 +464,8 @@ class ContractValidator:
                         rule="structured_output_semantics",
                         message=(
                             "validation_summary.cycles_detected does not match computed cycles "
-                            f"(reported={sorted(reported_cycle_set)}, computed={sorted(computed_cycle_set)})"
+                            f"(reported={sorted(reported_cycle_set)}, "
+                            f"computed={sorted(computed_cycle_set)})"
                         ),
                     )
                 )
@@ -479,7 +480,8 @@ class ContractValidator:
                         rule="structured_output_semantics",
                         message=(
                             "validation_summary.orphan_nodes does not match computed orphan nodes "
-                            f"(reported={sorted(reported_orphan_set)}, computed={sorted(computed_orphan_set)})"
+                            f"(reported={sorted(reported_orphan_set)}, "
+                            f"computed={sorted(computed_orphan_set)})"
                         ),
                     )
                 )
@@ -488,7 +490,9 @@ class ContractValidator:
             result.violations.append(
                 ContractViolation(
                     rule="structured_output_semantics",
-                    message=f"Unknown feature references in decomposition graph: {sorted(unknown_refs)}",
+                    message=(
+                        f"Unknown feature references in decomposition graph: {sorted(unknown_refs)}"
+                    ),
                 )
             )
 

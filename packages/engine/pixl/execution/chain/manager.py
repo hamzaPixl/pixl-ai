@@ -56,7 +56,8 @@ class ChainRunnerManager:
             return
 
         rows = db.conn.execute(
-            "SELECT id FROM execution_chains WHERE status IN ('running', 'paused') ORDER BY updated_at DESC",
+            "SELECT id FROM execution_chains"
+            " WHERE status IN ('running', 'paused') ORDER BY updated_at DESC",
         ).fetchall()
         for row in rows:
             chain_id = str(row["id"])

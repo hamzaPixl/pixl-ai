@@ -249,7 +249,8 @@ def _upsert_autonomy_profile(
         conn.execute(
             """
             INSERT INTO autonomy_profiles
-                (feature_id, agent_name, task_key, mode, level, confidence, samples, last_reason, updated_at)
+                (feature_id, agent_name, task_key, mode, level, confidence,
+                 samples, last_reason, updated_at)
             VALUES
                 (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
             ON CONFLICT(feature_id, agent_name, task_key) DO UPDATE SET
@@ -550,7 +551,8 @@ def record_autonomy_outcome(db: Any, session: Any) -> None:
             """
             INSERT INTO autonomy_outcomes
                 (session_id, feature_id, agent_name, task_key, mode, level, confidence, samples,
-                 auto_approved_gates, manual_gate_approvals, gate_rejections, recovery_cycles, human_interventions)
+                 auto_approved_gates, manual_gate_approvals, gate_rejections,
+                 recovery_cycles, human_interventions)
             VALUES
                 (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(session_id) DO UPDATE SET

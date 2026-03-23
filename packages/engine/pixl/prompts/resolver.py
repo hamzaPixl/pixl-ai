@@ -330,9 +330,11 @@ class PromptTemplateResolver:
             outputs_section = f"""
 ## Expected Artifacts
 
-Use `pixl artifact put` to save non-code artifacts (returns SHA256 hash; use `--json` for machine-readable output).
+Use `pixl artifact put` to save non-code artifacts (returns SHA256 hash;
+use `--json` for machine-readable output).
 Use `pixl artifact get` to read artifacts by logical session path.
-Use `pixl artifact get --json` for machine-readable reads (`name`, `session_id`, `sha256`, `content`).
+Use `pixl artifact get --json` for machine-readable reads
+(`name`, `session_id`, `sha256`, `content`).
 Use `pixl artifact list` to list session artifacts and versions.
 Use `pixl artifact search` for full-text search over session artifacts.
 

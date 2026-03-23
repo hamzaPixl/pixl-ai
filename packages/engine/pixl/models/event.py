@@ -673,7 +673,8 @@ class Event(BaseModel):
             duration_seconds: Query execution duration
             num_turns: Number of turns in the conversation
             total_tokens: Total token count (for backward compatibility)
-            usage: Detailed token usage dict with keys: input_tokens, output_tokens, total_tokens, cost_usd
+            usage: Detailed token usage dict with keys: input_tokens, output_tokens,
+                total_tokens, cost_usd
         """
         data: dict[str, Any] = {"duration_seconds": duration_seconds}
         if num_turns is not None:

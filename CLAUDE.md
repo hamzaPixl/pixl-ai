@@ -164,6 +164,7 @@ When the CLI is installed, hooks use `.pixl/pixl.db` (SQLite) as primary storage
 | `make test` | Run all tests |
 | `make test-engine` | Engine tests only |
 | `make test-cli` | CLI tests only |
+| `make test-cov` | Run tests with coverage report |
 | `make check` | Lint + type check |
 | `make typecheck` | Type check only (pyright) |
 | `make format` | Auto-format |

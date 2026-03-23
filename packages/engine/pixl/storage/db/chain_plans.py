@@ -484,7 +484,8 @@ class ChainPlanDB(BaseStore):
         for src, dst in sorted(requested_edges):
             if temp_waves[src] >= temp_waves[dst]:
                 raise ValueError(
-                    f"Dependency-safe ordering violated: node '{src}' must be in an earlier wave than '{dst}'"
+                    f"Dependency-safe ordering violated: node '{src}'"
+                    f" must be in an earlier wave than '{dst}'"
                 )
 
         now = datetime.now().isoformat()

@@ -582,7 +582,7 @@ def execute_with_orchestrator(
                             repair_errors.append(
                                 repair_envelope_error
                                 if repair_envelope_error is not None
-                                else "Expected <pixl_output> envelope but none found in repair output"
+                                else "Expected <pixl_output> envelope but none found in repair"
                             )
                         else:
                             struct_validator = executor._get_contract_validator()
@@ -675,8 +675,8 @@ def execute_with_orchestrator(
 
                 if not is_valid and is_review_stage(node.id, executor.snapshot):
                     logger.warning(
-                        f"Review stage {node.id} has invalid structured output: {validation_error}. "
-                        f"Defaulting to 'request_changes' for safety."
+                        f"Review stage {node.id} has invalid structured output: "
+                        f"{validation_error}. Defaulting to 'request_changes' for safety."
                     )
                     output_dict = get_default_review_output()
 

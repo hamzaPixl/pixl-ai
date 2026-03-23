@@ -29,7 +29,8 @@ class TaskSessionDB(BaseStore):
         with self._db.write() as conn:
             conn.execute(
                 """INSERT INTO task_sessions
-                   (session_id, node_id, task_key, adapter_name, adapter_session_id, last_run_id, updated_at)
+                   (session_id, node_id, task_key, adapter_name,
+                    adapter_session_id, last_run_id, updated_at)
                    VALUES (?, ?, ?, ?, ?, ?, datetime('now'))
                    ON CONFLICT(session_id, task_key) DO UPDATE SET
                        node_id = excluded.node_id,

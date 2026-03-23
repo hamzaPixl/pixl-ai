@@ -19,6 +19,13 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from pixl.execution.autonomy import (  # noqa: F401
+    record_autonomy_outcome,
+    should_auto_approve_waiting_gate,
+)
+from pixl.execution.autonomy import (
+    resolve_latest_agent_task_pair as _resolve_latest_agent_task_pair,
+)
 from pixl.storage.db.connection import PixlDB
 
 _SESSION_TOUCH_INTERVAL_SECONDS = 30
@@ -47,14 +54,6 @@ def _release_execution(session_id: str) -> None:
 
 
 # Autonomy — delegated to pixl.execution.autonomy
-
-from pixl.execution.autonomy import (  # noqa: F401
-    record_autonomy_outcome,
-    should_auto_approve_waiting_gate,
-)
-from pixl.execution.autonomy import (
-    resolve_latest_agent_task_pair as _resolve_latest_agent_task_pair,
-)
 
 
 def _create_state_bridge(project_path: Path, event_callback=None):
@@ -221,7 +220,8 @@ def _run_workflow_inner(
                         session.id, node_id, approver="auto", snapshot=snapshot
                     )
                     logger.info(
-                        "Auto-approved gate %s (mode=%s level=%d reason=%s confidence=%.3f threshold=%.3f samples=%d source=%s)",
+                        "Auto-approved gate %s (mode=%s level=%d reason=%s "
+                        "confidence=%.3f threshold=%.3f samples=%d source=%s)",
                         node_id,
                         decision.get("mode"),
                         int(decision.get("level", 0)),
@@ -233,7 +233,8 @@ def _run_workflow_inner(
                     )
                 else:
                     logger.info(
-                        "Workflow paused at gate %s (mode=%s level=%d reason=%s confidence=%.3f threshold=%.3f samples=%d min_samples=%d source=%s)",
+                        "Workflow paused at gate %s (mode=%s level=%d reason=%s "
+                        "confidence=%.3f threshold=%.3f samples=%d min_samples=%d source=%s)",
                         node_id,
                         decision.get("mode"),
                         int(decision.get("level", 0)),

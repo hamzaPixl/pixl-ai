@@ -404,7 +404,8 @@ class ProjectionStore(BaseStore):
                 e.completed_at,
                 COALESCE(SUM(CASE WHEN f.status = 'backlog'     THEN 1 ELSE 0 END), 0) AS backlog,
                 COALESCE(SUM(CASE WHEN f.status = 'planned'     THEN 1 ELSE 0 END), 0) AS planned,
-                COALESCE(SUM(CASE WHEN f.status = 'in_progress' THEN 1 ELSE 0 END), 0) AS in_progress,
+                COALESCE(SUM(CASE WHEN f.status = 'in_progress' THEN 1 ELSE 0 END), 0)
+                    AS in_progress,
                 COALESCE(SUM(CASE WHEN f.status = 'review'      THEN 1 ELSE 0 END), 0) AS review,
                 COALESCE(SUM(CASE WHEN f.status = 'blocked'     THEN 1 ELSE 0 END), 0) AS blocked,
                 COALESCE(SUM(CASE WHEN f.status = 'done'        THEN 1 ELSE 0 END), 0) AS done,
@@ -448,7 +449,8 @@ class ProjectionStore(BaseStore):
               AND f.status = 'blocked'
               AND f.type != 'execution'
             UNION ALL
-            SELECT f.id, f.title, 'gate_waiting' AS reason_type, ni.node_id AS blocked_reason, f.epic_id
+            SELECT f.id, f.title, 'gate_waiting' AS reason_type,
+                   ni.node_id AS blocked_reason, f.epic_id
             FROM node_instances ni
             JOIN workflow_sessions ws ON ws.id = ni.session_id
             JOIN features f ON f.id = ws.feature_id
@@ -716,7 +718,8 @@ class ProjectionStore(BaseStore):
             """
             SELECT
                 SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) AS completed,
-                SUM(CASE WHEN status IN ('completed', 'failed', 'cancelled') THEN 1 ELSE 0 END) AS terminal
+                SUM(CASE WHEN status IN ('completed', 'failed', 'cancelled') THEN 1 ELSE 0 END)
+                    AS terminal
             FROM execution_chains
             WHERE COALESCE(updated_at, created_at) >= datetime('now', '-30 days')
               AND status IN ('completed', 'failed', 'cancelled')

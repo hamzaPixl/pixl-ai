@@ -118,7 +118,8 @@ class WakeupQueueDB(BaseStore):
         """Count pending requests, optionally filtered by session."""
         if session_id:
             row = self._conn.execute(
-                "SELECT COUNT(*) as cnt FROM wakeup_requests WHERE status = 'pending' AND session_id = ?",
+                "SELECT COUNT(*) as cnt FROM wakeup_requests"
+                " WHERE status = 'pending' AND session_id = ?",
                 (session_id,),
             ).fetchone()
         else:
@@ -131,12 +132,14 @@ class WakeupQueueDB(BaseStore):
         """Check if a session already has a request being processed."""
         if exclude_id is not None:
             row = self._conn.execute(
-                "SELECT COUNT(*) as cnt FROM wakeup_requests WHERE status = 'processing' AND session_id = ? AND id != ?",
+                "SELECT COUNT(*) as cnt FROM wakeup_requests"
+                " WHERE status = 'processing' AND session_id = ? AND id != ?",
                 (session_id, exclude_id),
             ).fetchone()
         else:
             row = self._conn.execute(
-                "SELECT COUNT(*) as cnt FROM wakeup_requests WHERE status = 'processing' AND session_id = ?",
+                "SELECT COUNT(*) as cnt FROM wakeup_requests"
+                " WHERE status = 'processing' AND session_id = ?",
                 (session_id,),
             ).fetchone()
         return (row["cnt"] if row else 0) > 0

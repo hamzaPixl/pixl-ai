@@ -1,4 +1,4 @@
-.PHONY: setup install crew-setup test test-engine test-cli check typecheck format release clean help
+.PHONY: setup install crew-setup test test-engine test-cli test-cov check typecheck format release clean help
 
 # Load .env file if present
 ifneq (,$(wildcard .env))
@@ -25,6 +25,9 @@ test-engine:  ## Engine tests only
 
 test-cli:  ## CLI tests only
 	$(PYTEST) packages/cli/tests/
+
+test-cov:  ## Run tests with coverage
+	$(PYTEST) --cov --cov-report=term-missing
 
 check:  ## Lint + type check
 	uv run ruff check packages/engine/ packages/cli/

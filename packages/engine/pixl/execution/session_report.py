@@ -140,7 +140,8 @@ def save_session_summary(
             "skipped": "⏭️",
         }.get(stage["status"], "❓")
         lines.append(
-            f"| {stage['stage']} | {stage['type']} | {status_icon} {stage['status']} | {stage['duration']} |"
+            f"| {stage['stage']} | {stage['type']} | "
+            f"{status_icon} {stage['status']} | {stage['duration']} |"
         )
     lines.append("")
 

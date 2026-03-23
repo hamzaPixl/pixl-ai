@@ -381,8 +381,8 @@ def materialize_chain_plan_hook(ctx: HookContext) -> HookResult:
         db.conn.execute(
             """
             INSERT INTO execution_chain_nodes
-                (chain_id, node_id, feature_id, feature_ref, wave, parallel_group, owner, risk_class,
-                 estimate_points, metadata_json)
+                (chain_id, node_id, feature_id, feature_ref, wave, parallel_group,
+                 owner, risk_class, estimate_points, metadata_json)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (

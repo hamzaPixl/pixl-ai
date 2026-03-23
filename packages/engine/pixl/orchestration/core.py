@@ -306,7 +306,10 @@ class OrchestratorCore:
         on_interrupt: Callable[[], Any] | None = None,
         on_circuit_breaker: Callable[[], Any] | None = None,
     ) -> tuple[int, str, str | None, bool]:
-        """Process a single streaming message. Returns (api_error_count, result_text, error_message, should_abort)."""
+        """Process a single streaming message.
+
+        Returns (api_error_count, result_text, error_message, should_abort).
+        """
         if isinstance(message, ResultMessage):
             sdk_result_ref[0] = message
             if message.result:

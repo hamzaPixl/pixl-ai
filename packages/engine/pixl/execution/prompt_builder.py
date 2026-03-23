@@ -67,7 +67,8 @@ def build_validation_followup_prompt(
             "```\n"
             "The command prints the SHA256 hash. Use `--json` for machine-readable output.\n\n"
             "If you are using `run_shell_command`, call it like:\n"
-            "```\nrun_shell_command(command=\"pixl artifact put --name plan.md --content '$(cat plan.md)'\")\n```\n\n"
+            "```\nrun_shell_command("
+            "command=\"pixl artifact put --name plan.md --content '$(cat plan.md)'\")\n```\n\n"
             "Do this for EVERY file listed in your `artifacts_written` array.\n\n"
         )
 
@@ -123,7 +124,8 @@ def build_validation_followup_prompt(
         "Validation errors:\n"
         f"{bullets}\n\n"
         f"{schema_guidance}"
-        "You MUST return exactly one `<pixl_output>...</pixl_output>` block with valid JSON inside.\n\n"
+        "You MUST return exactly one `<pixl_output>...</pixl_output>` block "
+        "with valid JSON inside.\n\n"
         "Required format:\n"
         "```\n"
         "<pixl_output>\n"

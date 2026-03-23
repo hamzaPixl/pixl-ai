@@ -214,7 +214,8 @@ class ArtifactDB(BaseStore):
                 size_bytes, mime_type, tags_json, extra_json,
                 version, version_major, version_minor, version_patch,
                 previous_version_id, change_description)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+               """,
             (
                 artifact_id,
                 artifact_type,

@@ -735,7 +735,10 @@ class WorkflowSessionStore:
                 raise StateError(
                     "Session state does not match requested transition",
                     invariant="node_state_mismatch",
-                    details=f"{node_id} expected {to_state}, got {instance.get('state') if instance else None}",
+                    details=(
+                        f"{node_id} expected {to_state},"
+                        f" got {instance.get('state') if instance else None}"
+                    ),
                 )
 
         event = Event.create(

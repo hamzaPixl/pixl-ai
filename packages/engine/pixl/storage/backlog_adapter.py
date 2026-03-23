@@ -82,7 +82,8 @@ def _dict_to_feature(d: dict[str, Any]) -> Feature:
         return Feature(**kwargs)
     except ValidationError as exc:
         logger.warning(
-            "Feature %s failed Pydantic validation on read — using model_construct to preserve data: %s",
+            "Feature %s failed Pydantic validation on read"
+            " — using model_construct to preserve data: %s",
             d.get("id"),
             exc,
         )
@@ -111,7 +112,8 @@ def _dict_to_epic(d: dict[str, Any]) -> Epic:
         return Epic(**kwargs)
     except ValidationError as exc:
         logger.warning(
-            "Epic %s failed Pydantic validation on read — using model_construct to preserve data: %s",
+            "Epic %s failed Pydantic validation on read"
+            " — using model_construct to preserve data: %s",
             d.get("id"),
             exc,
         )
@@ -140,7 +142,8 @@ def _dict_to_roadmap(d: dict[str, Any]) -> Roadmap:
         return Roadmap(**kwargs)
     except ValidationError as exc:
         logger.warning(
-            "Roadmap %s failed Pydantic validation on read — using model_construct to preserve data: %s",
+            "Roadmap %s failed Pydantic validation on read"
+            " — using model_construct to preserve data: %s",
             d.get("id"),
             exc,
         )

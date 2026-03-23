@@ -262,7 +262,8 @@ def version_stage_outputs(
             ):
                 continue
 
-        # Save via upsert_artifact_metadata -> persist_artifact_to_db -> store.persist_artifact_record (upsert)
+        # Save via upsert_artifact_metadata -> persist_artifact_to_db
+        # -> store.persist_artifact_record (upsert)
         upsert_artifact_metadata(
             artifact_name=art_name,
             task_id=node_id,

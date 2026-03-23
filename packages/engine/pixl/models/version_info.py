@@ -93,7 +93,8 @@ class VersionInfo(BaseModel):
 
         v = v.strip()
 
-        # Allow alphanumeric characters (case insensitive) or "unknown", min 4 chars for git short hashes
+        # Allow alphanumeric characters (case insensitive) or "unknown",
+        # min 4 chars for git short hashes
         pattern = r"^[a-fA-F0-9]{4,}$|^[a-zA-Z0-9]{4,}$|^unknown$"
         if not re.match(pattern, v):
             raise ValueError(

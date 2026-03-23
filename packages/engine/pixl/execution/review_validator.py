@@ -143,7 +143,9 @@ def get_default_review_output() -> dict:
     """
     return {
         "status": "ok",
-        "summary": "Review completed (structured output extraction failed - defaulting to request_changes)",
+        "summary": (
+            "Review completed (structured output extraction failed - defaulting to request_changes)"
+        ),
         "payload": {
             "recommendation": "request_changes",
             "issues": [

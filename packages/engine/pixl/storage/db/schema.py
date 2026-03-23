@@ -75,7 +75,8 @@ CREATE TABLE IF NOT EXISTS epics (
     outcome          TEXT NOT NULL DEFAULT '',
     kpis_json        TEXT NOT NULL DEFAULT '[]',
     status           TEXT NOT NULL DEFAULT 'drafting'
-                     CHECK (status IN ('drafting', 'decomposed', 'in_progress', 'completed', 'failed')),
+                     CHECK (status IN ('drafting', 'decomposed', 'in_progress',
+                                       'completed', 'failed')),
     created_at       TEXT NOT NULL DEFAULT (datetime('now')),
     updated_at       TEXT,
     completed_at     TEXT
@@ -94,7 +95,8 @@ CREATE TABLE IF NOT EXISTS features (
     priority        TEXT NOT NULL DEFAULT 'P2'
                     CHECK (priority IN ('P0', 'P1', 'P2', 'P3')),
     status          TEXT NOT NULL DEFAULT 'backlog'
-                    CHECK (status IN ('backlog', 'planned', 'in_progress', 'review', 'blocked', 'done', 'failed')),
+                    CHECK (status IN ('backlog', 'planned', 'in_progress', 'review',
+                                      'blocked', 'done', 'failed')),
 
     -- Timestamps
     created_at      TEXT NOT NULL DEFAULT (datetime('now')),
@@ -335,7 +337,8 @@ CREATE INDEX IF NOT EXISTS idx_artifacts_feature ON artifacts(feature_id);
 CREATE INDEX IF NOT EXISTS idx_artifacts_hash ON artifacts(content_hash);
 CREATE INDEX IF NOT EXISTS idx_artifacts_task ON artifacts(task_id);
 CREATE INDEX IF NOT EXISTS idx_artifacts_epic ON artifacts(epic_id);
-CREATE INDEX IF NOT EXISTS idx_artifacts_version ON artifacts(path, version_major, version_minor, version_patch);
+CREATE INDEX IF NOT EXISTS idx_artifacts_version
+    ON artifacts(path, version_major, version_minor, version_patch);
 CREATE INDEX IF NOT EXISTS idx_artifacts_previous_version ON artifacts(previous_version_id);
 
 CREATE TABLE IF NOT EXISTS artifact_chunks (
@@ -646,7 +649,8 @@ CREATE TABLE IF NOT EXISTS execution_chain_nodes (
     risk_class       TEXT CHECK (risk_class IN ('low', 'medium', 'high', 'critical')),
     estimate_points  INTEGER,
     status           TEXT NOT NULL DEFAULT 'pending'
-                     CHECK (status IN ('pending', 'running', 'completed', 'failed', 'blocked', 'cancelled')),
+                     CHECK (status IN ('pending', 'running', 'completed', 'failed',
+                                       'blocked', 'cancelled')),
     session_id       TEXT,
     attempt_count    INTEGER NOT NULL DEFAULT 0,
     started_at       TEXT,
@@ -658,7 +662,8 @@ CREATE TABLE IF NOT EXISTS execution_chain_nodes (
 CREATE INDEX IF NOT EXISTS idx_execution_chain_nodes_chain ON execution_chain_nodes(chain_id);
 CREATE INDEX IF NOT EXISTS idx_execution_chain_nodes_wave ON execution_chain_nodes(chain_id, wave);
 CREATE INDEX IF NOT EXISTS idx_execution_chain_nodes_feature ON execution_chain_nodes(feature_id);
-CREATE INDEX IF NOT EXISTS idx_execution_chain_nodes_status ON execution_chain_nodes(chain_id, status);
+CREATE INDEX IF NOT EXISTS idx_execution_chain_nodes_status
+    ON execution_chain_nodes(chain_id, status);
 CREATE INDEX IF NOT EXISTS idx_execution_chain_nodes_session ON execution_chain_nodes(session_id);
 
 CREATE TABLE IF NOT EXISTS execution_chain_edges (
@@ -773,7 +778,8 @@ CREATE TABLE IF NOT EXISTS heartbeat_runs (
     id              TEXT PRIMARY KEY,
     session_id      TEXT NOT NULL REFERENCES workflow_sessions(id) ON DELETE CASCADE,
     status          TEXT NOT NULL DEFAULT 'queued'
-                    CHECK (status IN ('queued','running','succeeded','failed','cancelled','timed_out')),
+                    CHECK (status IN ('queued','running','succeeded','failed',
+                                      'cancelled','timed_out')),
     invocation      TEXT NOT NULL DEFAULT 'start'
                     CHECK (invocation IN ('start','resume','retry','gate_approved','chain')),
     started_at      TEXT,
@@ -800,7 +806,8 @@ CREATE TABLE IF NOT EXISTS wakeup_requests (
     session_id      TEXT NOT NULL REFERENCES workflow_sessions(id) ON DELETE CASCADE,
     reason          TEXT NOT NULL,
     status          TEXT NOT NULL DEFAULT 'pending'
-                    CHECK (status IN ('pending','processing','completed','coalesced','failed','deferred')),
+                    CHECK (status IN ('pending','processing','completed','coalesced',
+                                      'failed','deferred')),
     coalesced_count INTEGER DEFAULT 0,
     payload_json    TEXT,
     created_at      TEXT NOT NULL DEFAULT (datetime('now')),

@@ -61,7 +61,8 @@ class SessionReportDB(BaseStore):
             job = self._row_to_dict(row)
             conn.execute(
                 """UPDATE session_report_jobs
-                   SET status = 'running', started_at = datetime('now'), updated_at = datetime('now')
+                   SET status = 'running', started_at = datetime('now'),
+                       updated_at = datetime('now')
                    WHERE id = ?""",
                 (job["id"],),
             )
@@ -105,7 +106,8 @@ class SessionReportDB(BaseStore):
             conditions.append("trigger = ?")
             params.append(trigger)
         row = self._conn.execute(
-            f"SELECT * FROM session_report_jobs WHERE {' AND '.join(conditions)} ORDER BY created_at DESC LIMIT 1",
+            f"SELECT * FROM session_report_jobs WHERE {' AND '.join(conditions)}"
+            " ORDER BY created_at DESC LIMIT 1",
             params,
         ).fetchone()
         return self._row_to_dict(row) if row else None
@@ -114,7 +116,8 @@ class SessionReportDB(BaseStore):
         with self._db.write() as conn:
             cursor = conn.execute(
                 """UPDATE session_report_jobs
-                   SET status = 'completed', artifact_id = ?, completed_at = datetime('now'), updated_at = datetime('now')
+                   SET status = 'completed', artifact_id = ?,
+                       completed_at = datetime('now'), updated_at = datetime('now')
                    WHERE id = ? AND status = 'running'""",
                 (artifact_id, job_id),
             )
@@ -124,7 +127,8 @@ class SessionReportDB(BaseStore):
         with self._db.write() as conn:
             cursor = conn.execute(
                 """UPDATE session_report_jobs
-                   SET status = 'failed', error_message = ?, completed_at = datetime('now'), updated_at = datetime('now')
+                   SET status = 'failed', error_message = ?,
+                       completed_at = datetime('now'), updated_at = datetime('now')
                    WHERE id = ? AND status = 'running'""",
                 (error_message, job_id),
             )
@@ -134,7 +138,8 @@ class SessionReportDB(BaseStore):
         with self._db.write() as conn:
             cursor = conn.execute(
                 """UPDATE session_report_jobs
-                   SET status = 'queued', started_at = NULL, retry_count = retry_count + 1, updated_at = datetime('now')
+                   SET status = 'queued', started_at = NULL,
+                       retry_count = retry_count + 1, updated_at = datetime('now')
                    WHERE id = ?""",
                 (job_id,),
             )
@@ -144,7 +149,8 @@ class SessionReportDB(BaseStore):
         with self._db.write() as conn:
             cursor = conn.execute(
                 """UPDATE session_report_jobs
-                   SET status = 'queued', started_at = NULL, retry_count = retry_count + 1, updated_at = datetime('now')
+                   SET status = 'queued', started_at = NULL,
+                       retry_count = retry_count + 1, updated_at = datetime('now')
                    WHERE status = 'running'
                      AND started_at IS NOT NULL
                      AND (julianday('now') - julianday(started_at)) * 86400 > ?""",

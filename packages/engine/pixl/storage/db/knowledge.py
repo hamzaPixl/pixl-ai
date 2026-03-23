@@ -188,7 +188,8 @@ class KnowledgeDB(BaseStore):
     def list_chunks(self) -> list[dict[str, Any]]:
         """List all chunks in the knowledge store."""
         rows = self._conn.execute(
-            "SELECT id, title, content, source, chunk_type, keywords, line_start, line_end FROM chunks"
+            "SELECT id, title, content, source, chunk_type, keywords,"
+            " line_start, line_end FROM chunks"
         ).fetchall()
         return [
             {
@@ -328,7 +329,8 @@ class KnowledgeDB(BaseStore):
     ) -> None:
         """Update the build manifest (singleton)."""
         self._conn.execute(
-            """INSERT INTO knowledge_manifest (id, last_build, chunk_count, source_count, build_duration_ms)
+            """INSERT INTO knowledge_manifest
+               (id, last_build, chunk_count, source_count, build_duration_ms)
                VALUES (1, datetime('now'), ?, ?, ?)
                ON CONFLICT(id) DO UPDATE SET
                  last_build = datetime('now'),

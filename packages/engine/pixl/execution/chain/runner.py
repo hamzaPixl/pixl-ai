@@ -387,7 +387,8 @@ def run_chain_loop(
 
         nodes = store.get_execution_nodes(chain_id)
 
-        # 3b) stop_on_failure: once any node fails, cancel remaining pending work and stop scheduling.
+        # 3b) stop_on_failure: once any node fails, cancel remaining pending work
+        # and stop scheduling.
         if bool(chain.get("stop_on_failure")) and any(
             str(n.get("status")) == "failed" for n in nodes
         ):

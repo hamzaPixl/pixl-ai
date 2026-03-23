@@ -286,7 +286,8 @@ class BacklogDB(BaseStore):
 
         self._conn.execute(
             """INSERT INTO epics
-               (id, roadmap_id, milestone_id, title, original_prompt, workflow_id, outcome, kpis_json, status, created_at)
+               (id, roadmap_id, milestone_id, title, original_prompt,
+                workflow_id, outcome, kpis_json, status, created_at)
                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (
                 epic_id,
@@ -431,7 +432,8 @@ class BacklogDB(BaseStore):
 
         self._conn.execute(
             """INSERT INTO features
-               (id, epic_id, roadmap_id, title, description, type, priority, status, created_at, acceptance_criteria_json)
+               (id, epic_id, roadmap_id, title, description, type,
+                priority, status, created_at, acceptance_criteria_json)
                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (
                 feature_id,

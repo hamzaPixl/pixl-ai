@@ -172,7 +172,8 @@ class InteractiveGateHandler:
         policy = gate_config.timeout_policy.value
         self.console._console.print()
         self.console.warn(
-            f"⏱ Gate '{gate_config.name}' has timed out after {elapsed.total_seconds() / 60:.1f} minutes"
+            f"⏱ Gate '{gate_config.name}' has timed out after "
+            f"{elapsed.total_seconds() / 60:.1f} minutes"
         )
 
         if policy == "reject":
@@ -242,9 +243,10 @@ class InteractiveGateHandler:
                 # Ideally we'd use a store.glob() method if available, but list+filter works for now
                 try:
                     # Access underlying DB interface for listing if not exposed on store directly
-                    # Or assume store.list_artifacts returns paths/names? No, store.list_artifacts returns paths.
-                    # But store is WorkflowSessionStore. list_artifacts(session_id) returns list[Path].
-                    # Let's use the DB interface if possible for efficiency, or store.list_artifacts.
+                    # Or assume store.list_artifacts returns paths/names? No,
+                    # store.list_artifacts returns paths.
+                    # But store is WorkflowSessionStore. list_artifacts(session_id) returns
+                    # list[Path]. Use the DB interface if possible, or store.list_artifacts.
                     # store.list_artifacts uses DB list.
                     self.store.list_artifacts(session_id)
                     # The artifact list logic returns resolved paths (e.g. /abs/path/to/art).

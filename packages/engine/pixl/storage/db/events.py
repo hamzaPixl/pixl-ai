@@ -117,7 +117,8 @@ class EventDB(BaseStore):
             if self._event_batch_buffer:
                 conn.executemany(
                     """INSERT INTO events
-                       (event_type, session_id, node_id, entity_type, entity_id, payload_json, created_at)
+                       (event_type, session_id, node_id,
+                        entity_type, entity_id, payload_json, created_at)
                        VALUES (?, ?, ?, ?, ?, ?, COALESCE(?, CURRENT_TIMESTAMP))""",
                     self._event_batch_buffer,
                 )
@@ -357,7 +358,8 @@ class EventDB(BaseStore):
             if created_at:
                 cursor = conn.execute(
                     """INSERT INTO events
-                       (event_type, session_id, node_id, entity_type, entity_id, payload_json, created_at)
+                       (event_type, session_id, node_id,
+                        entity_type, entity_id, payload_json, created_at)
                        VALUES (?, ?, ?, ?, ?, ?, ?)""",
                     (
                         event_type,

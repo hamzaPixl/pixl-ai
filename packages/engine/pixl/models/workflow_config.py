@@ -234,19 +234,28 @@ class StageContract(BaseModel):
     )
     detect_stubs: bool = Field(
         default=False,
-        description="Scan output files for stub/placeholder patterns (TODO, NotImplementedError, etc.)",
+        description=(
+            "Scan output files for stub/placeholder patterns (TODO, NotImplementedError, etc.)"
+        ),
     )
     require_regression_test: bool = Field(
         default=False,
-        description="Require at least one test file in must_write or must_update_files (for bug-fix loops)",
+        description=(
+            "Require at least one test file in must_write or must_update_files (for bug-fix loops)"
+        ),
     )
     context_budget_pct: int | None = Field(
         default=None,
-        description="Max percentage of context window plan output should target (e.g., 50). Warning emitted if exceeded.",
+        description=(
+            "Max percentage of context window plan output should target (e.g., 50)."
+            " Warning emitted if exceeded."
+        ),
     )
     verify_success_criteria: bool = Field(
         default=False,
-        description="Run goal-backward verification against feature success_criteria after stage completion",
+        description=(
+            "Run goal-backward verification against feature success_criteria after stage completion"
+        ),
     )
     structured_output: bool = Field(
         default=False,
