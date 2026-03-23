@@ -62,6 +62,30 @@ def session_get(ctx: click.Context, session_id: str) -> None:
     emit_detail(result, is_json=cli.is_json)
 
 
+@session.command("cancel")
+@click.argument("session_id")
+@click.pass_context
+def session_cancel(ctx: click.Context, session_id: str) -> None:
+    """Cancel a workflow session."""
+    cli = get_ctx(ctx)
+    result = cli.db.sessions.get_session(session_id)
+
+    if result is None:
+        emit_error(f"Session not found: {session_id}", is_json=cli.is_json)
+        raise SystemExit(1)
+
+    updated = cli.db.sessions.update_session(session_id, status="cancelled")
+
+    if not updated:
+        emit_error(f"Failed to cancel session: {session_id}", is_json=cli.is_json)
+        raise SystemExit(1)
+
+    if cli.is_json:
+        emit_json({"id": session_id, "status": "cancelled"})
+    else:
+        emit_detail({"id": session_id, "status": "cancelled"}, is_json=False)
+
+
 @session.command("create")
 @click.option("--feature-id", required=True, help="Feature ID to execute.")
 @click.option("--workflow-id", default=None, help="Workflow ID (uses default if not specified).")
