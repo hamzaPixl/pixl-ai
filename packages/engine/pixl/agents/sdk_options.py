@@ -4,18 +4,48 @@ This module provides a centralized way to build ClaudeAgentOptions with:
 - Resume capability for failed sessions
 """
 
+import os
 from collections.abc import Callable
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
-
-if TYPE_CHECKING:
-    from typing import Literal
 
 from claude_agent_sdk import AgentDefinition, ClaudeAgentOptions, HookCallback, HookMatcher
 from claude_agent_sdk import types as sdk_types
 from claude_agent_sdk.types import HookContext, HookJSONOutput
 
 from pixl.agents.constants import DEFAULT_TOOLS
+
+if TYPE_CHECKING:
+    from typing import Literal
+
+
+def _resolve_crew_plugin_path() -> str | None:
+    """Resolve crew plugin path for programmatic loading.
+
+    Resolution chain (mirrors pixl_cli.crew.get_crew_root):
+    1. PIXL_CREW_ROOT env var
+    2. Monorepo: packages/crew/ (sibling of packages/engine/)
+    3. Bundled: _crew/ inside this package
+    """
+    # 1. Env override
+    env_root = os.environ.get("PIXL_CREW_ROOT")
+    if env_root and Path(env_root).is_dir():
+        plugin_json = Path(env_root) / ".claude-plugin" / "plugin.json"
+        if plugin_json.is_file():
+            return env_root
+
+    # 2. Monorepo layout: this file is packages/engine/pixl/agents/sdk_options.py
+    engine_pkg = Path(__file__).resolve().parent.parent.parent  # packages/engine/
+    crew_dir = engine_pkg.parent / "crew"
+    if (crew_dir / ".claude-plugin" / "plugin.json").is_file():
+        return str(crew_dir)
+
+    # 3. Bundled in wheel
+    bundled = Path(__file__).resolve().parent.parent / "_crew"
+    if (bundled / ".claude-plugin" / "plugin.json").is_file():
+        return str(bundled)
+
+    return None
 
 # Optional hooks subsystem — gracefully degrade if not yet extracted.
 try:
@@ -119,6 +149,7 @@ def build_sdk_options(
     continue_conversation: bool = False,
     enable_safety_hooks: bool = True,
     on_tool_call: Callable[[str, dict[str, Any]], None] | None = None,
+    on_post_tool_call: Callable[[str, dict[str, Any]], None] | None = None,
     system_prompt: str | None = None,
     max_budget_usd: float | None = None,
     fallback_model: str | None = None,
@@ -126,6 +157,13 @@ def build_sdk_options(
     fork_session: bool = False,
     thinking: "str | dict[str, Any] | ThinkingConfig | None" = None,
     effort: "Literal['low', 'medium', 'high', 'max'] | None" = None,
+    load_crew_plugin: bool = True,
+    agent_registry: Any = None,
+    crew_hook_profile: str = "standard",
+    enable_todo_tracking: bool = False,
+    todo_emit_event: Callable[..., Any] | None = None,
+    todo_session_id: str | None = None,
+    todo_node_id: str | None = None,
 ) -> ClaudeAgentOptions:
     """Build ClaudeAgentOptions for plugin-delegated sessions."""
     # Default to DEFAULT_TOOLS if not specified
@@ -158,6 +196,55 @@ def build_sdk_options(
         else:
             hooks["PreToolUse"] = [HookMatcher(matcher=None, hooks=additional_pre_hooks)]
 
+    # PostToolUse callback (e.g., TodoWrite bridge)
+    additional_post_hooks: list[HookCallback] = []
+    if on_post_tool_call:
+        additional_post_hooks.append(_create_tool_callback_hook(on_post_tool_call))
+
+    # Wire TodoWrite bridge automatically when event emitter is provided (GAP-05)
+    if enable_todo_tracking and todo_emit_event is not None:
+        from pixl.agents.hooks.todo_bridge import create_todo_tracking_callback
+
+        todo_callback = create_todo_tracking_callback(
+            emit_event=todo_emit_event,
+            session_id=todo_session_id,
+            node_id=todo_node_id,
+        )
+        additional_post_hooks.append(_create_tool_callback_hook(todo_callback))
+
+    if additional_post_hooks:
+        if "PostToolUse" in hooks:
+            existing_post = hooks["PostToolUse"][0].hooks
+            hooks["PostToolUse"] = [
+                HookMatcher(matcher=None, hooks=list(existing_post) + additional_post_hooks)
+            ]
+        else:
+            hooks["PostToolUse"] = [HookMatcher(matcher=None, hooks=additional_post_hooks)]
+
+    # Resolve crew path once for both hooks and plugin loading
+    crew_path = _resolve_crew_plugin_path() if load_crew_plugin else None
+
+    # Bridge crew shell hooks to SDK callbacks (GAP-03)
+    if crew_path:
+        try:
+            from pixl.agents.hooks.crew_bridge import load_crew_hooks
+
+            crew_hooks = load_crew_hooks(Path(crew_path), profile=crew_hook_profile)
+            for event_name, matchers in crew_hooks.items():
+                existing = hooks.get(event_name, [])
+                hooks[event_name] = existing + matchers
+        except Exception:
+            pass  # Graceful degradation — crew hooks are optional
+
+    # Resolve agents from registry if not explicitly provided (GAP-02)
+    if agents is None and agent_registry is not None:
+        agents = agent_registry.get_all_definitions()
+
+    # Resolve crew plugin for programmatic loading (GAP-01)
+    plugins: list[dict[str, str]] | None = None
+    if crew_path:
+        plugins = [{"type": "local", "path": crew_path}]
+
     options = ClaudeAgentOptions(
         allowed_tools=allowed_tools,
         permission_mode="bypassPermissions",
@@ -166,6 +253,7 @@ def build_sdk_options(
         hooks=hooks if hooks else None,
         setting_sources=["user", "project"],
         agents=agents,
+        plugins=plugins,
         extra_args={"debug-to-stderr": None},
     )
 

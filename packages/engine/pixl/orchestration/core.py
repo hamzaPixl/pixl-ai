@@ -17,7 +17,8 @@ from claude_agent_sdk import (
     query,
 )
 
-from pixl.agents.sdk_options import ThinkingConfig, build_sdk_options
+from pixl.agents.registry import AgentRegistry
+from pixl.agents.sdk_options import ThinkingConfig, _resolve_crew_plugin_path, build_sdk_options
 from pixl.config.providers import load_providers_config
 from pixl.models.event import Event, EventType
 from pixl.models.feature import Feature
@@ -103,6 +104,12 @@ class OrchestratorCore:
 
         # Interrupt signal
         self._interrupt_event = threading.Event()
+
+        # Agent registry — parse crew agents for SDK delegation (GAP-02)
+        self.agent_registry = AgentRegistry()
+        crew_path = _resolve_crew_plugin_path()
+        if crew_path:
+            self.agent_registry.load_from_crew(Path(crew_path))
 
     async def _get_or_create_client(
         self,
@@ -248,12 +255,21 @@ class OrchestratorCore:
         fork_session: bool = False,
         thinking: "str | dict[str, Any] | ThinkingConfig | None" = None,
         effort: "Literal['low', 'medium', 'high', 'max'] | None" = None,
+        agent_name: str | None = None,
     ) -> ClaudeAgentOptions:
         """Build ClaudeAgentOptions with resolved model."""
         resolved_model = self._resolve_model(model)
 
+        # Resolve per-agent tool restrictions from registry (GAP-06)
+        allowed_tools = None
+        if agent_name and self.agent_registry:
+            agent_def = self.agent_registry.get_agent_definition(agent_name)
+            if agent_def and agent_def.tools:
+                allowed_tools = list(agent_def.tools)
+
         return build_sdk_options(
             project_path=self.project_path,
+            allowed_tools=allowed_tools,
             extra_tools=extra_tools,
             agents=agents,
             max_turns=max_turns,
@@ -269,6 +285,7 @@ class OrchestratorCore:
             fork_session=fork_session,
             thinking=thinking,
             effort=effort,
+            agent_registry=self.agent_registry,
         )
 
     def get_feature(self, feature_id: str) -> Feature | None:
@@ -430,6 +447,7 @@ class OrchestratorCore:
             "model": model,
             "max_turns": max_turns,
             "cwd": cwd,
+            "agent_name": agent_name,
         }
         if resume_session_id:
             options_kwargs["resume_session_id"] = resume_session_id
