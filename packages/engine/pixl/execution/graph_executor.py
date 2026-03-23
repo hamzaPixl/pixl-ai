@@ -1522,7 +1522,7 @@ class GraphExecutor:
                     invariant="model_resolution",
                     details=str(exc),
                     cause=exc,
-                    metadata={"node_id": node_id, "model": model},
+                    metadata={"node_id": node_id, "model": model},  # type: ignore[reportPossiblyUnbound]
                 ),
                 node_id=node_id,
             )

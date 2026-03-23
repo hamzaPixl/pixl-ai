@@ -190,6 +190,7 @@ class StateAwareRouter:
                 ctx.in_progress_count += 1
 
         # Scan epics
+        backlog = None
         try:
             backlog = store.load()
             epics = backlog.epics
@@ -212,7 +213,7 @@ class StateAwareRouter:
 
         # Scan roadmaps
         try:
-            roadmaps = backlog.roadmaps
+            roadmaps = backlog.roadmaps if backlog else []
         except Exception:
             roadmaps = []
 

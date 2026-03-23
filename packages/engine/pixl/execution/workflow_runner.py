@@ -502,8 +502,8 @@ def _run_workflow_inner(
         except Exception:
             logger.exception("Failed to emit error event for session %s", session_id)
         # Auto-push on crash to preserve work
-        wt_path = Path(session.workspace_root) if session.workspace_root else None
-        _auto_push_if_enabled(wt_path, feature_id)
+        wt_path = Path(session.workspace_root) if session.workspace_root else None  # type: ignore[reportPossiblyUnbound]
+        _auto_push_if_enabled(wt_path, feature_id)  # type: ignore[reportPossiblyUnbound]
     finally:
         try:
             from pixl.execution.workflow_runner_manager import WorkflowRunnerManager

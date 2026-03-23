@@ -1,4 +1,4 @@
-.PHONY: setup install crew-setup test test-engine test-cli test-cov check typecheck format release clean help
+.PHONY: setup install crew-setup test test-engine test-cli test-cov check typecheck format release clean pre-commit help
 
 # Load .env file if present
 ifneq (,$(wildcard .env))
@@ -47,6 +47,9 @@ release:  ## Bump version, tag, push
 
 clean:
 	find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
+
+pre-commit:  ## Install pre-commit hooks
+	uv run pre-commit install
 
 help:  ## Show targets
 	@grep -E '^[a-zA-Z_-]+:.*?## ' Makefile | awk 'BEGIN {FS=":.*?## "};{printf "  %-18s %s\n",$$1,$$2}'

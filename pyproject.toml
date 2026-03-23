@@ -8,7 +8,7 @@ license = "MIT"
 dependencies = ["pixl-engine", "pixl-cli"]
 
 [project.optional-dependencies]
-dev = ["pytest>=8.0", "pytest-asyncio>=0.24", "ruff>=0.9", "pyright>=1.1", "pytest-cov>=5.0"]
+dev = ["pytest>=8.0", "pytest-asyncio>=0.24", "ruff>=0.9", "pyright>=1.1", "pytest-cov>=5.0", "pre-commit>=4.0"]
 
 [tool.uv]
 package = false
@@ -32,12 +32,15 @@ markers = [
 
 [tool.pyright]
 pythonVersion = "3.12"
-typeCheckingMode = "basic"
+typeCheckingMode = "standard"
 include = ["packages/engine/pixl", "packages/cli/pixl_cli"]
 reportMissingTypeStubs = false
 reportMissingImports = "warning"
-reportOptionalMemberAccess = false
-reportAttributeAccessIssue = false
+# Suppressed until protocol refactoring (dynamic SQLite/SDK patterns)
+reportOptionalMemberAccess = "warning"
+reportAttributeAccessIssue = "warning"
+reportIncompatibleVariableOverride = false
+reportIncompatibleMethodOverride = false
 
 [tool.coverage.run]
 source = ["packages/engine/pixl", "packages/cli/pixl_cli"]
