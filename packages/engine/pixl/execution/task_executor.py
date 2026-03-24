@@ -78,7 +78,6 @@ def execute_with_orchestrator(
     Returns:
         Execution result
     """
-    assert executor.orchestrator is not None, "orchestrator required for SDK execution"
     from pixl.output import console, is_json_mode
 
     events: list[Event] = []
@@ -359,55 +358,9 @@ def execute_with_orchestrator(
 
             # Structured output validation (deterministic)
             if expects_structured:
-                from pixl.execution.envelope import extract_envelope
-
-                # Prefer SDK native structured_output (already validated by schema)
-                stage_output = None
-                envelope_error = None
-                sdk_structured = metadata.get("structured_output")
-                if sdk_structured is not None:
-                    try:
-                        from pixl.models.stage_output import StageOutput as _StageOutput
-
-                        if isinstance(sdk_structured, dict):
-                            stage_output = _StageOutput.model_validate(sdk_structured)
-                        elif isinstance(sdk_structured, str):
-                            import json as _json
-
-                            stage_output = _StageOutput.model_validate(_json.loads(sdk_structured))
-                    except Exception as so_err:
-                        logger.debug(
-                            "SDK structured_output parse failed, falling back to envelope: %s",
-                            so_err,
-                        )
-
-                # Fall back to envelope extraction
-                if stage_output is None:
-                    stage_output, envelope_error = extract_envelope(result_text)
-
-                # Third fallback: artifact-based stage output (Gemini CLI path)
-                if stage_output is None:
-                    _so_artifact_name = f"_stage_output/{node.id}.json"
-                    try:
-                        _so_raw = executor.store.load_artifact(
-                            executor.session.id,
-                            _so_artifact_name,
-                        )
-                        if _so_raw:
-                            import json as _json_so
-
-                            from pixl.models.stage_output import StageOutput as _StageOutput2
-
-                            stage_output = _StageOutput2.model_validate(_json_so.loads(_so_raw))
-                            logger.info(
-                                "stage_output.from_artifact",
-                                extra={"node_id": node.id, "artifact": _so_artifact_name},
-                            )
-                    except Exception as so_art_err:
-                        logger.debug(
-                            "Artifact-based stage output load failed: %s",
-                            so_art_err,
-                        )
+                stage_output, envelope_error = _extract_stage_output(
+                    result_text, metadata, executor, node
+                )
                 if stage_output is None:
                     validation_kind = (
                         "structured_output_invalid"
@@ -914,6 +867,152 @@ def _provider_writable_dirs(executor: GraphExecutor) -> list[str]:
         seen.add(value)
         resolved_dirs.append(value)
     return resolved_dirs
+
+
+def _extract_stage_output(
+    result_text: str,
+    metadata: dict[str, Any],
+    executor: GraphExecutor,
+    node: Node,
+) -> tuple[Any, str | None]:
+    """Extract StageOutput from query result using three fallback paths.
+
+    1. SDK native structured output (already validated by schema)
+    2. Envelope extraction from result text
+    3. Artifact-based extraction (Gemini CLI path)
+
+    Returns:
+        Tuple of (StageOutput | None, envelope_error | None).
+    """
+    import json as _json
+
+    from pixl.execution.envelope import extract_envelope
+    from pixl.models.stage_output import StageOutput
+
+    stage_output = None
+    envelope_error: str | None = None
+
+    # Path 1: SDK native structured_output
+    sdk_structured = metadata.get("structured_output")
+    if sdk_structured is not None:
+        try:
+            if isinstance(sdk_structured, dict):
+                stage_output = StageOutput.model_validate(sdk_structured)
+            elif isinstance(sdk_structured, str):
+                stage_output = StageOutput.model_validate(_json.loads(sdk_structured))
+        except Exception as so_err:
+            logger.debug(
+                "SDK structured_output parse failed, falling back to envelope: %s",
+                so_err,
+            )
+
+    # Path 2: Envelope extraction
+    if stage_output is None:
+        stage_output, envelope_error = extract_envelope(result_text)
+
+    # Path 3: Artifact-based stage output (Gemini CLI path)
+    if stage_output is None:
+        _so_artifact_name = f"_stage_output/{node.id}.json"
+        try:
+            _so_raw = executor.store.load_artifact(
+                executor.session.id,
+                _so_artifact_name,
+            )
+            if _so_raw:
+                stage_output = StageOutput.model_validate(_json.loads(_so_raw))
+                logger.info(
+                    "stage_output.from_artifact",
+                    extra={"node_id": node.id, "artifact": _so_artifact_name},
+                )
+        except Exception as so_art_err:
+            logger.debug(
+                "Artifact-based stage output load failed: %s",
+                so_art_err,
+            )
+
+    return stage_output, envelope_error
+
+
+def _run_validation_pass(
+    executor: GraphExecutor,
+    node: Node,
+    stage_output: Any,
+    output_schema_path: str | None,
+    required_artifact_paths: list[str],
+) -> tuple[list[str], str | None, Any, list[str]]:
+    """Run structured output and contract validation on a stage output.
+
+    Performs schema validation on the StageOutput and post-execution
+    contract validation. Used by both initial validation and repair
+    validation paths.
+
+    Returns:
+        Tuple of (errors, validation_kind, contract_result, warnings).
+    """
+    errors: list[str] = []
+    kind: str | None = None
+    warnings: list[str] = []
+
+    # Structured output schema validation
+    if stage_output is not None:
+        struct_validator = executor._get_contract_validator()
+        struct_result = struct_validator.validate_structured_output(
+            stage_output,
+            output_schema_path,
+            required_artifacts=required_artifact_paths,
+        )
+        if struct_result.warning_messages:
+            warnings.extend(struct_result.warning_messages)
+        if not struct_result.passed:
+            kind = "schema_mismatch"
+            errors.extend(struct_result.violation_messages)
+
+    # Post-execution contract validation
+    contract_result = executor._validate_contract(node.id)
+    if contract_result and not contract_result.passed:
+        kind = kind or "contract_violation"
+        errors.extend(contract_result.violation_messages)
+
+    return errors, kind, contract_result, warnings
+
+
+def _build_execution_result(
+    *,
+    events: list[Event],
+    result_text: str,
+    metadata: dict[str, Any],
+    final_payload: dict[str, Any],
+    budget_ok: bool,
+    has_db: bool,
+) -> dict[str, Any]:
+    """Build the success execution result dictionary.
+
+    Assembles the final result dict from the validated execution state,
+    including optional trace and budget metadata.
+
+    Returns:
+        Execution result dictionary.
+    """
+    result: dict[str, Any] = {
+        "success": True,
+        "state": NodeState.TASK_COMPLETED,
+        "result_state": "success",
+        "events": events,
+        "result_text": result_text,
+        "duration_seconds": metadata.get("duration_seconds"),
+        "final_event_type": EventType.TASK_COMPLETED,
+        "final_event_payload": final_payload,
+    }
+    # Phase 4A: Signal budget exceeded to caller
+    if has_db and not budget_ok:
+        result["budget_exceeded"] = True
+    if metadata.get("trace_text"):
+        result["trace_text"] = metadata["trace_text"]
+    if metadata.get("trace_chunks"):
+        result["trace_chunks"] = metadata["trace_chunks"]
+    if metadata.get("trace_truncated"):
+        result["trace_truncated"] = True
+    return result
 
 
 def _tail_excerpt(text: str, limit: int = RAW_OUTPUT_EXCERPT_CHARS) -> str:

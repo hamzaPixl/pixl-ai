@@ -14,6 +14,7 @@ import type {
   GitConfigRequest,
   SessionImportRequest,
 } from "./types.js";
+import { validateSessionImportBundle } from "./types.js";
 import {
   buildEnvVars,
   shellEscape,
@@ -495,14 +496,15 @@ app.post("/sandboxes/:id/workflow/stream", async (c) => {
 
   const rawStream = await sb.execStream(args.join(" "));
 
-  // Wrap raw SSE in structured events (GAP-07 Phase 1)
+  // Wrap raw SSE in structured events (GAP-07 Phase 1) with monotonic IDs for dedup
   const encoder = new TextEncoder();
   const decoder = new TextDecoder();
   let lineBuffer = "";
+  let eventCounter = 0;
   const structuredStream = new TransformStream<Uint8Array, Uint8Array>({
     start(controller) {
       const startEvent = JSON.stringify({ type: "status", payload: { status: "started" } });
-      controller.enqueue(encoder.encode(`data: ${startEvent}\n\n`));
+      controller.enqueue(encoder.encode(`id: ${eventCounter++}\ndata: ${startEvent}\n\n`));
     },
     transform(chunk, controller) {
       lineBuffer += decoder.decode(chunk, { stream: true });
@@ -515,10 +517,10 @@ app.post("/sandboxes/:id/workflow/stream", async (c) => {
         try {
           const parsed = JSON.parse(raw);
           const event = JSON.stringify({ type: "event", payload: parsed });
-          controller.enqueue(encoder.encode(`data: ${event}\n\n`));
+          controller.enqueue(encoder.encode(`id: ${eventCounter++}\ndata: ${event}\n\n`));
         } catch {
           const event = JSON.stringify({ type: "stdout", payload: { line: raw } });
-          controller.enqueue(encoder.encode(`data: ${event}\n\n`));
+          controller.enqueue(encoder.encode(`id: ${eventCounter++}\ndata: ${event}\n\n`));
         }
       }
     },
@@ -526,10 +528,10 @@ app.post("/sandboxes/:id/workflow/stream", async (c) => {
       // Flush remaining buffer content
       if (lineBuffer.trim()) {
         const event = JSON.stringify({ type: "stdout", payload: { line: lineBuffer } });
-        controller.enqueue(encoder.encode(`data: ${event}\n\n`));
+        controller.enqueue(encoder.encode(`id: ${eventCounter++}\ndata: ${event}\n\n`));
       }
       const endEvent = JSON.stringify({ type: "status", payload: { status: "complete" } });
-      controller.enqueue(encoder.encode(`data: ${endEvent}\n\n`));
+      controller.enqueue(encoder.encode(`id: ${eventCounter++}\ndata: ${endEvent}\n\n`));
     },
   });
 
@@ -683,11 +685,29 @@ app.post("/sandboxes/:id/sessions/import", async (c) => {
   }
   const sandboxId = c.req.param("id");
   const sb = getSandbox(c.env.Sandbox, sandboxId);
-  const body = await c.req.json<SessionImportRequest>();
 
-  if (!body.session || !body.session.id) {
-    return c.json({ error: "session with id is required in bundle" }, 400);
+  let body: SessionImportRequest;
+  try {
+    body = await c.req.json<SessionImportRequest>();
+  } catch {
+    return c.json({
+      error: { code: "INVALID_JSON", message: "Request body must be valid JSON" },
+    }, 400);
   }
+
+  // Validate bundle schema before executing the import script
+  const validationErrors = validateSessionImportBundle(body);
+  if (validationErrors.length > 0) {
+    return c.json({
+      error: {
+        code: "VALIDATION_ERROR",
+        message: "Invalid session import bundle",
+        details: validationErrors,
+      },
+    }, 400);
+  }
+
+  const sessionId = String((body.session as Record<string, unknown>).id);
 
   const { result, duration_ms } = await timed(async () => {
     // Write the bundle to a temp file inside the sandbox
@@ -696,8 +716,8 @@ app.post("/sandboxes/:id/sessions/import", async (c) => {
 
     await sb.writeFile(bundlePath, bundleJson);
 
-    // Use a Python script to import directly into the sandbox's pixl.db
-    // This avoids requiring a dedicated `pixl session import` CLI command
+    // Use a Python script to import directly into the sandbox's pixl.db.
+    // The script uses a single transaction so partial failures roll back cleanly.
     const importScript = `
 import json, sqlite3, sys
 with open('${bundlePath}') as f:
@@ -706,35 +726,35 @@ s = bundle['session']
 sid = s['id']
 db = sqlite3.connect('/workspace/.pixl/pixl.db')
 db.execute('PRAGMA journal_mode=WAL')
-db.execute(
-    """INSERT OR REPLACE INTO workflow_sessions
-       (id, feature_id, snapshot_hash, status, created_at,
-        started_at, ended_at, last_updated_at, baseline_commit,
-        workspace_root, sandbox_origin_id)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-    (sid, s.get('feature_id'), s.get('snapshot_hash', 'imported'),
-     s.get('status', 'completed'), s.get('created_at'),
-     s.get('started_at'), s.get('ended_at'), s.get('last_updated_at'),
-     s.get('baseline_commit'), s.get('workspace_root'),
-     s.get('sandbox_origin_id', bundle.get('sandbox_id'))))
-for ni in bundle.get('node_instances', []):
+try:
     db.execute(
-        """INSERT OR REPLACE INTO node_instances
-           (session_id, node_id, state, attempt, ready_at,
-            started_at, ended_at, blocked_reason, output_json,
-            failure_kind, error_message, model_name, agent_name,
-            input_tokens, output_tokens, total_tokens, cost_usd)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-        (sid, ni.get('node_id'), ni.get('state', 'task_pending'),
-         ni.get('attempt', 0), ni.get('ready_at'), ni.get('started_at'),
-         ni.get('ended_at'), ni.get('blocked_reason'),
-         json.dumps(ni.get('output')) if ni.get('output') else None,
-         ni.get('failure_kind'), ni.get('error_message'),
-         ni.get('model_name'), ni.get('agent_name'),
-         ni.get('input_tokens', 0), ni.get('output_tokens', 0),
-         ni.get('total_tokens', 0), ni.get('cost_usd', 0.0)))
-for ev in bundle.get('events', []):
-    try:
+        """INSERT OR REPLACE INTO workflow_sessions
+           (id, feature_id, snapshot_hash, status, created_at,
+            started_at, ended_at, last_updated_at, baseline_commit,
+            workspace_root, sandbox_origin_id)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+        (sid, s.get('feature_id'), s.get('snapshot_hash', 'imported'),
+         s.get('status', 'completed'), s.get('created_at'),
+         s.get('started_at'), s.get('ended_at'), s.get('last_updated_at'),
+         s.get('baseline_commit'), s.get('workspace_root'),
+         s.get('sandbox_origin_id', bundle.get('sandbox_id'))))
+    for ni in bundle.get('node_instances', []):
+        db.execute(
+            """INSERT OR REPLACE INTO node_instances
+               (session_id, node_id, state, attempt, ready_at,
+                started_at, ended_at, blocked_reason, output_json,
+                failure_kind, error_message, model_name, agent_name,
+                input_tokens, output_tokens, total_tokens, cost_usd)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            (sid, ni.get('node_id'), ni.get('state', 'task_pending'),
+             ni.get('attempt', 0), ni.get('ready_at'), ni.get('started_at'),
+             ni.get('ended_at'), ni.get('blocked_reason'),
+             json.dumps(ni.get('output')) if ni.get('output') else None,
+             ni.get('failure_kind'), ni.get('error_message'),
+             ni.get('model_name'), ni.get('agent_name'),
+             ni.get('input_tokens', 0), ni.get('output_tokens', 0),
+             ni.get('total_tokens', 0), ni.get('cost_usd', 0.0)))
+    for ev in bundle.get('events', []):
         db.execute(
             """INSERT OR IGNORE INTO events
                (session_id, event_type, node_id, entity_type,
@@ -745,11 +765,14 @@ for ev in bundle.get('events', []):
              ev.get('entity_id'),
              json.dumps(ev.get('payload')) if ev.get('payload') else None,
              ev.get('created_at')))
-    except Exception:
-        pass
-db.commit()
-db.close()
-print(json.dumps({"imported": sid}))
+    db.commit()
+    print(json.dumps({"imported": sid}))
+except Exception as exc:
+    db.rollback()
+    print(json.dumps({"error": str(exc)}), file=sys.stderr)
+    sys.exit(1)
+finally:
+    db.close()
 `;
 
     const importResult = await sb.exec(
@@ -757,13 +780,13 @@ print(json.dumps({"imported": sid}))
       { timeout: 30_000 },
     );
 
-    // Cleanup temp file
+    // Cleanup temp file (best-effort)
     await sb.exec(`rm -f ${bundlePath}`, { timeout: 5_000 });
 
     if (importResult.exitCode !== 0) {
       return {
         success: false,
-        error: importResult.stderr || "Import script failed",
+        error: importResult.stderr || "Import script failed — changes rolled back",
       };
     }
 
@@ -771,7 +794,7 @@ print(json.dumps({"imported": sid}))
       const output = JSON.parse(importResult.stdout);
       return { success: true, imported_session_id: output.imported };
     } catch {
-      return { success: true, imported_session_id: body.session.id };
+      return { success: true, imported_session_id: sessionId };
     }
   });
 
@@ -780,7 +803,7 @@ print(json.dumps({"imported": sid}))
     operation: "session_import",
     duration_ms,
     success: result.success,
-    meta: { sessionId: String(body.session.id) },
+    meta: { sessionId },
   });
 
   if (!result.success) {
