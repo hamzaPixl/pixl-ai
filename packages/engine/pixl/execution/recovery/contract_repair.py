@@ -124,12 +124,7 @@ def finalize_repair_success(
     ex._version_stage_outputs(node_id)
 
     next_nodes = follow_edges(ex, node_id, "success", None)
-
-    cursor = ex.session.executor_cursor
-    cursor.current_node_id = None
-    cursor.remove_from_ready_queue(node_id)
-    for next_node in next_nodes:
-        cursor.add_to_ready_queue(next_node)
+    ex.session.reschedule_node(node_id, next_nodes)
 
     ex._persist_event(
         Event.create(
