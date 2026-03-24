@@ -78,9 +78,12 @@ def execute_with_orchestrator(
     Returns:
         Execution result
     """
+    assert executor.orchestrator is not None, "orchestrator required for SDK execution"
+    orch = executor.orchestrator  # local alias — pyright knows this is non-None
     from pixl.output import console, is_json_mode
 
     events: list[Event] = []
+    assert node.task_config is not None, f"task_config required for task node {node.id}"
     task_config = node.task_config
 
     prompt = executor._build_task_prompt(
@@ -132,7 +135,7 @@ def execute_with_orchestrator(
                 fork_from_session_id = pred_instance["llm_session_id"]
                 break
 
-    executor.orchestrator.set_sdk_event_callback(
+    orch.set_sdk_event_callback(
         callback=executor._persist_event,
         session_id=executor.session.id,
         node_id=node.id,
@@ -150,13 +153,13 @@ def execute_with_orchestrator(
             # Compact session context before retries to reclaim token budget
             if resume_conversation and llm_session_id:
                 try:
-                    compact_options = executor.orchestrator._build_query_options(
+                    compact_options = orch._build_query_options(
                         max_turns=1,
                         resume_session_id=llm_session_id,
                         continue_conversation=True,
                     )
                     _run_coroutine_sync(
-                        executor.orchestrator.send_session_command(
+                        orch.send_session_command(
                             "/compact", options=compact_options
                         )
                     )
@@ -229,7 +232,7 @@ def execute_with_orchestrator(
                 query_kwargs["fork_session"] = True
 
             result_text, metadata = _run_coroutine_sync(
-                executor.orchestrator.query_with_streaming(**query_kwargs)
+                orch.query_with_streaming(**query_kwargs)
             )
 
             if metadata.get("sdk_session_id"):
@@ -271,7 +274,7 @@ def execute_with_orchestrator(
                 fallback_kwargs.pop("continue_conversation", None)
 
                 result_text, metadata = _run_coroutine_sync(
-                    executor.orchestrator.query_with_streaming(**fallback_kwargs)
+                    orch.query_with_streaming(**fallback_kwargs)
                 )
                 if metadata.get("sdk_session_id"):
                     llm_session_id = metadata["sdk_session_id"]
@@ -504,7 +507,7 @@ def execute_with_orchestrator(
                     repair_kwargs["prompt"] = repair_prompt
 
                     repair_text, repair_metadata = _run_coroutine_sync(
-                        executor.orchestrator.query_with_streaming(**repair_kwargs)
+                        orch.query_with_streaming(**repair_kwargs)
                     )
                     if repair_metadata.get("sdk_session_id"):
                         llm_session_id = repair_metadata["sdk_session_id"]
@@ -783,7 +786,7 @@ def execute_with_orchestrator(
             extra_payload={"error_metadata": {"traceback": full_traceback}},
         )
     finally:
-        executor.orchestrator.clear_sdk_event_callback()
+        orch.clear_sdk_event_callback()
 
 
 def is_resume_session_error(message: str) -> bool:

@@ -30,7 +30,7 @@ from pixl.execution.chain.pr_manager import ensure_pr_for_node
 from pixl.execution.chain.topology import descendants, toposort_ready_nodes
 from pixl.execution.chain_constants import CHAIN_TERMINAL_STATES
 from pixl.execution.git_utils import auto_push_feature_branch, git_has_remote, refresh_base_ref
-from pixl.execution.workflow_background import should_auto_merge_pr
+from pixl.execution.workflow_background import should_auto_merge_pr  # type: ignore[attr-defined]
 from pixl.git import pr_automation
 from pixl.storage.db.chain_plans import ChainPlanDB
 

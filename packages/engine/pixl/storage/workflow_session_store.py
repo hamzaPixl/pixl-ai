@@ -847,7 +847,7 @@ class WorkflowSessionStore:
         try:
             db = self._get_db()
             self._ensure_session_row_in_db(db.conn, session_id=resolved_session_id)
-            with db.events.batch():
+            with db.events.batch():  # type: ignore[attr-defined]
                 for event in events:
                     payload = dict(event.data)
                     if event.artifact_id:

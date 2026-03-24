@@ -299,7 +299,7 @@ def _run_workflow_inner(
             db=db,
             event_callback=_event_notify,
         )
-        executor._current_run_id = run_id  # For lock/budget/task-session tracking
+        object.__setattr__(executor, "_current_run_id", run_id)  # For lock/budget/task-session tracking
 
         from pixl.execution.workflow_runner_manager import WorkflowRunnerManager
 

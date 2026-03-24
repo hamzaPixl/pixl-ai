@@ -142,7 +142,7 @@ class WorkflowParameterCollector:
                         if isinstance(opt, dict):
                             result[opt.get("id", "")] = opt.get("default", False)
                         elif hasattr(opt, "id"):
-                            result[opt.id] = opt.default
+                            result[opt.id] = opt.default  # type: ignore[union-attr]
                         else:
                             result[str(opt)] = False
                     return result

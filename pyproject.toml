@@ -36,9 +36,6 @@ typeCheckingMode = "standard"
 include = ["packages/engine/pixl", "packages/cli/pixl_cli"]
 reportMissingTypeStubs = false
 reportMissingImports = "warning"
-# Suppressed until protocol refactoring (dynamic SQLite/SDK patterns)
-reportOptionalMemberAccess = "warning"
-reportAttributeAccessIssue = "warning"
 reportIncompatibleVariableOverride = false
 reportIncompatibleMethodOverride = false
 

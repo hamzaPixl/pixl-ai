@@ -51,9 +51,9 @@ def _resolve_crew_plugin_path() -> str | None:
 # Optional hooks subsystem — gracefully degrade if not yet extracted.
 try:
     from pixl.agents.hooks import (
-        HooksDict,
-        create_default_registry,
-        create_sdk_hooks_from_registry,
+        HooksDict,  # type: ignore[attr-defined]
+        create_default_registry,  # type: ignore[attr-defined]
+        create_sdk_hooks_from_registry,  # type: ignore[attr-defined]
     )
 
     _HOOKS_AVAILABLE = True

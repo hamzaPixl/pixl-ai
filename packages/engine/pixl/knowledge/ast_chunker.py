@@ -84,7 +84,7 @@ class ASTChunker(Chunker):
             return self._chunk_markdown_fallback(file_path, base_path)
 
         source = file_path.read_bytes()
-        tree = parser.parse(source)
+        tree = parser.parse(source)  # type: ignore[attr-defined]
         rel_path = str(file_path.relative_to(base_path))
 
         chunks: list[Chunk] = []
@@ -108,7 +108,7 @@ class ASTChunker(Chunker):
             return super().chunk_code(file_path, base_path)
 
         source = file_path.read_bytes()
-        tree = parser.parse(source)
+        tree = parser.parse(source)  # type: ignore[attr-defined]
         rel_path = str(file_path.relative_to(base_path))
 
         if lang == "python":
@@ -127,7 +127,7 @@ class ASTChunker(Chunker):
             return self._chunk_yaml_fallback(file_path, base_path)
 
         source = file_path.read_bytes()
-        tree = parser.parse(source)
+        tree = parser.parse(source)  # type: ignore[attr-defined]
         rel_path = str(file_path.relative_to(base_path))
         return self._chunk_yaml(tree.root_node, source, rel_path)
 
@@ -286,7 +286,7 @@ class ASTChunker(Chunker):
             if isinstance(first, ast.Expr) and isinstance(
                 getattr(first, "value", None), ast.Constant
             ):
-                value = first.value.value
+                value = first.value.value  # type: ignore[attr-defined]
                 if isinstance(value, str):
                     docstring = value.strip()
                     if len(docstring) >= self.config.min_chunk_size:

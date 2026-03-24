@@ -211,6 +211,7 @@ class CodexProvider(LLMProvider):
             )
 
             while True:
+                assert process.stdout is not None
                 line = await process.stdout.readline()
                 if not line:
                     break
@@ -292,7 +293,7 @@ class CodexProvider(LLMProvider):
             # Wait for process to complete
             await process.wait()
 
-            if process.returncode != 0:
+            if process.returncode != 0 and process.stderr is not None:
                 stderr = await process.stderr.read()
                 error_msg = stderr.decode().strip()
                 if error_msg:

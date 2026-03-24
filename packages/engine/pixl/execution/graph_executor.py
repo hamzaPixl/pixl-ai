@@ -562,7 +562,7 @@ class GraphExecutor:
             if self.orchestrator and hasattr(self.orchestrator, "_interrupt_event"):
                 if self.orchestrator._interrupt_event.is_set():
                     logger.info("Interrupt detected in GraphExecutor.step(), pausing session")
-                    self.session.status = SessionStatus.PAUSED
+                    object.__setattr__(self.session, "status", SessionStatus.PAUSED)
                     self.session.pause_reason = "Interrupted by parent"
                     checkpoint_event = self._checkpoint(reason="interrupted")
                     result["events"].append(checkpoint_event)
@@ -1381,7 +1381,7 @@ class GraphExecutor:
                 from pixl.providers import ProviderRegistry
 
                 provider, _ = ProviderRegistry().resolve_model_string(model)
-                max_context_tokens = provider.max_context_tokens
+                max_context_tokens = provider.capabilities.max_context_tokens
         except Exception as exc:
             self._emit_error_event(
                 StateError(
@@ -1728,7 +1728,7 @@ class GraphExecutor:
             )
 
         try:
-            child_snapshot = loader.convert_to_template(child_config).snapshot
+            child_snapshot = loader.convert_to_template(child_config).snapshot  # type: ignore[attr-defined]
         except Exception as exc:
             return self._make_failure_result(
                 f"Failed to build graph for sub-workflow '{sub_workflow_id}': {exc}",
@@ -1773,7 +1773,7 @@ class GraphExecutor:
             session_manager=self.session_manager,
             state_bridge=None,  # Don't propagate state transitions from child
         )
-        child_executor._sub_workflow_depth = _depth + 1
+        object.__setattr__(child_executor, "_sub_workflow_depth", _depth + 1)
 
         max_steps = 200  # Safety limit
         for _ in range(max_steps):

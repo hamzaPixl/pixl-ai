@@ -188,8 +188,8 @@ def record_loop_iteration(
                 )
             )
             if not hasattr(executor.session, "warnings"):
-                executor.session.warnings = []
-            executor.session.warnings.append(
+                object.__setattr__(executor.session, "warnings", [])
+            executor.session.warnings.append(  # type: ignore[attr-defined]
                 f"Review loop exhausted: {loop_constraint.max_iterations}"
                 " iterations without approval"
             )

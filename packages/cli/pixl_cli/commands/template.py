@@ -10,6 +10,11 @@ from pixl_cli._output import emit_detail, emit_error, emit_json, emit_table
 from pixl_cli.main import get_ctx
 
 
+def _templates(ctx: click.Context):  # type: ignore[no-untyped-def]
+    """Get workflow_templates store from CLI context (dynamic attr on StorageBackend)."""
+    return get_ctx(ctx).db.workflow_templates  # type: ignore[attr-defined]
+
+
 @click.group()
 @click.pass_context
 def template(ctx: click.Context) -> None:
@@ -28,7 +33,7 @@ def template(ctx: click.Context) -> None:
 def template_list(ctx: click.Context, source: str | None, limit: int) -> None:
     """List workflow templates."""
     cli = get_ctx(ctx)
-    results = cli.db.workflow_templates.list_templates(source=source, limit=limit)
+    results = _templates(ctx).list_templates(source=source, limit=limit)
 
     emit_table(
         results,
@@ -51,7 +56,7 @@ def template_list(ctx: click.Context, source: str | None, limit: int) -> None:
 def template_get(ctx: click.Context, template_id: str) -> None:
     """Get a workflow template by ID."""
     cli = get_ctx(ctx)
-    result = cli.db.workflow_templates.get(template_id)
+    result = _templates(ctx).get(template_id)
 
     if result is None:
         emit_error(f"Template not found: {template_id}", is_json=cli.is_json)
@@ -91,7 +96,7 @@ def template_create(
     cli = get_ctx(ctx)
     yaml_content = yaml_file.read_text(encoding="utf-8")
 
-    result = cli.db.workflow_templates.create(
+    result = _templates(ctx).create(
         name,
         yaml_content,
         description=description,
@@ -135,7 +140,7 @@ def template_update(
         emit_error("Nothing to update. Provide --file or --description.", is_json=cli.is_json)
         raise SystemExit(1)
 
-    success = cli.db.workflow_templates.update(
+    success = _templates(ctx).update(
         template_id,
         yaml_content=yaml_content,
         description=description,
@@ -145,7 +150,7 @@ def template_update(
         emit_error(f"Template not found: {template_id}", is_json=cli.is_json)
         raise SystemExit(1)
 
-    updated = cli.db.workflow_templates.get(template_id)
+    updated = _templates(ctx).get(template_id)
     if cli.is_json:
         emit_json(updated)
     else:
@@ -161,7 +166,7 @@ def template_delete(ctx: click.Context, template_id: str, yes: bool) -> None:
     cli = get_ctx(ctx)
 
     if not yes:
-        existing = cli.db.workflow_templates.get(template_id)
+        existing = _templates(ctx).get(template_id)
         if existing is None:
             emit_error(f"Template not found: {template_id}", is_json=cli.is_json)
             raise SystemExit(1)
@@ -169,7 +174,7 @@ def template_delete(ctx: click.Context, template_id: str, yes: bool) -> None:
             click.echo("Cancelled.")
             return
 
-    success = cli.db.workflow_templates.delete(template_id)
+    success = _templates(ctx).delete(template_id)
 
     if not success:
         emit_error(f"Template not found: {template_id}", is_json=cli.is_json)

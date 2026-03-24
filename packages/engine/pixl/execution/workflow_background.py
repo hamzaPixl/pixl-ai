@@ -194,7 +194,7 @@ def _run_workflow_inner(
                 session_store.touch_session(session_id)
                 last_heartbeat = now_mono
 
-            session = session_store.load_session(session.id)
+            session = session_store.load_session(session_id)
             if session is None:
                 logger.error("Session %s disappeared from store", session_id)
                 break
@@ -295,7 +295,7 @@ def _run_workflow_inner(
         logger.info(
             "Workflow %s completed with status %s after %d steps",
             workflow_id,
-            session.status.value,
+            session.status.value if session is not None else "unknown",
             step_count,
         )
     except Exception as exc:
