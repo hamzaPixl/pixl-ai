@@ -7,10 +7,13 @@ graph-based workflow orchestration:
 - SessionStatus (DERIVED, not stored)
 """
 
+import logging
 from datetime import datetime
 from enum import StrEnum
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
+
+logger = logging.getLogger(__name__)
 
 from pydantic import BaseModel, Field, computed_field
 
@@ -556,6 +559,28 @@ class WorkflowSession(BaseModel):
             instance["cost_usd"] = instance.get("cost_usd", 0.0) + cost_usd
 
         self.last_updated_at = datetime.now()
+
+    def reschedule_node(self, completed_node_id: str, successor_node_ids: list[str]) -> None:
+        """Complete a node and schedule its successors on the executor cursor.
+
+        Clears the current node, removes it from the ready queue, and adds
+        all successor nodes. No-op with a warning if there is no cursor.
+
+        Args:
+            completed_node_id: Node ID that has finished execution.
+            successor_node_ids: Node IDs to add to the ready queue.
+        """
+        cursor = self.executor_cursor
+        if cursor is None:
+            logger.warning(
+                "reschedule_node called but no executor cursor on session %s",
+                self.id,
+            )
+            return
+        cursor.current_node_id = None
+        cursor.remove_from_ready_queue(completed_node_id)
+        for next_node in successor_node_ids:
+            cursor.add_to_ready_queue(next_node)
 
     # Helper methods for loop state
     def get_loop_state(self, loop_id: str) -> LoopState | None:
