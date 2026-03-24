@@ -6,31 +6,143 @@ on:
   pull_request:
     branches: [main]
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  check:
+  # ── Python: Lint + Format ─────────────────────────────────
+  lint:
+    name: Lint & Format
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v5
+      - uses: astral-sh/setup-uv@v5
         with:
           version: "latest"
 
-      - name: Set up Python
-        run: uv python install 3.12
+      - run: uv python install 3.12
 
       - name: Install dependencies
         run: uv sync --all-extras
 
-      - name: Lint
+      - name: Ruff lint
         run: uv run ruff check packages/engine/ packages/cli/
 
-      - name: Format check
+      - name: Ruff format
         run: uv run ruff format --check packages/engine/ packages/cli/
 
-      - name: Type check
+  # ── Python: Type Check ────────────────────────────────────
+  typecheck:
+    name: Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: "latest"
+
+      - run: uv python install 3.12
+
+      - name: Install dependencies
+        run: uv sync --all-extras
+
+      - name: Pyright
         run: uv run pyright
 
-      - name: Test
-        run: uv run python -m pytest --import-mode=importlib
+  # ── Python: Test + Coverage ────────────────────────────────
+  test:
+    name: Test (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: "latest"
+
+      - run: uv python install ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: uv sync --all-extras
+
+      - name: Run tests with coverage
+        run: uv run python -m pytest --import-mode=importlib --cov --cov-report=term-missing --cov-report=xml
+
+      - name: Upload coverage
+        if: matrix.python-version == '3.12'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage.xml
+
+  # ── Python: Build Verification ─────────────────────────────
+  build:
+    name: Build Packages
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: "latest"
+
+      - run: uv python install 3.12
+
+      - name: Build engine wheel
+        run: uv build packages/engine/
+
+      - name: Build CLI wheel
+        run: uv build packages/cli/
+
+  # ── Python: Security Audit ─────────────────────────────────
+  audit-python:
+    name: Python Dependency Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: "latest"
+
+      - run: uv python install 3.12
+
+      - name: Install dependencies
+        run: uv sync --all-extras
+
+      - name: Install pip-audit
+        run: uv pip install pip-audit
+
+      - name: Run pip-audit
+        run: uv run pip-audit
+        continue-on-error: true
+
+  # ── TypeScript: Sandbox Checks ─────────────────────────────
+  sandbox:
+    name: Sandbox (TypeScript)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/sandbox
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: TypeScript type check
+        run: npx tsc --noEmit
+
+      - name: npm audit
+        run: npm audit --omit=dev
+        continue-on-error: true
