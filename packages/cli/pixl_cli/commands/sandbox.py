@@ -680,10 +680,12 @@ def sandbox_sync(ctx: click.Context, project_id: str) -> None:
     artifacts = data.get("artifacts", [])
 
     counts = {"events": 0, "sessions": 0, "artifacts": 0}
+    skipped = {"events": 0, "sessions": 0, "artifacts": 0}
 
     try:
-        # Use store methods where possible to preserve FTS indexing and bus notifications.
-        # Sessions use raw SQL (store API requires snapshot_hash validation).
+        # All inserts use raw SQL with INSERT OR IGNORE for idempotent syncs.
+        # This sets sandbox_origin_id on every entity type for provenance tracking
+        # and avoids duplicates when re-syncing the same sandbox.
         with cli.db.write() as conn:  # type: ignore[attr-defined]
             for s in sessions:
                 cursor = conn.execute(
@@ -704,39 +706,83 @@ def sandbox_sync(ctx: click.Context, project_id: str) -> None:
                 )
                 if cursor.rowcount > 0:
                     counts["sessions"] += 1
-            conn.commit()
+                else:
+                    skipped["sessions"] += 1
 
-        # Events via store method (triggers bus notification)
-        for e in events:
-            try:
-                cli.db.events.emit(
-                    event_type=e.get("event_type", "unknown"),
-                    session_id=e.get("session_id"),
-                    node_id=e.get("node_id"),
-                    entity_type=e.get("entity_type"),
-                    entity_id=e.get("entity_id"),
-                    payload=e.get("payload"),
+            for e in events:
+                payload = e.get("payload")
+                payload_json = json.dumps(payload) if payload else None
+                created_at = e.get("created_at")
+                event_type = e.get("event_type", "unknown")
+                session_id = e.get("session_id")
+                node_id = e.get("node_id")
+
+                # Dedup: skip if an identical event already exists
+                # (events table has no unique constraint, so we check manually)
+                existing = conn.execute(
+                    """SELECT 1 FROM events
+                       WHERE session_id IS ? AND event_type = ? AND node_id IS ?
+                         AND created_at = ? AND sandbox_origin_id = ?
+                       LIMIT 1""",
+                    (session_id, event_type, node_id, created_at, project_id),
+                ).fetchone()
+
+                if existing:
+                    skipped["events"] += 1
+                    continue
+
+                conn.execute(
+                    """INSERT INTO events
+                       (event_type, session_id, node_id,
+                        entity_type, entity_id, payload_json,
+                        sandbox_origin_id, created_at)
+                       VALUES (?, ?, ?, ?, ?, ?, ?, COALESCE(?, datetime('now')))""",
+                    (
+                        event_type,
+                        session_id,
+                        node_id,
+                        e.get("entity_type"),
+                        e.get("entity_id"),
+                        payload_json,
+                        project_id,
+                        created_at,
+                    ),
                 )
                 counts["events"] += 1
-            except Exception:
-                pass  # Skip duplicates
 
-        # Artifacts via store method (triggers FTS5 indexing)
-        for a in artifacts:
-            try:
-                cli.db.artifacts.create(
-                    name=a.get("name", "unknown"),
-                    artifact_type=a.get("type", "other"),
-                    content=a.get("content"),
-                    path=a.get("path"),
-                    task_id=a.get("task_id"),
-                    session_id=a.get("session_id"),
-                    tags=a.get("tags", []),
-                    extra=a.get("extra", {}),
+            for a in artifacts:
+                artifact_id = a.get("id")
+                if not artifact_id:
+                    # Generate an ID if the sandbox export omitted one
+                    import uuid
+
+                    artifact_id = f"art-{uuid.uuid4().hex[:8]}"
+
+                cursor = conn.execute(
+                    """INSERT OR IGNORE INTO artifacts
+                       (id, type, name, path, content,
+                        task_id, session_id, tags_json, extra_json,
+                        sandbox_origin_id)
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                    (
+                        artifact_id,
+                        a.get("type", "other"),
+                        a.get("name", "unknown"),
+                        a.get("path"),
+                        a.get("content"),
+                        a.get("task_id"),
+                        a.get("session_id"),
+                        json.dumps(a.get("tags", [])),
+                        json.dumps(a.get("extra", {})),
+                        project_id,
+                    ),
                 )
-                counts["artifacts"] += 1
-            except Exception:
-                pass  # Skip duplicates
+                if cursor.rowcount > 0:
+                    counts["artifacts"] += 1
+                else:
+                    skipped["artifacts"] += 1
+
+            conn.commit()
     except Exception as exc:
         duration_ms = int((time.monotonic() - start) * 1000)
         emit_error(f"Failed to sync data to local DB: {exc}", is_json=cli.is_json)
@@ -748,13 +794,26 @@ def sandbox_sync(ctx: click.Context, project_id: str) -> None:
     duration_ms = int((time.monotonic() - start) * 1000)
     _log_operation(cli, project_id, "sync", status="completed", duration_ms=duration_ms)
 
-    summary = {
+    summary: dict[str, Any] = {
         "project_id": project_id,
         "synced": counts,
         "duration_ms": duration_ms,
     }
+    if any(v > 0 for v in skipped.values()):
+        summary["skipped_existing"] = skipped
 
     if cli.is_json:
         emit_json(summary)
     else:
-        emit_detail(summary, is_json=False)
+        click.echo(
+            f"Synced {counts['sessions']} sessions, "
+            f"{counts['events']} events, "
+            f"{counts['artifacts']} artifacts "
+            f"from sandbox '{project_id}' ({duration_ms}ms)"
+        )
+        if any(v > 0 for v in skipped.values()):
+            click.echo(
+                f"Skipped {skipped['sessions']} sessions, "
+                f"{skipped['events']} events, "
+                f"{skipped['artifacts']} artifacts (already exist)"
+            )
