@@ -14,7 +14,6 @@ Implements the core step algorithm for executing workflow graphs:
 
 from __future__ import annotations
 
-import hashlib
 import json
 import logging
 import os
@@ -27,15 +26,15 @@ if TYPE_CHECKING:
     from pixl.execution.contract_validator import ContractValidationResult
     from pixl.models.session import ExecutorCursor
 
-import contextlib
-
 from pixl.errors import (
     PixlError,
     StateError,
     StorageError,
 )
 from pixl.execution.artifact_manager import version_stage_outputs
+from pixl.execution.artifact_resolver import ArtifactResolver
 from pixl.execution.edge_traversal import follow_edges
+from pixl.execution.event_emitter import EventEmitter
 from pixl.execution.gate_processing import process_condition_loop_resets, process_gate_rejections
 from pixl.execution.node_state import (
     allow_simulated_execution,
@@ -183,6 +182,20 @@ class GraphExecutor:
 
         # Incident store for recovery history tracking (lazy loaded)
         self._incident_store = None  # Loaded on first recovery event
+
+        # Extracted collaborators (S1: EventEmitter, S2: ArtifactResolver)
+        self.event_emitter = EventEmitter(
+            session_id=self.session.id,
+            store=self.store,
+            event_callback=self.event_callback,
+            incident_store_getter=self._get_incident_store,
+        )
+        self.artifact_resolver = ArtifactResolver(
+            session_id=self.session.id,
+            artifacts_dir=self.artifacts_dir,
+            store=self.store,
+            build_contract_variables=self._build_contract_variables,
+        )
 
         # Recovery engine for deterministic error handling
         self._recovery_engine = RecoveryEngine(
@@ -948,113 +961,23 @@ class GraphExecutor:
         }
 
     # Node Execution
+    # Event emission — thin wrappers delegating to self.event_emitter (S1 extraction)
 
     def _emit_event(self, event: Event) -> None:
-        """Emit event to store and callback.
-
-        Args:
-            event: Event to emit
-        """
-        try:
-            self.store.append_event(event)
-        except StorageError as exc:
-            # Best-effort error event for storage failures
-            self._emit_error_event(exc, node_id=event.node_id)
-            raise
-
-        if self.event_callback:
-            self.event_callback(event)
+        """Emit event to store and callback. Delegates to EventEmitter."""
+        self.event_emitter.emit_event(event)
 
     def _emit_events_batch(self, events: list[Event]) -> None:
-        """Emit multiple events in a single DB transaction.
-
-        Falls back to per-event emission on batch failure.
-        """
-        if not events:
-            return
-        try:
-            self.store.append_events_batch(events)
-        except Exception:
-            logger.warning(
-                "Batch event emission failed, falling back to individual emission", exc_info=True
-            )
-            # Fallback to individual emission
-            for event in events:
-                self._emit_event(event)
-            return
-
-        if self.event_callback:
-            for event in events:
-                self.event_callback(event)
+        """Emit multiple events in a single DB transaction. Delegates to EventEmitter."""
+        self.event_emitter.emit_events_batch(events)
 
     def _emit_error_event(self, error: PixlError, node_id: str | None = None) -> Event | None:
-        """Emit a structured error event."""
-        event = Event.error(
-            self.session.id,
-            message=error.message,
-            error_type=error.error_type,
-            node_id=node_id,
-            metadata=error.metadata,
-            is_transient=error.is_transient,
-            cause=str(error.cause) if error.cause else None,
-        )
-        try:
-            self.store.append_event(event)
-        except StorageError as db_exc:
-            # DB is authoritative; if it fails, log and propagate
-            logger.error(
-                "Failed to persist error event for node %s: %s",
-                node_id,
-                db_exc,
-            )
-
-        if self.event_callback:
-            self.event_callback(event)
-        return event
+        """Emit a structured error event. Delegates to EventEmitter."""
+        return self.event_emitter.emit_error_event(error, node_id=node_id)
 
     def _persist_event(self, event: Event) -> None:
-        """Persist a pre-built Event to storage and broadcast via callback.
-
-        Used as RecoveryEngine's emit_event callback so recovery events
-        are always auditable.  Logs warnings on persistence failure.
-
-        Also writes incident records for terminal recovery events.
-        """
-        persisted = False
-        try:
-            self.store.append_event(event)
-            persisted = True
-        except StorageError as db_exc:
-            logger.warning(
-                "Failed to persist recovery event %s to DB: %s",
-                event.type.value,
-                db_exc,
-            )
-
-        if not persisted:
-            logger.error(
-                "Recovery event %s for node %s lost — DB persistence failed",
-                event.type.value,
-                event.node_id,
-            )
-
-        if event.type in (
-            EventType.RECOVERY_SUCCEEDED,
-            EventType.RECOVERY_FAILED,
-            EventType.RECOVERY_ESCALATED,
-        ):
-            try:
-                self._get_incident_store().record_from_event(event)
-            except Exception as exc:
-                # Don't fail recovery if incident recording fails
-                logger.debug(
-                    "Failed to record incident for event %s: %s",
-                    event.type.value,
-                    exc,
-                )
-
-        if self.event_callback:
-            self.event_callback(event)
+        """Persist a pre-built Event to storage. Delegates to EventEmitter."""
+        self.event_emitter.persist_event(event)
 
     def _commit_transition(
         self,
@@ -1065,28 +988,19 @@ class GraphExecutor:
         from_state: NodeState | None,
         to_state: NodeState | None,
     ) -> Event:
-        """Commit an event + session state update atomically."""
-        event = self.store.commit_transition(
-            self.session,
-            node_id=node_id,
-            from_state=from_state.value if from_state else None,
-            to_state=to_state.value if to_state else None,
+        """Commit an event + session state update atomically. Delegates to EventEmitter."""
+        return self.event_emitter.commit_transition(
+            session=self.session,
             event_type=event_type,
-            payload=payload or {},
+            node_id=node_id,
+            payload=payload,
+            from_state=from_state,
+            to_state=to_state,
         )
-        if self.event_callback:
-            self.event_callback(event)
-        return event
 
     def _checkpoint(self, reason: str | None = None) -> Event:
-        """Persist a checkpoint event and session snapshot."""
-        return self._commit_transition(
-            event_type=EventType.CHECKPOINT_SAVED,
-            node_id=None,
-            payload={"reason": reason} if reason else {},
-            from_state=None,
-            to_state=None,
-        )
+        """Persist a checkpoint event and session snapshot. Delegates to EventEmitter."""
+        return self.event_emitter.checkpoint(session=self.session, reason=reason)
 
     def _compute_status(self) -> SessionStatus:
         """Shorthand for computing session status with the current snapshot."""
@@ -1339,78 +1253,31 @@ class GraphExecutor:
                 self.db.sessions.release_node(self.session.id, node.id, run_id)
 
     # Pre-Execution Input Validation
+    # Artifact resolution — thin wrappers delegating to self.artifact_resolver (S2 extraction)
 
     def _check_required_inputs(
         self,
         node_id: str,
         required_artifacts: list[str],
     ) -> list[str]:
-        """Check that required input artifacts exist before task execution.
-
-        Resolves template variables (e.g., {{decomposition_file}}) and checks
-        only session-scoped artifacts.
-
-        Returns list of missing artifact names (empty = all present).
-        """
-        manifest = self._build_artifact_handoff_manifest(node_id, required_artifacts)
-        return [entry["path"] for entry in manifest if not entry["exists"]]
+        """Check required input artifacts. Delegates to ArtifactResolver."""
+        return self.artifact_resolver.check_required_inputs(node_id, required_artifacts)
 
     def _resolve_required_artifact_path(self, artifact: str, variables: dict[str, str]) -> str:
-        """Resolve and normalize a required artifact path."""
-        resolved_name = resolve_template_string(artifact, variables)
-        if resolved_name.startswith("artifacts/"):
-            resolved_name = resolved_name[len("artifacts/") :]
-        if resolved_name.startswith(str(self.artifacts_dir)):
-            with_candidate = Path(resolved_name)
-            with contextlib.suppress(ValueError):
-                resolved_name = str(with_candidate.relative_to(self.artifacts_dir))
-        return resolved_name.replace("\\", "/").lstrip("/")
+        """Resolve and normalize a required artifact path. Delegates to ArtifactResolver."""
+        return self.artifact_resolver.resolve_required_artifact_path(artifact, variables)
 
     def _load_artifact_row_safe(self, path: str) -> dict[str, Any] | None:
-        """Best-effort DB artifact-row loader for manifest diagnostics."""
-        try:
-            db = self.store._get_db()  # noqa: SLF001 - executor/storage integration
-            return db.artifacts.get_by_session_path(self.session.id, path)
-        except Exception:
-            return None
+        """Best-effort DB artifact-row loader. Delegates to ArtifactResolver."""
+        return self.artifact_resolver.load_artifact_row_safe(path)
 
     def _build_artifact_handoff_manifest(
         self,
         node_id: str,
         required_artifacts: list[str],
     ) -> list[dict[str, Any]]:
-        """Build deterministic handoff metadata for required artifacts."""
-        variables = self._build_contract_variables(node_id)
-        manifest: list[dict[str, Any]] = []
-
-        for artifact in required_artifacts:
-            resolved_path = self._resolve_required_artifact_path(artifact, variables)
-            row = self._load_artifact_row_safe(resolved_path)
-
-            entry: dict[str, Any] = {
-                "path": resolved_path,
-                "exists": False,
-                "sha256": None,
-                "version": None,
-                "producer_stage": None,
-            }
-            if row:
-                entry["exists"] = True
-                entry["sha256"] = row.get("content_hash")
-                entry["version"] = row.get("version")
-                entry["producer_stage"] = row.get("task_id")
-            else:
-                fallback_content = self._load_session_artifact_safe(resolved_path)
-                if fallback_content is not None:
-                    entry["exists"] = True
-                    entry["sha256"] = hashlib.sha256(fallback_content.encode("utf-8")).hexdigest()
-                    entry["version"] = "unknown"
-                    entry["producer_stage"] = "unknown"
-
-            manifest.append(entry)
-
-        manifest.sort(key=lambda item: str(item.get("path", "")))
-        return manifest
+        """Build deterministic handoff metadata. Delegates to ArtifactResolver."""
+        return self.artifact_resolver.build_artifact_handoff_manifest(node_id, required_artifacts)
 
     # Template Variable Resolution
 
