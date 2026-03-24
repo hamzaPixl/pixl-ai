@@ -29,8 +29,13 @@ node_modules/
 uv.lock
 
 # Claude memory (session-local)
-.claude/memory/instincts.jsonl
-.claude/memory/costs.jsonl
+.claude/memory/
+.claude/plans/
+
+# Coverage artifacts
+.coverage
+htmlcov/
+coverage.xml
 
 # Pixl local data
 .pixl/

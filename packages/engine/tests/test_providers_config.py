@@ -12,16 +12,14 @@ from pathlib import Path
 
 import pytest
 import yaml
-
 from pixl.config.providers import (
-    ConcurrencyConfig,
     DEFAULT_MODELS,
     DEFAULT_PROVIDERS,
+    ConcurrencyConfig,
     ProviderConfig,
     ProvidersConfig,
     load_providers_config,
 )
-
 
 # ---------------------------------------------------------------------------
 # ProvidersConfig — parse_model_string
@@ -199,9 +197,7 @@ class TestDefaultProviders:
 
     def test_all_default_providers_have_name_set(self) -> None:
         for key, provider in DEFAULT_PROVIDERS.items():
-            assert provider.name == key, (
-                f"Provider {key!r} has mismatched name {provider.name!r}"
-            )
+            assert provider.name == key, f"Provider {key!r} has mismatched name {provider.name!r}"
 
 
 # ---------------------------------------------------------------------------
@@ -219,9 +215,7 @@ class TestLoadProvidersConfig:
     def test_overrides_default_provider_from_file(self, tmp_path: Path) -> None:
         pixl_dir = tmp_path / ".pixl"
         pixl_dir.mkdir()
-        (pixl_dir / "providers.yaml").write_text(
-            yaml.dump({"default_provider": "gemini"})
-        )
+        (pixl_dir / "providers.yaml").write_text(yaml.dump({"default_provider": "gemini"}))
         config = load_providers_config(tmp_path)
         assert config.default_provider == "gemini"
 
@@ -229,23 +223,23 @@ class TestLoadProvidersConfig:
         pixl_dir = tmp_path / ".pixl"
         pixl_dir.mkdir()
         custom_models = ["openai/gpt-4o", "anthropic/claude-sonnet-4-6"]
-        (pixl_dir / "providers.yaml").write_text(
-            yaml.dump({"models": custom_models})
-        )
+        (pixl_dir / "providers.yaml").write_text(yaml.dump({"models": custom_models}))
         config = load_providers_config(tmp_path)
         assert config.models == custom_models
 
     def test_adds_custom_provider_from_file(self, tmp_path: Path) -> None:
         pixl_dir = tmp_path / ".pixl"
         pixl_dir.mkdir()
-        yaml_content = yaml.dump({
-            "providers": {
-                "my-provider": {
-                    "api_key_env": "MY_PROVIDER_KEY",
-                    "enabled": True,
+        yaml_content = yaml.dump(
+            {
+                "providers": {
+                    "my-provider": {
+                        "api_key_env": "MY_PROVIDER_KEY",
+                        "enabled": True,
+                    }
                 }
             }
-        })
+        )
         (pixl_dir / "providers.yaml").write_text(yaml_content)
         config = load_providers_config(tmp_path)
         assert "my-provider" in config.providers

@@ -19,7 +19,6 @@ import pytest
 from pixl.storage.db.connection import PixlDB
 from pixl.storage.db.sessions import SessionDB
 
-
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
@@ -408,12 +407,22 @@ class TestUpsertNodeInstance:
     def test_token_counts_accumulate_on_upsert(self, sessions: SessionDB) -> None:
         created = sessions.create_session(feature_id=None, snapshot_hash="ni5")
         sessions.upsert_node_instance(
-            created["id"], "node-t", "task_pending",
-            input_tokens=100, output_tokens=50, total_tokens=150, cost_usd=0.01,
+            created["id"],
+            "node-t",
+            "task_pending",
+            input_tokens=100,
+            output_tokens=50,
+            total_tokens=150,
+            cost_usd=0.01,
         )
         sessions.upsert_node_instance(
-            created["id"], "node-t", "task_running",
-            input_tokens=200, output_tokens=75, total_tokens=275, cost_usd=0.02,
+            created["id"],
+            "node-t",
+            "task_running",
+            input_tokens=200,
+            output_tokens=75,
+            total_tokens=275,
+            cost_usd=0.02,
         )
         node = sessions.get_node_instance(created["id"], "node-t")
         assert node is not None
@@ -499,12 +508,8 @@ class TestLoopStates:
 
     def test_reset_loop_states_sets_iteration_to_zero(self, sessions: SessionDB) -> None:
         created = sessions.create_session(feature_id=None, snapshot_hash="l3")
-        sessions.upsert_loop_state(
-            created["id"], "loop-a", current_iteration=3, max_iterations=10
-        )
-        sessions.upsert_loop_state(
-            created["id"], "loop-b", current_iteration=7, max_iterations=10
-        )
+        sessions.upsert_loop_state(created["id"], "loop-a", current_iteration=3, max_iterations=10)
+        sessions.upsert_loop_state(created["id"], "loop-b", current_iteration=7, max_iterations=10)
 
         count = sessions.reset_loop_states(created["id"])
         assert count == 2

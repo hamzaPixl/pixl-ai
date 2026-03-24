@@ -8,19 +8,16 @@ from types import SimpleNamespace
 from typing import Any
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 from pixl.orchestration.core import (
-    OrchestratorCore,
     _BUDGET_BY_TIER,
     _FALLBACK_MAP,
     _UNRECOVERABLE_ERROR_PATTERNS,
+    OrchestratorCore,
     _fallback_model_for,
     _is_unrecoverable_api_error,
     _model_budget_usd,
     _model_tier,
 )
-
 
 # ---------------------------------------------------------------------------
 # Helpers / Fixtures
@@ -278,7 +275,10 @@ class TestSdkEventCallback:
 
 
 class TestBuildQueryOptions:
-    def _make_core_with_build_sdk_options(self, tmp_path: Path) -> tuple[OrchestratorCore, MagicMock]:
+    def _make_core_with_build_sdk_options(
+        self,
+        tmp_path: Path,
+    ) -> tuple[OrchestratorCore, MagicMock]:
         """Return a core instance with build_sdk_options patched so we can inspect kwargs."""
         pixl_dir = tmp_path / ".pixl"
         pixl_dir.mkdir(parents=True, exist_ok=True)

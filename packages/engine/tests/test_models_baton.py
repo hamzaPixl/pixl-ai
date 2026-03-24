@@ -7,9 +7,7 @@ and are isolated from each other (no shared mutable state).
 from __future__ import annotations
 
 import pytest
-
 from pixl.models.baton import ArtifactRef, Baton
-
 
 # ---------------------------------------------------------------------------
 # ArtifactRef
