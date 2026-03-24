@@ -9,7 +9,7 @@ from unittest.mock import MagicMock, patch
 from pixl_cli.sandbox_client import SandboxClient, _generate_jwt
 
 # Test-only signing key (not a real secret)
-_TEST_HMAC_KEY = "hmac-key-for-unit-tests-only"
+_TEST_HMAC_KEY = "hmac-key-for-unit-tests-only-padding!"  # >=32 bytes for HS256
 
 
 # ---------------------------------------------------------------------------

@@ -204,7 +204,7 @@ class Baton(BaseModel):
             if key not in current:
                 continue
             if value is None:
-                field_info = self.model_fields.get(key)
+                field_info = self.__class__.model_fields.get(key)
                 if (
                     field_info
                     and field_info.default_factory

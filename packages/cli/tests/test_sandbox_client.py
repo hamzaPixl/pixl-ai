@@ -482,7 +482,7 @@ class TestGetSandboxClient:
         env = {
             "PIXL_SANDBOX_URL": "https://sb.example.com",
             "PIXL_SANDBOX_API_KEY": "static-key",
-            "PIXL_SANDBOX_JWT_SECRET": "jwt-secret-test",
+            "PIXL_SANDBOX_JWT_SECRET": "jwt-secret-test-padding-for-hs256!",
         }
         with patch.dict(os.environ, env, clear=False):
             sb = get_sandbox_client()
