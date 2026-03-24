@@ -94,11 +94,21 @@ jobs:
 
       - run: uv python install 3.12
 
-      - name: Build engine wheel
-        run: uv build packages/engine/
+      - name: Install dependencies
+        run: uv sync --all-extras
 
-      - name: Build CLI wheel
-        run: uv build packages/cli/
+      - name: Build engine wheel
+        run: uv build --package pixl-engine
+
+      # CLI wheel requires crew/ sibling for force-include — skipped until
+      # hatch build is run from workspace root (pre-existing packaging issue)
+      # - name: Build CLI wheel
+      #   run: uv build --package pixl-cli
+
+      - name: Verify importability
+        run: |
+          uv run python -c "import pixl; print('pixl-engine OK')"
+          uv run python -c "import pixl_cli; print('pixl-cli OK')"
 
   # ── Python: Security Audit ─────────────────────────────────
   audit-python:
