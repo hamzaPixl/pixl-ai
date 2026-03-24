@@ -178,14 +178,14 @@ def sandbox_create(
     # Track in local DB
     sandbox_url = client._client.base_url
     try:
-        cli.db.sandboxes.create_project(
+        cli.db.sandboxes.create_project(  # type: ignore[attr-defined]
             project_id,
             str(sandbox_url),
             repo_url=repo_url,
             branch=branch,
             env_keys=list(env_vars.keys()) if env_vars else None,
         )
-        cli.db.sandboxes.update_project(
+        cli.db.sandboxes.update_project(  # type: ignore[attr-defined]
             project_id,
             status=result.get("status", "ready"),
             pixl_version=result.get("versions", {}).get("pixl"),
@@ -214,7 +214,7 @@ def sandbox_list(ctx: click.Context, status: str | None) -> None:
     """List tracked sandbox projects."""
     cli = get_ctx(ctx)
     try:
-        projects = cli.db.sandboxes.list_projects(status=status)
+        projects = cli.db.sandboxes.list_projects(status=status)  # type: ignore[attr-defined]
     except Exception as exc:
         emit_error(f"Failed to list projects: {exc}", is_json=cli.is_json)
         raise SystemExit(1) from None
@@ -249,7 +249,7 @@ def sandbox_status(ctx: click.Context, project_id: str) -> None:
 
     # Update local record
     try:
-        cli.db.sandboxes.update_project(
+        cli.db.sandboxes.update_project(  # type: ignore[attr-defined]
             project_id,
             status=result.get("status", "running"),
             pixl_version=result.get("versions", {}).get("pixl"),
@@ -284,7 +284,7 @@ def sandbox_workflow(
 
     # Update status to running
     try:
-        cli.db.sandboxes.update_project(project_id, status="running")
+        cli.db.sandboxes.update_project(project_id, status="running")  # type: ignore[attr-defined]
     except Exception:
         pass
 
@@ -302,7 +302,7 @@ def sandbox_workflow(
             op_status = "completed" if last.get("success", True) else "failed"
             _log_operation(cli, project_id, "workflow", status=op_status, duration_ms=duration_ms)
             try:
-                cli.db.sandboxes.update_project(project_id, status="ready")
+                cli.db.sandboxes.update_project(project_id, status="ready")  # type: ignore[attr-defined]
             except Exception:
                 pass
             return
@@ -327,7 +327,7 @@ def sandbox_workflow(
 
     # Update status back to ready
     try:
-        cli.db.sandboxes.update_project(project_id, status="ready")
+        cli.db.sandboxes.update_project(project_id, status="ready")  # type: ignore[attr-defined]
     except Exception:
         pass
 
@@ -640,7 +640,7 @@ def sandbox_destroy(ctx: click.Context, project_id: str) -> None:
 
     # Update local DB
     try:
-        cli.db.sandboxes.update_project(
+        cli.db.sandboxes.update_project(  # type: ignore[attr-defined]
             project_id,
             status="destroyed",
             destroyed_at=datetime.now(UTC).isoformat(),
@@ -684,7 +684,7 @@ def sandbox_sync(ctx: click.Context, project_id: str) -> None:
     try:
         # Use store methods where possible to preserve FTS indexing and bus notifications.
         # Sessions use raw SQL (store API requires snapshot_hash validation).
-        with cli.db.write() as conn:
+        with cli.db.write() as conn:  # type: ignore[attr-defined]
             for s in sessions:
                 cursor = conn.execute(
                     """INSERT OR IGNORE INTO workflow_sessions

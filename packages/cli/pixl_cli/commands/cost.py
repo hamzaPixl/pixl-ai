@@ -19,7 +19,7 @@ def cost(ctx: click.Context) -> None:
 def cost_summary(ctx: click.Context) -> None:
     """Show overall cost summary."""
     cli = get_ctx(ctx)
-    data = cli.db.cost_events.summary()
+    data = cli.db.cost_events.summary()  # type: ignore[attr-defined]
 
     if cli.is_json:
         emit_json(data)
@@ -33,7 +33,7 @@ def cost_summary(ctx: click.Context) -> None:
 def cost_by_model(ctx: click.Context, session: str | None) -> None:
     """Cost breakdown by model."""
     cli = get_ctx(ctx)
-    rows = cli.db.cost_events.breakdown_by_model(session_id=session)
+    rows = cli.db.cost_events.breakdown_by_model(session_id=session)  # type: ignore[attr-defined]
 
     emit_table(
         rows,
@@ -55,7 +55,7 @@ def cost_by_model(ctx: click.Context, session: str | None) -> None:
 def cost_by_session(ctx: click.Context, limit: int) -> None:
     """Cost breakdown by session."""
     cli = get_ctx(ctx)
-    rows = cli.db.cost_events.total_by_session(limit=limit)
+    rows = cli.db.cost_events.total_by_session(limit=limit)  # type: ignore[attr-defined]
 
     emit_table(
         rows,

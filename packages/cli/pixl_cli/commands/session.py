@@ -114,7 +114,7 @@ def session_create(
         config = loader.load_workflow(workflows[0]["id"])
 
     template = loader.convert_to_template(config)
-    snapshot = template.snapshot
+    snapshot = template.snapshot  # type: ignore[attr-defined]
 
     result = cli.db.sessions.create_session(
         feature_id=feature_id,
