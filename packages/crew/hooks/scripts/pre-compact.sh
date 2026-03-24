@@ -22,8 +22,8 @@ STAGED=$(cd "$PROJECT_DIR" && git diff --cached --name-only 2>/dev/null || echo 
 MODIFIED=$(cd "$PROJECT_DIR" && git diff --name-only 2>/dev/null || echo "")
 UNTRACKED=$(cd "$PROJECT_DIR" && git ls-files --others --exclude-standard 2>/dev/null | head -20 || echo "")
 
-cat > "$COMPACT_FILE" << EOF
-# Pre-Compact Snapshot — $TIMESTAMP
+# Build compact snapshot content
+COMPACT_CONTENT="# Pre-Compact Snapshot — $TIMESTAMP
 
 **Branch**: $BRANCH
 
@@ -34,39 +34,41 @@ $STAGED
 $MODIFIED
 
 ## Untracked Files (first 20)
-$UNTRACKED
-EOF
+$UNTRACKED"
 
 # Append recent decisions if available
 if [[ -f "$MEMORY_DIR/decisions.jsonl" ]]; then
   RECENT=$(tail -5 "$MEMORY_DIR/decisions.jsonl" 2>/dev/null)
   if [[ -n "$RECENT" ]]; then
-    cat >> "$COMPACT_FILE" << EOF
+    COMPACT_CONTENT="$COMPACT_CONTENT
 
 ## Recent Decisions
 \`\`\`jsonl
 $RECENT
-\`\`\`
-EOF
+\`\`\`"
   fi
 fi
 
 # Append task state if available
 TASK_STATE="$PROJECT_DIR/.context/task-state.json"
 if [[ -f "$TASK_STATE" ]]; then
-  echo "" >> "$COMPACT_FILE"
-  echo "## Task State" >> "$COMPACT_FILE"
-  echo '```json' >> "$COMPACT_FILE"
-  cat "$TASK_STATE" >> "$COMPACT_FILE"
-  echo '```' >> "$COMPACT_FILE"
+  TASK_JSON=$(cat "$TASK_STATE")
+  COMPACT_CONTENT="$COMPACT_CONTENT
+
+## Task State
+\`\`\`json
+$TASK_JSON
+\`\`\`"
 fi
 
-# Store in pixl DB as the primary location
+# Write to pixl DB (primary) or file (fallback) — not both
 if $PIXL_AVAILABLE; then
-  pixl_put "pre-compact-$TIMESTAMP" "compact_snapshot" "$(cat "$COMPACT_FILE")"
+  pixl_put "pre-compact-$TIMESTAMP" "compact_snapshot" "$COMPACT_CONTENT"
+else
+  echo "$COMPACT_CONTENT" > "$COMPACT_FILE"
 fi
 
 # Output reminder for Claude
-echo "Context compaction detected. Session state saved to $COMPACT_FILE. Review this file after compaction to restore context."
+echo "Context compaction detected. Session state saved. Review pre-compact snapshot after compaction to restore context."
 
 exit 0

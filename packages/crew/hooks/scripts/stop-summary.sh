@@ -25,8 +25,8 @@ MODIFIED_FILES=$(cd "$PROJECT_DIR" && git diff --name-only HEAD~1 2>/dev/null ||
 BRANCH=$(cd "$PROJECT_DIR" && git branch --show-current 2>/dev/null || echo "unknown")
 LAST_COMMITS=$(cd "$PROJECT_DIR" && git log --oneline -5 2>/dev/null || echo "No commits")
 
-cat > "$SUMMARY_FILE" << EOF
-# Session Summary — $TIMESTAMP
+# Build summary content
+SUMMARY_CONTENT="# Session Summary — $TIMESTAMP
 
 **Branch**: $BRANCH
 
@@ -41,25 +41,23 @@ $DIFF_STAT
 \`\`\`
 
 ## Modified Files
-$MODIFIED_FILES
-EOF
-
-# Store in pixl DB as the primary location
-if $PIXL_AVAILABLE; then
-  pixl_put "session-summary-$TIMESTAMP" "session_summary" "$(cat "$SUMMARY_FILE")"
-fi
+$MODIFIED_FILES"
 
 # Preserve task state if it exists
 TASK_STATE="$PROJECT_DIR/.context/task-state.json"
 if [[ -f "$TASK_STATE" ]]; then
-  echo "" >> "$SUMMARY_FILE"
-  echo "## Task State" >> "$SUMMARY_FILE"
-  echo "Task state preserved at \`.context/task-state.json\`" >> "$SUMMARY_FILE"
+  SUMMARY_CONTENT="$SUMMARY_CONTENT
+
+## Task State
+Task state preserved at \`.context/task-state.json\`"
 fi
 
-# Rebuild pixl knowledge index for changed files
+# Write to pixl DB (primary) or file (fallback) — not both
 if $PIXL_AVAILABLE; then
+  pixl_put "session-summary-$TIMESTAMP" "session_summary" "$SUMMARY_CONTENT"
   pixl knowledge build 2>/dev/null || true
+else
+  echo "$SUMMARY_CONTENT" > "$SUMMARY_FILE"
 fi
 
 exit 0
