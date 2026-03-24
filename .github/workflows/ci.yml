@@ -100,10 +100,8 @@ jobs:
       - name: Build engine wheel
         run: uv build --package pixl-engine
 
-      # CLI wheel requires crew/ sibling for force-include — skipped until
-      # hatch build is run from workspace root (pre-existing packaging issue)
-      # - name: Build CLI wheel
-      #   run: uv build --package pixl-cli
+      - name: Build CLI wheel
+        run: uv build --package pixl-cli
 
       - name: Verify importability
         run: |

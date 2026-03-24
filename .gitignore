@@ -21,6 +21,9 @@ node_modules/
 .ruff_cache/
 .context/
 
+# CLI build artefact — hatch_build.py copies crew here at build time
+packages/cli/pixl_cli/_crew/
+
 # Env
 .env
 .env.local
