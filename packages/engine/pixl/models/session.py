@@ -13,12 +13,12 @@ from enum import StrEnum
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-logger = logging.getLogger(__name__)
-
 from pydantic import BaseModel, Field, computed_field
 
 if TYPE_CHECKING:
     from pixl.models.workflow import WorkflowSnapshot
+
+logger = logging.getLogger(__name__)
 
 
 class SessionStatus(StrEnum):
