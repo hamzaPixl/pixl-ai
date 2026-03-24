@@ -419,6 +419,96 @@ class TestGetOrCreateClient:
 
         assert ("_default", "claude-haiku-4-5") in core._sdk_clients
 
+    async def test_should_expand_locked_tools_when_new_stage_requests_extra(
+        self, tmp_path: Path
+    ) -> None:
+        """T-29: Extra tools should be unioned into the locked set, not ignored."""
+        core = _make_core(tmp_path)
+        key = ("agent-x", "claude-sonnet-4-6")
+
+        # First call: establish client with initial tools
+        opts1 = MagicMock()
+        opts1.allowed_tools = ["Read", "Write"]
+        with patch("pixl.orchestration.core.ClaudeSDKClient", return_value=MagicMock()):
+            await core._get_or_create_client("agent-x", "claude-sonnet-4-6", opts1)
+
+        assert set(core._locked_tools[key]) == {"Read", "Write"}
+
+        # Second call: stage requests extra tools (Edit, Bash)
+        opts2 = MagicMock()
+        opts2.allowed_tools = ["Read", "Edit", "Bash"]
+        with patch("pixl.orchestration.core.ClaudeSDKClient"):
+            await core._get_or_create_client("agent-x", "claude-sonnet-4-6", opts2)
+
+        # Locked set should be the union
+        assert set(core._locked_tools[key]) == {"Read", "Write", "Edit", "Bash"}
+
+    async def test_should_preserve_original_tools_after_expansion(
+        self, tmp_path: Path
+    ) -> None:
+        """T-29: Original locked tools must still be present after expansion."""
+        core = _make_core(tmp_path)
+        key = ("agent-y", "claude-haiku-4-5")
+
+        opts1 = MagicMock()
+        opts1.allowed_tools = ["Read", "Glob"]
+        with patch("pixl.orchestration.core.ClaudeSDKClient", return_value=MagicMock()):
+            await core._get_or_create_client("agent-y", "claude-haiku-4-5", opts1)
+
+        original_tools = set(core._locked_tools[key])
+
+        opts2 = MagicMock()
+        opts2.allowed_tools = ["Grep", "Bash"]
+        with patch("pixl.orchestration.core.ClaudeSDKClient"):
+            await core._get_or_create_client("agent-y", "claude-haiku-4-5", opts2)
+
+        # Every original tool must still be in the expanded set
+        expanded = set(core._locked_tools[key])
+        assert original_tools.issubset(expanded)
+        assert expanded == {"Read", "Glob", "Grep", "Bash"}
+
+    async def test_should_log_info_when_expanding_tools(self, tmp_path: Path) -> None:
+        """T-29: Expansion should be logged at INFO level for observability."""
+        core = _make_core(tmp_path)
+
+        opts1 = MagicMock()
+        opts1.allowed_tools = ["Read"]
+        with patch("pixl.orchestration.core.ClaudeSDKClient", return_value=MagicMock()):
+            await core._get_or_create_client("agent-z", "claude-sonnet-4-6", opts1)
+
+        opts2 = MagicMock()
+        opts2.allowed_tools = ["Read", "Write"]
+        with (
+            patch("pixl.orchestration.core.ClaudeSDKClient"),
+            patch("pixl.orchestration.core.logger") as mock_logger,
+        ):
+            await core._get_or_create_client("agent-z", "claude-sonnet-4-6", opts2)
+
+        # Verify logger.info was called with the expansion message
+        info_calls = [call for call in mock_logger.info.call_args_list]
+        assert any("expanding locked tools" in str(call) for call in info_calls), (
+            f"Expected 'expanding locked tools' in logger.info calls: {info_calls}"
+        )
+
+    async def test_should_not_expand_when_tools_are_subset(self, tmp_path: Path) -> None:
+        """No expansion when new tools are a subset of the locked set."""
+        core = _make_core(tmp_path)
+        key = ("agent-s", "claude-sonnet-4-6")
+
+        opts1 = MagicMock()
+        opts1.allowed_tools = ["Read", "Write", "Edit"]
+        with patch("pixl.orchestration.core.ClaudeSDKClient", return_value=MagicMock()):
+            await core._get_or_create_client("agent-s", "claude-sonnet-4-6", opts1)
+
+        # Second call with a subset of tools — no expansion needed
+        opts2 = MagicMock()
+        opts2.allowed_tools = ["Read", "Write"]
+        with patch("pixl.orchestration.core.ClaudeSDKClient"):
+            await core._get_or_create_client("agent-s", "claude-sonnet-4-6", opts2)
+
+        # Locked set should be unchanged (still the original 3 tools)
+        assert set(core._locked_tools[key]) == {"Read", "Write", "Edit"}
+
 
 # ---------------------------------------------------------------------------
 # OrchestratorCore.cleanup_sdk_clients

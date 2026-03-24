@@ -16,6 +16,7 @@ from pixl.config.providers import (
     ProviderConfig,
     ProvidersConfig,
     ProvidersConfigLoadResult,
+    load_model_pricing,
     load_providers_config,
     load_providers_config_with_source,
 )
@@ -47,6 +48,7 @@ __all__ = [
     "ProviderConfig",
     "ProvidersConfig",
     "ProvidersConfigLoadResult",
+    "load_model_pricing",
     "load_providers_config",
     "load_providers_config_with_source",
     # Config resolver

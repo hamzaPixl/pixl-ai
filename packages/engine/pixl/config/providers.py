@@ -4,6 +4,7 @@ This module defines the configuration schema for:
 - Providers (Anthropic, Codex, Gemini)
 - Concurrency limits per provider/model
 - Models allowlist (only these models can be used)
+- Model pricing (per-1M-token rates for cost estimation)
 
 Config search order:
 1. project_path/.pixl/providers.yaml               # Local override
@@ -12,6 +13,7 @@ Config search order:
 4. Bundled defaults                                # Fallback
 """
 
+import logging
 from collections.abc import Iterator
 from dataclasses import dataclass
 from pathlib import Path
@@ -272,3 +274,78 @@ def load_providers_config_with_source(
             config.concurrency = ConcurrencyConfig(**user_config["concurrency"])
 
     return ProvidersConfigLoadResult(config=config, source=source)
+
+
+# ---------------------------------------------------------------------------
+# Model Pricing
+# ---------------------------------------------------------------------------
+
+_pricing_logger = logging.getLogger(__name__)
+
+# Hardcoded fallback pricing (kept for resilience if config file is missing)
+_FALLBACK_MODEL_PRICING: dict[str, tuple[float, float]] = {
+    "claude-sonnet-4-6": (3.0, 15.0),
+    "claude-opus-4-6": (15.0, 75.0),
+    "claude-haiku-4-5": (0.80, 4.0),
+}
+
+# Module-level cache (populated on first call to load_model_pricing)
+_cached_model_pricing: dict[str, tuple[float, float]] | None = None
+
+
+def load_model_pricing() -> dict[str, tuple[float, float]]:
+    """Load per-1M-token pricing (input, output) from bundled pricing.yaml.
+
+    Falls back to the hardcoded _FALLBACK_MODEL_PRICING if the config
+    file cannot be read or parsed.
+
+    Returns:
+        Dict mapping model name substring to (input_rate, output_rate) per 1M tokens.
+    """
+    global _cached_model_pricing  # noqa: PLW0603
+    if _cached_model_pricing is not None:
+        return _cached_model_pricing
+
+    pricing_path = Path(__file__).parent / "pricing.yaml"
+    try:
+        with open(pricing_path) as f:
+            data = yaml.safe_load(f)
+        if not isinstance(data, dict) or "models" not in data:
+            _pricing_logger.warning(
+                "pricing.yaml has unexpected format, falling back to defaults"
+            )
+            _cached_model_pricing = dict(_FALLBACK_MODEL_PRICING)
+            return _cached_model_pricing
+
+        result: dict[str, tuple[float, float]] = {}
+        for model_name, rates in data["models"].items():
+            if isinstance(rates, dict) and "input" in rates and "output" in rates:
+                result[str(model_name)] = (float(rates["input"]), float(rates["output"]))
+            else:
+                _pricing_logger.warning(
+                    "pricing.yaml: skipping malformed entry for model %r",
+                    model_name,
+                )
+
+        if not result:
+            _pricing_logger.warning(
+                "pricing.yaml contained no valid entries, falling back to defaults"
+            )
+            _cached_model_pricing = dict(_FALLBACK_MODEL_PRICING)
+        else:
+            _cached_model_pricing = result
+        return _cached_model_pricing
+
+    except Exception:
+        _pricing_logger.warning(
+            "Failed to load pricing.yaml, falling back to hardcoded defaults",
+            exc_info=True,
+        )
+        _cached_model_pricing = dict(_FALLBACK_MODEL_PRICING)
+        return _cached_model_pricing
+
+
+def _reset_pricing_cache() -> None:
+    """Reset the pricing cache (for testing only)."""
+    global _cached_model_pricing  # noqa: PLW0603
+    _cached_model_pricing = None

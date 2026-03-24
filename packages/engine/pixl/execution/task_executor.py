@@ -38,19 +38,24 @@ logger = logging.getLogger(__name__)
 STRUCTURED_OUTPUT_REPAIR_ATTEMPTS = 1
 RAW_OUTPUT_EXCERPT_CHARS = 20_000
 
-# Per-1M-token pricing (input, output) for cost estimation
-_MODEL_PRICING: dict[str, tuple[float, float]] = {
-    "claude-sonnet-4-6": (3.0, 15.0),
-    "claude-opus-4-6": (15.0, 75.0),
-    "claude-haiku-4-5": (0.80, 4.0),
-}
-
-
 def _estimate_cost(input_tokens: int, output_tokens: int, model: str) -> float:
-    """Estimate USD cost from token counts using known model pricing."""
-    for key, (inp_rate, out_rate) in _MODEL_PRICING.items():
+    """Estimate USD cost from token counts using config-loaded model pricing.
+
+    Loads pricing from packages/engine/pixl/config/pricing.yaml (cached).
+    Falls back to $0 with a WARNING log when the model is not found.
+    """
+    from pixl.config.providers import load_model_pricing
+
+    pricing = load_model_pricing()
+    for key, (inp_rate, out_rate) in pricing.items():
         if key in model:
             return (input_tokens * inp_rate + output_tokens * out_rate) / 1_000_000
+
+    logger.warning(
+        "No pricing data for model %r — cost will be reported as $0. "
+        "Add the model to packages/engine/pixl/config/pricing.yaml.",
+        model,
+    )
     return 0.0
 
 

@@ -131,7 +131,6 @@ jobs:
 
       - name: Run pip-audit
         run: uv run pip-audit
-        continue-on-error: true
 
   # ── TypeScript: Sandbox Checks ─────────────────────────────
   sandbox:
@@ -155,4 +154,3 @@ jobs:
 
       - name: npm audit
         run: npm audit --omit=dev
-        continue-on-error: true

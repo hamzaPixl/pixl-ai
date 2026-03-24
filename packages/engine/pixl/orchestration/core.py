@@ -137,12 +137,12 @@ class OrchestratorCore:
             if new_tools and locked and set(new_tools) != set(locked):
                 extra = set(new_tools) - set(locked)
                 if extra:
-                    logger.warning(
-                        "Persistent client %s: stage requested extra tools %s "
-                        "not in locked set — these will NOT be available.",
+                    logger.info(
+                        "Persistent client %s: expanding locked tools with %s",
                         key,
                         extra,
                     )
+                    self._locked_tools[key] = list(set(locked) | set(new_tools))
         return client
 
     async def cleanup_sdk_clients(self) -> None:
