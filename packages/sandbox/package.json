@@ -7,6 +7,8 @@
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
     "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "test:e2e": "bash scripts/test-e2e.sh"
   },
   "dependencies": {
@@ -15,8 +17,10 @@
     "jose": "^6.2.2"
   },
   "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "^0.13.4",
     "@cloudflare/workers-types": "^4.20250312.0",
     "typescript": "^5.7.0",
+    "vitest": "^4.1.1",
     "wrangler": "^4.0.0"
   },
   "engines": {

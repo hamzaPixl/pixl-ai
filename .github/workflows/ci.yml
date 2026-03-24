@@ -152,3 +152,6 @@ jobs:
 
       - name: npm audit
         run: npm audit --omit=dev
+
+      - name: Unit tests
+        run: npm test
