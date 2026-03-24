@@ -562,8 +562,7 @@ class ContractValidator:
                 ContractViolation(
                     rule="structured_output_semantics",
                     message=(
-                        "Unknown feature references in decomposition graph: "
-                        f"{sorted(unknown_refs)}"
+                        f"Unknown feature references in decomposition graph: {sorted(unknown_refs)}"
                     ),
                 )
             )
