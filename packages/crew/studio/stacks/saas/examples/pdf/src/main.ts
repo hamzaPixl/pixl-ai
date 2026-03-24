@@ -49,6 +49,9 @@ async function bootstrap(): Promise<void> {
     >,
   });
 
+  const jwtSecret = process.env['JWT_SECRET'];
+  if (!jwtSecret) throw new Error('JWT_SECRET environment variable is required');
+
   const { app, logger, start } = await createApiFactory({
     name: 'pdf-service',
     version: '0.1.0',
@@ -56,10 +59,10 @@ async function bootstrap(): Promise<void> {
     logLevel: (process.env['LOG_LEVEL'] as 'info') || 'info',
     logPretty: process.env['NODE_ENV'] !== 'production',
     jwt: {
-      secret: process.env['JWT_SECRET'] || 'development-secret-change-in-production',
+      secret: jwtSecret,
     },
     cors: {
-      origins: (process.env['CORS_ORIGINS'] || '*').split(','),
+      origins: process.env['CORS_ORIGINS'] ? process.env['CORS_ORIGINS'].split(',') : ['http://localhost:3000'],
     },
     swagger: {
       title: 'PDF Service API',

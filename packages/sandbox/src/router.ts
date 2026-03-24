@@ -282,7 +282,11 @@ app.get("/sandboxes/:id/events", async (c) => {
     return c.json({ error: "Insufficient scope" }, 403);
   }
   const sb = getSandbox(c.env.Sandbox, c.req.param("id"));
-  const limit = c.req.query("limit") || "50";
+  const rawLimit = c.req.query("limit") || "50";
+  const limit = parseInt(rawLimit, 10);
+  if (isNaN(limit) || limit < 1 || limit > 10000) {
+    return c.json({ error: "limit must be a number between 1 and 10000" }, 400);
+  }
   const result = await sb.exec(`pixl events list --json --limit ${limit}`);
 
   if (result.exitCode !== 0) {
@@ -441,6 +445,9 @@ app.post("/sandboxes/:id/workflow", async (c) => {
     return c.json({ error: "Insufficient scope" }, 403);
   }
   const body = await c.req.json<WorkflowRequest>();
+  if (body.workflowId && !/^[\w-]+$/.test(body.workflowId)) {
+    return c.json({ error: "Invalid workflow ID format" }, 400);
+  }
   const sb = getSandbox(c.env.Sandbox, c.req.param("id"));
 
   const { result, duration_ms } = await timed(async () => {
@@ -475,6 +482,9 @@ app.post("/sandboxes/:id/workflow/stream", async (c) => {
     return c.json({ error: "Insufficient scope" }, 403);
   }
   const body = await c.req.json<WorkflowRequest>();
+  if (body.workflowId && !/^[\w-]+$/.test(body.workflowId)) {
+    return c.json({ error: "Invalid workflow ID format" }, 400);
+  }
   const sb = getSandbox(c.env.Sandbox, c.req.param("id"));
 
   const args = ["pixl", "workflow", "run"];
@@ -593,6 +603,9 @@ app.get("/sandboxes/:id/sessions/:sessionId/export", async (c) => {
   }
   const sandboxId = c.req.param("id");
   const sessionId = c.req.param("sessionId");
+  if (!sessionId || !/^[\w-]+$/.test(sessionId)) {
+    return c.json({ error: "Invalid session ID format" }, 400);
+  }
   const sb = getSandbox(c.env.Sandbox, sandboxId);
   const commandTimeout = 30_000;
 
@@ -785,6 +798,9 @@ print(json.dumps({"imported": sid}))
 
 // Write a file into the sandbox
 app.post("/sandboxes/:id/files", async (c) => {
+  if (!requireScope(c, "write")) {
+    return c.json({ error: "Insufficient scope" }, 403);
+  }
   const body = await c.req.json<FileWriteRequest>();
   if (!body.path || body.content === undefined) {
     return c.json({ error: "path and content are required" }, 400);
@@ -808,6 +824,9 @@ app.post("/sandboxes/:id/files", async (c) => {
 
 // Read a file from the sandbox
 app.get("/sandboxes/:id/files/*", async (c) => {
+  if (!requireScope(c, "read")) {
+    return c.json({ error: "Insufficient scope" }, 403);
+  }
   const filePath =
     "/" + (c.req.param("*") ?? c.req.path.split("/files/").pop() ?? "");
 
@@ -836,6 +855,9 @@ app.get("/sandboxes/:id/files/*", async (c) => {
 
 // Get git status, log, branch, remote
 app.get("/sandboxes/:id/git", async (c) => {
+  if (!requireScope(c, "read")) {
+    return c.json({ error: "Insufficient scope" }, 403);
+  }
   const sb = getSandbox(c.env.Sandbox, c.req.param("id"));
   const gitInfo = await getGitInfo(sb);
 
@@ -856,6 +878,9 @@ app.get("/sandboxes/:id/git", async (c) => {
 
 // Push to remote
 app.post("/sandboxes/:id/git/push", async (c) => {
+  if (!requireScope(c, "admin")) {
+    return c.json({ error: "Insufficient scope" }, 403);
+  }
   const sb = getSandbox(c.env.Sandbox, c.req.param("id"));
   const gitInfo = await getGitInfo(sb);
 
@@ -882,6 +907,9 @@ app.post("/sandboxes/:id/git/push", async (c) => {
 
 // Configure git user/remote
 app.post("/sandboxes/:id/git/config", async (c) => {
+  if (!requireScope(c, "write")) {
+    return c.json({ error: "Insufficient scope" }, 403);
+  }
   const body = await c.req.json<GitConfigRequest>();
   const sb = getSandbox(c.env.Sandbox, c.req.param("id"));
   const commands: string[] = [];
@@ -918,6 +946,9 @@ app.post("/sandboxes/:id/git/config", async (c) => {
 
 // Start a background process
 app.post("/sandboxes/:id/process/start", async (c) => {
+  if (!requireScope(c, "write")) {
+    return c.json({ error: "Insufficient scope" }, 403);
+  }
   const body = await c.req.json<ProcessStartRequest>();
   if (!body.command) {
     return c.json({ error: "command is required" }, 400);
@@ -934,6 +965,9 @@ app.post("/sandboxes/:id/process/start", async (c) => {
 
 // Kill a background process
 app.delete("/sandboxes/:id/process/:pid", async (c) => {
+  if (!requireScope(c, "write")) {
+    return c.json({ error: "Insufficient scope" }, 403);
+  }
   const sb = getSandbox(c.env.Sandbox, c.req.param("id"));
   await sb.killProcess(c.req.param("pid"));
   return c.json({ success: true });
