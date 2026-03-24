@@ -78,6 +78,7 @@ def execute_with_orchestrator(
     Returns:
         Execution result
     """
+    assert executor.orchestrator is not None, "orchestrator required for SDK execution"
     from pixl.output import console, is_json_mode
 
     events: list[Event] = []

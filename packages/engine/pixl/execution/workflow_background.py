@@ -195,6 +195,9 @@ def _run_workflow_inner(
                 last_heartbeat = now_mono
 
             session = session_store.load_session(session.id)
+            if session is None:
+                logger.error("Session %s disappeared from store", session_id)
+                break
             if session.paused_at:
                 logger.info("Session %s paused externally", session_id)
                 orchestrator.request_interrupt()
@@ -275,14 +278,14 @@ def _run_workflow_inner(
             else:
                 step_count += 1
 
-            session = session_store.load_session(session.id)
-            if _has_waiting_gates(session):
+            session = session_store.load_session(session.id)  # type: ignore[assignment]
+            if session is not None and _has_waiting_gates(session):
                 continue
 
-        session = session_store.load_session(session.id)
+        session = session_store.load_session(session.id)  # type: ignore[assignment]
         from pixl.models.session import SessionStatus
 
-        if session.status in (SessionStatus.COMPLETED, SessionStatus.FAILED):
+        if session is not None and session.status in (SessionStatus.COMPLETED, SessionStatus.FAILED):
             db.sessions.update_session(
                 session_id,
                 ended_at=datetime.now().isoformat(),

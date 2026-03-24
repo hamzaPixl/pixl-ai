@@ -1598,6 +1598,7 @@ class GraphExecutor:
         )
         persisted_events.append(start_event)
 
+        assert node.hook_config is not None, f"hook_config required for hook node {node.id}"
         hook_fn = get_hook(node.hook_config.hook_id)
         if not hook_fn:
             error = f"Unknown hook: {node.hook_config.hook_id}"
