@@ -47,6 +47,9 @@ def _estimate_cost(input_tokens: int, output_tokens: int, model: str) -> float:
     """
     from pixl.config.providers import load_model_pricing
 
+    if not model:
+        return 0.0
+
     pricing = load_model_pricing()
     for key, (inp_rate, out_rate) in pricing.items():
         if key in model:
