@@ -1,7 +1,7 @@
 id: roadmap
 name: Roadmap Planning Workflow
 description: Create a strategic roadmap with milestones and epic breakdown
-version: 2.0.0
+version: 3.0.0
 tags:
   - roadmap
   - strategic
@@ -29,12 +29,20 @@ stages:
       Analyze the roadmap request and produce a structured brief.
       Save as `roadmap-brief.md` artifact using `pixl artifact put`.
 
+      If a PRD or requirements document exists in the project, use
+      `/prd-analysis` to parse it into structured categories first.
+
       Include these sections:
       - Vision: What the roadmap achieves
       - Milestones: Key delivery milestones
       - Sequencing: Order of execution
       - Risk Assessment: Potential blockers and mitigations
       - Success Metrics: How to measure progress
+
+      ## Available Crew Skills
+      - `/prd-analysis` — parse PRD into 8 structured categories
+      - `/strategic-intel` — market research and competitor analysis
+      - `/vision-advisory` — full advisory package (market + architecture + roadmap)
     outputs:
       - "{{roadmap_brief_file}}"
     output_schema: roadmap-brief-payload.json
@@ -70,12 +78,22 @@ stages:
       Create a detailed execution plan with milestones and epics.
       Each epic should be decomposable into 2-10 features later.
 
+      Use `/task-plan` to structure each epic with dependency-aware
+      task ordering and acceptance criteria.
+      Use `/sprint-planning` to estimate velocity and sprint capacity.
+
       ### Rules
       1. At least 2 milestones
       2. Each milestone has at least 1 epic
       3. Milestones must have clear success criteria
       4. Sequencing must respect technical dependencies
       5. Include risk mitigation for each milestone
+
+      ## Available Crew Skills
+      - `/task-plan` — dependency-aware task decomposition per epic
+      - `/sprint-planning` — velocity estimation and sprint breakdown
+      - `/cto-review` — architectural review of proposed milestone structure
+      - `/migration-plan` — if milestones involve data/schema migrations
 
       ## Output
 

@@ -1,7 +1,7 @@
 id: simple
 name: Simple Workflow
 description: Simplified plan-approve-implement with plugin-delegated sessions
-version: 1.0.0
+version: 2.0.0
 tags: [simple, fast]
 tier: orchestration
 workflow_format: v2
@@ -28,6 +28,15 @@ stages:
       - Risk Assessment: Flag uncertain or complex areas
 
       If a step is unclear, mark it "[NEEDS CLARIFICATION]" rather than guessing.
+
+      ## Available Crew Skills
+      You have the pixl-crew plugin with 14 agents and 75 skills.
+      Use `/task-plan` to generate a structured task breakdown with
+      dependencies, acceptance criteria, and vertical slice ordering.
+      Key skills for planning:
+      - `/task-plan` — dependency-aware task decomposition
+      - `/prd-analysis` — parse requirements into structured categories
+      - `/sprint-planning` — estimate velocity and sprint capacity
     outputs: [plan.md]
     contract:
       must_write: [plan.md]
@@ -56,6 +65,18 @@ stages:
       3. Keep implementations minimal — no speculative features
       4. Run all tests and lint checks
       5. Commit your changes
+
+      ## Available Crew Skills
+      You have the full pixl-crew plugin loaded. Use the right skill
+      for the job:
+      - `/website` — build Next.js websites (discovery → design → scaffold → build)
+      - `/fastapi-service` — add Python FastAPI services
+      - `/pydantic-api-endpoint` — add CRUD endpoints
+      - `/ddd-pattern` — apply Domain-Driven Design patterns
+      - `/shadcn-ui` — install and compose UI components
+      - `/test-writer` — generate test suites before implementing
+      - `/docker-cloudrun` — containerize and deploy
+      Pick whichever skill fits the feature. The crew handles the details.
     required_artifacts: [plan.md]
     contract:
       detect_stubs: true
@@ -67,9 +88,15 @@ stages:
     max_turns: 100
     prompt: |
       Review all changes, fix any issues, and prepare for PR.
-      1. Self-review all modified files for quality
-      2. Ensure tests pass and lint is clean
-      3. Create a PR with descriptive title and body using `gh pr create`
+      1. Use `/self-review-fix-loop` to run automated review and fix cycles
+      2. Use `/code-review` for a final quality gate (multi-agent review)
+      3. Ensure tests pass and lint is clean
+      4. Create a PR with descriptive title and body using `gh pr create`
+
+      ## Available Crew Skills
+      - `/self-review-fix-loop` — iterative review + auto-fix
+      - `/code-review` — multi-agent PR review with confidence scoring
+      - `/security-scan` — OWASP audit if security-relevant changes
     contract:
       detect_stubs: true
 

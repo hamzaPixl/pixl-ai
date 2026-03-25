@@ -1,7 +1,7 @@
 id: tdd
 name: TDD Workflow
-description: Simplified TDD with plugin-delegated sessions
-version: 1.0.0
+description: Test-driven development with plugin-delegated sessions
+version: 2.0.0
 tags: [tdd, feature]
 tier: orchestration
 workflow_format: v2
@@ -20,6 +20,14 @@ stages:
       Analyze the feature request and produce a design document.
       Save as `design.md` artifact using `pixl artifact put`.
       Include: Summary, Requirements, Scope, Technical Approach.
+
+      Structure the design with clear, testable acceptance criteria so
+      `/spec-review` can validate implementation coverage later.
+
+      ## Available Crew Skills
+      - `/prd-analysis` — if requirements docs exist, parse into 8 structured categories
+      - `/task-plan` — break the design into ordered tasks with dependencies
+      - `/ddd-pattern` — if domain modeling is needed, analyze bounded contexts
     outputs: [design.md]
     contract:
       must_write: [design.md]
@@ -46,20 +54,39 @@ stages:
       3. Implement code to pass tests
       4. Run all tests and lint checks
       5. Commit your changes
+
+      ## Available Crew Skills
+      Use `/test-writer` to generate failing tests from the design document.
+      Then implement to make them pass.
+      After implementation, use `/spec-review` to validate coverage against
+      the design.
+      Full crew available — use the right skill for the job:
+      - `/test-writer` — generate test suites (unit, integration, E2E)
+      - `/spec-review` — validate implementation against design spec
+      - `/website` — Next.js frontend builds
+      - `/fastapi-service` — Python API services
+      - `/ddd-pattern` — domain model implementation
+      - `/shadcn-ui` — UI component composition
     required_artifacts: [design.md]
     contract:
       detect_stubs: true
 
-  # Phase 3: Review & Finalize — self-review, fix issues, create PR
+  # Phase 3: Review & Finalize
   - id: finalize
     name: Review & Finalize
     type: task
     max_turns: 100
     prompt: |
       Review all changes, fix any issues, and prepare for PR.
-      1. Self-review all modified files for quality
-      2. Ensure tests pass and lint is clean
-      3. Create a PR with descriptive title and body using `gh pr create`
+      1. Use `/self-review-fix-loop` to run automated review + fix cycles
+      2. Use `/code-review` for multi-agent quality gate
+      3. Ensure tests pass and lint is clean
+      4. Create a PR with descriptive title and body using `gh pr create`
+
+      ## Available Crew Skills
+      - `/self-review-fix-loop` — iterative review + auto-fix
+      - `/code-review` — multi-agent PR review with confidence scoring
+      - `/spec-review` — final spec drift check
     contract:
       detect_stubs: true
 

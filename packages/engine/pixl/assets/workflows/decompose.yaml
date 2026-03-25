@@ -35,6 +35,10 @@ stages:
       - Acceptance Criteria: High-level success criteria
       - Scope Boundaries: What's in/out of scope
       - Decomposition Hints: Suggested feature boundaries
+
+      ## Available Crew Skills
+      - `/prd-analysis` — parse requirements into structured categories
+      - `/cto-review` — review scope for architectural concerns
     outputs:
       - "{{epic_brief_file}}"
     output_schema: epic-brief-payload.json
@@ -93,6 +97,15 @@ stages:
       8. If a feature has estimate_points >= 8 or touches more than 8 files,
          set `"needs_refinement": true`. The chain runner will decompose it
          further before execution.
+
+      ## Available Crew Skills
+      Use `/task-plan` to create detailed task lists per feature with
+      acceptance criteria, vertical slice ordering, and dependencies.
+      - `/task-plan` — dependency-aware task decomposition
+      - `/sprint-planning` — estimate sprint capacity per feature
+      - `/ddd-pattern` — if features involve domain modeling, analyze bounded contexts
+      - `/cto-review` — review decomposition for architectural soundness
+      - `/spec-review` — validate feature specs against original epic requirements
 
       ## Output
 

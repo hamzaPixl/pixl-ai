@@ -1,7 +1,7 @@
 id: debug
 name: Debug Workflow
-description: Simplified RED-FIX-PROVE debugging with plugin-delegated sessions
-version: 1.0.0
+description: RED-FIX-PROVE debugging with plugin-delegated sessions
+version: 2.0.0
 tags: [debug, bugfix]
 tier: orchestration
 workflow_format: v2
@@ -11,7 +11,7 @@ routing:
   sub_invocable: false
 
 stages:
-  # Phase 1: Reproduce & Isolate — capture the bug and narrow the cause
+  # Phase 1: Reproduce & Isolate
   - id: reproduce
     name: Reproduce & Isolate
     type: task
@@ -24,9 +24,16 @@ stages:
       3. Classify bug category (render/state, data/API, routing, build)
       4. Binary search to narrow suspect area by ~50%
 
+      If the bug appears security-related, use `/security-scan` for
+      root-cause analysis and vulnerability assessment.
+
       Save findings using `pixl artifact put`:
       - `debug-context.md`: symptom, scope, environment, evidence
       - `isolation-hypothesis.md`: category, narrowed suspect area, hypothesis
+
+      ## Available Crew Skills
+      - `/security-scan` — OWASP audit if security-related
+      - `/dependency-review` — check if bug is from outdated dependency
     outputs: [debug-context.md, isolation-hypothesis.md]
     contract:
       must_write: [debug-context.md, isolation-hypothesis.md]
@@ -40,7 +47,7 @@ stages:
     required_artifacts: [debug-context.md, isolation-hypothesis.md]
     description: Confirm the bug has been reproduced and the hypothesis is sound
 
-  # Phase 2: Fix & Prove — minimal patch + regression test + proof bundle
+  # Phase 2: Fix & Prove
   - id: fix
     name: Fix & Prove
     type: task
@@ -49,8 +56,9 @@ stages:
       Apply the smallest possible fix and prove it works.
 
       Fix Order:
-      1. Minimal correctness patch based on isolation hypothesis
-      2. Add regression test that fails without the fix
+      1. Use `/test-writer` to generate a regression test that fails
+         without the fix (RED phase)
+      2. Apply minimal correctness patch based on isolation hypothesis
       3. Run full test suite — all tests must pass
       4. Refactor only if necessary (after tests pass)
 
@@ -59,21 +67,30 @@ stages:
       - Before/after evidence
       - Root cause explanation (3-5 lines)
       - Why it won't regress (link to test)
+
+      ## Available Crew Skills
+      - `/test-writer` — generate regression test for the bug
+      - `/test-runner` — run test suite with smart discovery
     required_artifacts: [debug-context.md, isolation-hypothesis.md]
     outputs: [proof-bundle.md]
     contract:
       must_write: [proof-bundle.md]
 
-  # Phase 3: Finalize — create PR
+  # Phase 3: Finalize
   - id: finalize
     name: Review & Finalize
     type: task
     max_turns: 100
     prompt: |
       Review the fix, ensure quality, and prepare for PR.
-      1. Self-review all modified files
-      2. Ensure tests pass and lint is clean
-      3. Create a PR with descriptive title and body using `gh pr create`
+      1. Use `/self-review-fix-loop` for automated review + fix cycles
+      2. Use `/code-review` for final quality gate
+      3. Ensure tests pass and lint is clean
+      4. Create a PR with descriptive title and body using `gh pr create`
+
+      ## Available Crew Skills
+      - `/self-review-fix-loop` — iterative review + auto-fix
+      - `/code-review` — multi-agent PR review
 
 loops:
   - id: debug-loop

@@ -88,8 +88,10 @@ stages:
       tech stack or architecture. The documentation should describe what this
       project IS, not the tools used to manage or scaffold it.
 
+      Use the `/claude-md` skill to generate a comprehensive CLAUDE.md.
+
       Create or update:
-      1. CLAUDE.md - Comprehensive project guide for AI assistants
+      1. CLAUDE.md - Use `/claude-md` for generation
       2. README.md - Project readme
 
       CONSTRAINTS for CLAUDE.md:
@@ -98,7 +100,10 @@ stages:
       - Essential sections: overview, tech stack, architecture, patterns, commands
       - Use tables for density
 
-      Also generate an initial feature roadmap with 5-10 features.
+      Use `/task-plan` to structure the initial feature roadmap with
+      acceptance criteria and dependency ordering.
+
+      Generate an initial feature roadmap with 5-10 features.
       Create backlog items using:
       ```bash
       pixl add "Feature title" --description "Description with acceptance criteria" --priority P0|P1|P2|P3
