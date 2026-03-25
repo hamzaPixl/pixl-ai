@@ -128,7 +128,9 @@ jobs:
         run: uv pip install pip-audit
 
       - name: Run pip-audit
-        run: uv run pip-audit
+        # CVE-2026-4539: pygments 2.19.2 — no fix available yet (latest version)
+        # Remove --ignore-vuln once pygments releases a patch
+        run: uv run pip-audit --ignore-vuln CVE-2026-4539
 
   # ── TypeScript: Sandbox Checks ─────────────────────────────
   sandbox:
