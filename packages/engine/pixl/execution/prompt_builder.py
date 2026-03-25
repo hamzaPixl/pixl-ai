@@ -87,7 +87,7 @@ def build_validation_followup_prompt(
             "```"
         )
 
-    # attempt 2+: simplified schema (only required fields)
+    # attempt 2+: simplified guidance
     if attempt >= 2:
         return (
             f"Follow-up for stage '{node_id}'.\n\n"
@@ -96,10 +96,8 @@ def build_validation_followup_prompt(
             "Validation errors:\n"
             f"{bullets}\n\n"
             f"{schema_guidance}"
-            "Return this minimal structure (fill in your values), and include any "
-            "required `payload` keys from the schema-derived contract above:\n"
-            "```\n"
-            "<pixl_output>\n"
+            "Return valid JSON conforming to the StageOutput schema with at minimum:\n"
+            "```json\n"
             "{\n"
             '  "schema_version": "1.0",\n'
             '  "stage_id": "' + node_id + '",\n'
@@ -107,10 +105,8 @@ def build_validation_followup_prompt(
             '  "summary": ["what you did"],\n'
             '  "artifacts_written": []\n'
             "}\n"
-            "</pixl_output>\n"
             "```\n\n"
             f"{artifact_fix_guidance}"
-            "Do NOT include any text before or after the <pixl_output> block.\n\n"
             "Previous output:\n"
             "```text\n"
             f"{excerpt}\n"
@@ -119,16 +115,12 @@ def build_validation_followup_prompt(
 
     return (
         f"Follow-up for stage '{node_id}'.\n\n"
-        "CRITICAL: Your previous output failed validation because it was missing "
-        "the required `<pixl_output>` envelope or had formatting errors.\n\n"
+        "CRITICAL: Your previous output failed validation.\n\n"
         "Validation errors:\n"
         f"{bullets}\n\n"
         f"{schema_guidance}"
-        "You MUST return exactly one `<pixl_output>...</pixl_output>` block "
-        "with valid JSON inside.\n\n"
-        "Required format:\n"
-        "```\n"
-        "<pixl_output>\n"
+        "Return valid JSON conforming to the StageOutput schema:\n"
+        "```json\n"
         "{\n"
         '  "schema_version": "1.0",\n'
         '  "stage_id": "' + node_id + '",\n'
@@ -138,10 +130,9 @@ def build_validation_followup_prompt(
         '  "included_sources": [],\n'
         '  "payload": {}\n'
         "}\n"
-        "</pixl_output>\n"
         "```\n\n"
         "Rules:\n"
-        "- Content inside <pixl_output> MUST be valid JSON.\n"
+        "- Must be valid JSON conforming to the StageOutput schema.\n"
         "- status must be 'ok' or 'error'.\n"
         "- summary must have 1-10 bullets.\n"
         "- artifacts_written lists files you created/modified with their sha256 hashes.\n"
@@ -168,14 +159,12 @@ def build_structured_output_repair_prompt(
     schema_guidance = _build_schema_contract_guidance(output_schema_path)
     return (
         f"Repair the structured output for stage '{node_id}'.\n\n"
-        "Return EXACTLY one `<pixl_output>...</pixl_output>` block.\n"
-        "Do not include explanations, code fences, or any text before/after the envelope.\n\n"
+        "Return valid JSON conforming to the StageOutput schema.\n\n"
         "Validation errors to fix:\n"
         f"{bullets}\n\n"
         f"{schema_guidance}"
         "Required shape:\n"
-        "```\n"
-        "<pixl_output>\n"
+        "```json\n"
         "{\n"
         '  "schema_version": "1.0",\n'
         f'  "stage_id": "{node_id}",\n'
@@ -185,7 +174,6 @@ def build_structured_output_repair_prompt(
         '  "included_sources": [],\n'
         '  "payload": {}\n'
         "}\n"
-        "</pixl_output>\n"
         "```\n\n"
         "Previous output excerpt (for correction only):\n"
         "```text\n"
@@ -891,10 +879,8 @@ def build_unified_prompt(
     if rejection_context:
         parts.append(rejection_context)
 
-    # Envelope instructions — ensures plugin/CLI path produces <pixl_output> tags
-    from pixl.context.unified_compiler import UnifiedContextCompiler
-
-    parts.append(UnifiedContextCompiler._build_envelope_instructions(stage_id=node.id))
+    # Note: Structured output format is enforced by SDK output_format (constrained decoding).
+    # Envelope instructions removed — the SDK validates JSON schema natively.
 
     return "\n\n".join(parts)
 

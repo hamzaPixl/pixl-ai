@@ -39,7 +39,7 @@ def render_payload_contract(
     lines = [
         heading,
         "",
-        "Your `<pixl_output>.payload` MUST satisfy this schema-derived contract:",
+        "Your `payload` field MUST satisfy this schema-derived contract:",
     ]
 
     if required:

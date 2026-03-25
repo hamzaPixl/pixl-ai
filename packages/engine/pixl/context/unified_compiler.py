@@ -23,8 +23,10 @@ Assembly order:
 8. Work-scope artifacts from baton (budget-aware)
 9. Session state (if non-empty)
 10. Output schema (if defined)
-11. Envelope instructions (unified: <pixl_output> with baton_patch in payload)
-12. Rejection feedback (appended by executor)
+11. Rejection feedback (appended by executor)
+
+Note: Structured output format is enforced by the SDK via ``output_format``
+(JSON schema constrained decoding), not by prompt instructions.
 """
 
 from __future__ import annotations
@@ -461,14 +463,6 @@ class UnifiedContextCompiler:
         prompt_parts.append(base_prompt)
         used_tokens += _estimate_tokens(base_prompt)
 
-        # 1b. Early envelope reminder (reduces validation retries)
-        early_reminder = (
-            "IMPORTANT: When you finish your work, your FINAL response MUST include "
-            "a `<pixl_output>` JSON envelope. Do NOT omit it. See full format below."
-        )
-        prompt_parts.append(early_reminder)
-        used_tokens += _estimate_tokens(early_reminder)
-
         # 2. Baton context (with optional emphasis from context_needs)
         baton_section = baton.to_prompt_section(emphasis=baton_emphasis or None)
         baton_tokens = _estimate_tokens(baton_section)
@@ -631,11 +625,7 @@ class UnifiedContextCompiler:
                     prompt_parts.append(schema_reference)
                     used_tokens += schema_tokens
 
-        # 10. Envelope instructions (always included)
-        envelope_instr = self._build_envelope_instructions(stage_id=stage_id)
-        instr_tokens = _estimate_tokens(envelope_instr)
-        prompt_parts.append(envelope_instr)
-        used_tokens += instr_tokens
+        # 10. (Removed — SDK output_format enforces structured output via constrained decoding)
 
         prompt_text = "\n\n".join(prompt_parts)
 

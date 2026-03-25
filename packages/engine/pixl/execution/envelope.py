@@ -1,4 +1,9 @@
-"""Envelope extraction for structured stage output.
+"""Envelope extraction for structured stage output (FALLBACK path).
+
+.. deprecated:: 10.0.0
+    Primary structured output is now enforced by the SDK via ``output_format``
+    (JSON schema constrained decoding). This module is kept as a fallback for
+    external providers (Gemini, OpenAI) and crash recovery.
 
 Extracts `<pixl_output>{...}</pixl_output>` envelopes from agent
 result text and parses them into StageOutput models.

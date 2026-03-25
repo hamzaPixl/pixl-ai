@@ -168,15 +168,8 @@ def execute_with_orchestrator(
                 except Exception:
                     logger.debug("Session compact before retry failed", exc_info=True)
 
-            # Prepend a compact envelope reminder that survives context compaction
-            _envelope_reminder = (
-                "IMPORTANT: You MUST wrap your final result in "
-                "<pixl_output>...</pixl_output> tags containing valid JSON "
-                "conforming to the StageOutput schema. "
-                "Your response is invalid without this envelope.\n\n"
-            )
             query_kwargs: dict[str, Any] = {
-                "prompt": _envelope_reminder + current_prompt,
+                "prompt": current_prompt,
                 "model": stage_model,
                 "max_turns": task_config.max_turns,
                 "feature_id": executor.session.feature_id,
@@ -373,7 +366,7 @@ def execute_with_orchestrator(
                     message = (
                         envelope_error
                         if envelope_error is not None
-                        else "Expected <pixl_output> envelope but none found in agent output"
+                        else "Structured output not found in agent response"
                     )
                     validation_errors.append(message)
                     so_invalid_event = Event.structured_output_invalid(
@@ -544,7 +537,7 @@ def execute_with_orchestrator(
                             repair_errors.append(
                                 repair_envelope_error
                                 if repair_envelope_error is not None
-                                else "Expected <pixl_output> envelope but none found in repair"
+                                else "Structured output not found in repair response"
                             )
                         else:
                             struct_validator = executor._get_contract_validator()

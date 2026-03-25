@@ -259,7 +259,7 @@ class StageContract(BaseModel):
     )
     structured_output: bool = Field(
         default=False,
-        description="Require structured <pixl_output> envelope from this stage",
+        description="Deprecated: structured output is always enabled via SDK output_format.",
     )
     required_skills: list[str] = Field(
         default_factory=list,

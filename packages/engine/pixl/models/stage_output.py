@@ -1,7 +1,7 @@
 """Structured output model for workflow stages.
 
-Replaces free-form markdown with typed JSON inside an XML envelope
-(`<pixl_output>{...}</pixl_output>`), validated by JSON Schema.
+Enforced by the SDK via ``output_format`` (JSON schema constrained decoding).
+Fallback: ``<pixl_output>`` envelope extraction for external providers.
 
 This makes inter-stage context machine-parseable, token-efficient,
 diffable, and fully auditable.
@@ -67,7 +67,7 @@ class StageError(BaseModel):
 class StageOutput(BaseModel):
     """Structured output from a workflow stage.
 
-    Produced inside a `<pixl_output>...</pixl_output>` XML envelope.
+    Enforced via SDK ``output_format`` (constrained decoding).
     The payload field contains stage-specific structured data.
     """
 
