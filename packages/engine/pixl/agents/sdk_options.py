@@ -259,7 +259,7 @@ def build_sdk_options(
         setting_sources=["user", "project"],
         agents=agents,
         plugins=plugins,  # type: ignore[arg-type]
-        extra_args={"debug-to-stderr": None},
+        # extra_args={"debug-to-stderr": None},  # Enable for SDK debugging
     )
 
     if resume_session_id:
