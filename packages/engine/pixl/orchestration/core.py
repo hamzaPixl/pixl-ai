@@ -186,6 +186,9 @@ class OrchestratorCore:
             "PIXL_STORAGE_PROJECT": storage_project,
             "PIXL_ACTIVE_STORAGE_MODE": "standalone",
             "PIXL_ACTIVE_GLOBAL_DIR": str(get_global_pixl_dir()),
+            # Unset CLAUDECODE so SDK can spawn nested Claude Code sessions
+            # (the parent session sets CLAUDECODE=1 which blocks nesting)
+            "CLAUDECODE": None,
         }
         previous: dict[str, str | None] = {}
         for key, value in updates.items():
