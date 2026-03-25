@@ -1,5 +1,10 @@
 # CTO Review — pixl Engine
 
+> **Archive** — This CTO review was conducted 2026-03-24. Phases S1 (EventEmitter),
+> S2 (ArtifactResolver), S3 (reschedule_node), and god function decomposition
+> (extract_stage_output, run_validation_pass, build_execution_result) are complete.
+> Remaining items (A1, B1, D1-D3) are deferred.
+
 ## Current State
 
 | Metric | Value |

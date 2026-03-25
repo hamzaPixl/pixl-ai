@@ -101,9 +101,9 @@ Follow red-green-refactor:
 
 ### Coverage Requirements
 
-- Aim for **80%+ coverage** on business logic
+- CI enforces **50% minimum** coverage (`fail_under = 50` in pyproject.toml)
+- Aim for **80%+ coverage** on critical paths (auth, state transitions, cost calculations)
 - Avoid testing framework glue, getters/setters, or generated code
-- Aim for **100% coverage** on critical paths (auth, state transitions, calculations)
 
 ### Test Types
 

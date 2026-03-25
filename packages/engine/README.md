@@ -4,7 +4,7 @@
 
 ## Overview
 
-pixl-engine is the brain of the Pixl Platform. It handles everything from prompt classification and workflow selection to DAG-based execution, PM supervision, and recovery. Originally extracted from the **synq** project, it includes 1340+ passing tests.
+pixl-engine is the brain of the Pixl Platform. It handles everything from prompt classification and workflow selection to DAG-based execution, PM supervision, and recovery. Originally extracted from the **synq** project, it includes 1950+ passing tests at 50% coverage.
 
 ## Features
 
@@ -53,7 +53,7 @@ uv pip install -e ".[dev]"
 ## Testing
 
 ```bash
-make test-engine        # All 1340 tests
+make test-engine        # All engine tests
 make test-execution     # Execution layer only
 make test-backends      # Backend tests
 make test-state         # State machine tests
