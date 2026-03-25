@@ -79,9 +79,7 @@ class TestListProjects:
         ids = [p["project_id"] for p in result]
         assert ids == sorted(ids)
 
-    def test_project_without_config_uses_dir_name_as_project_name(
-        self, tmp_path: Path
-    ) -> None:
+    def test_project_without_config_uses_dir_name_as_project_name(self, tmp_path: Path) -> None:
         from pixl.projects.registry import list_projects
 
         _make_project_dir(tmp_path, "bare-project-xyz")
@@ -435,9 +433,7 @@ def project_with_pixl(tmp_path: Path):
 
 
 class TestKnowledgeIndex:
-    def test_build_returns_zero_when_no_source_files(
-        self, project_with_pixl: Path
-    ) -> None:
+    def test_build_returns_zero_when_no_source_files(self, project_with_pixl: Path) -> None:
         from pixl.knowledge.indexer import KnowledgeIndex
 
         idx = KnowledgeIndex(project_with_pixl, use_ast=False)
@@ -498,9 +494,7 @@ class TestKnowledgeIndex:
 
         assert files_processed >= 1
 
-    def test_incremental_build_skips_unchanged_files(
-        self, project_with_pixl: Path
-    ) -> None:
+    def test_incremental_build_skips_unchanged_files(self, project_with_pixl: Path) -> None:
         from pixl.knowledge.indexer import KnowledgeIndex
 
         readme = project_with_pixl / "README.md"
@@ -537,9 +531,7 @@ class TestKnowledgeIndex:
         assert status["index_exists"] is True
         assert status["chunk_count"] > 0
 
-    def test_status_before_build_shows_no_index(
-        self, project_with_pixl: Path
-    ) -> None:
+    def test_status_before_build_shows_no_index(self, project_with_pixl: Path) -> None:
         from pixl.knowledge.indexer import KnowledgeIndex
 
         idx = KnowledgeIndex(project_with_pixl, use_ast=False)
@@ -565,18 +557,14 @@ class TestKnowledgeIndex:
 
         assert status["index_exists"] is False
 
-    def test_resolve_source_root_falls_back_to_project_path(
-        self, project_with_pixl: Path
-    ) -> None:
+    def test_resolve_source_root_falls_back_to_project_path(self, project_with_pixl: Path) -> None:
         from pixl.knowledge.indexer import KnowledgeIndex
 
         root = KnowledgeIndex._resolve_source_root(project_with_pixl)
 
         assert root == project_with_pixl
 
-    def test_resolve_source_root_uses_config_project_root(
-        self, tmp_path: Path
-    ) -> None:
+    def test_resolve_source_root_uses_config_project_root(self, tmp_path: Path) -> None:
         from pixl.knowledge.indexer import KnowledgeIndex
 
         standalone_dir = tmp_path / "standalone"
@@ -591,9 +579,7 @@ class TestKnowledgeIndex:
 
         assert root == real_source
 
-    def test_build_with_include_code_indexes_python_files(
-        self, tmp_path: Path
-    ) -> None:
+    def test_build_with_include_code_indexes_python_files(self, tmp_path: Path) -> None:
         """Use a fresh project with a single-function file to avoid chunk id collisions.
 
         The fallback Chunker uses ``source:title`` as the chunk id where title is
@@ -612,7 +598,7 @@ class TestKnowledgeIndex:
         # Single function with a body long enough to pass min_chunk_size
         (src / "utils.py").write_text(
             "def compute_sum(a, b):\n"
-            "    \"\"\"Return the sum of a and b.\"\"\"\n"
+            '    """Return the sum of a and b."""\n'
             "    total = a + b\n"
             "    return total\n",
             encoding="utf-8",
@@ -901,9 +887,7 @@ class TestCrossReferenceIndex:
 
 
 class TestKnowledgeSearch:
-    def test_search_returns_empty_for_blank_query(
-        self, indexed_project: Path
-    ) -> None:
+    def test_search_returns_empty_for_blank_query(self, indexed_project: Path) -> None:
         from pixl.knowledge.search import KnowledgeSearch
 
         searcher = KnowledgeSearch(indexed_project)
@@ -911,9 +895,7 @@ class TestKnowledgeSearch:
 
         assert results == []
 
-    def test_search_returns_results_for_matching_query(
-        self, indexed_project: Path
-    ) -> None:
+    def test_search_returns_results_for_matching_query(self, indexed_project: Path) -> None:
         from pixl.knowledge.search import KnowledgeSearch
 
         searcher = KnowledgeSearch(indexed_project)
@@ -921,9 +903,7 @@ class TestKnowledgeSearch:
 
         assert len(results) > 0
 
-    def test_search_results_have_positive_scores(
-        self, indexed_project: Path
-    ) -> None:
+    def test_search_results_have_positive_scores(self, indexed_project: Path) -> None:
         from pixl.knowledge.search import KnowledgeSearch
 
         searcher = KnowledgeSearch(indexed_project)
@@ -939,9 +919,7 @@ class TestKnowledgeSearch:
 
         assert len(results) <= 1
 
-    def test_search_results_are_sorted_by_score_descending(
-        self, indexed_project: Path
-    ) -> None:
+    def test_search_results_are_sorted_by_score_descending(self, indexed_project: Path) -> None:
         from pixl.knowledge.search import KnowledgeSearch
 
         searcher = KnowledgeSearch(indexed_project)
@@ -950,9 +928,7 @@ class TestKnowledgeSearch:
         scores = [r.score for r in results]
         assert scores == sorted(scores, reverse=True)
 
-    def test_search_with_scope_filter_limits_sources(
-        self, indexed_project: Path
-    ) -> None:
+    def test_search_with_scope_filter_limits_sources(self, indexed_project: Path) -> None:
         from pixl.knowledge.search import KnowledgeSearch
 
         searcher = KnowledgeSearch(indexed_project)
@@ -960,8 +936,7 @@ class TestKnowledgeSearch:
 
         # All returned chunks should be markdown sources
         assert all(
-            r.chunk.source.endswith(".md") or r.chunk.source.endswith(".mdx")
-            for r in results
+            r.chunk.source.endswith(".md") or r.chunk.source.endswith(".mdx") for r in results
         )
 
     def test_search_returns_matched_terms(self, indexed_project: Path) -> None:
@@ -1064,9 +1039,7 @@ class TestKnowledgeSearch:
         assert "auth" in chunk.keywords
         assert "token" in chunk.keywords
 
-    def test_search_with_include_related_expands_results(
-        self, indexed_project: Path
-    ) -> None:
+    def test_search_with_include_related_expands_results(self, indexed_project: Path) -> None:
         from pixl.knowledge.search import KnowledgeSearch
 
         searcher = KnowledgeSearch(indexed_project)
@@ -1093,9 +1066,7 @@ class TestContextBuilder:
 
         assert result == ""
 
-    def test_build_context_returns_string_when_indexed(
-        self, indexed_project: Path
-    ) -> None:
+    def test_build_context_returns_string_when_indexed(self, indexed_project: Path) -> None:
         from pixl.knowledge.context import ContextBuilder
 
         builder = ContextBuilder(indexed_project)
@@ -1103,9 +1074,7 @@ class TestContextBuilder:
 
         assert isinstance(result, str)
 
-    def test_build_context_exclude_source_strips_source_lines(
-        self, indexed_project: Path
-    ) -> None:
+    def test_build_context_exclude_source_strips_source_lines(self, indexed_project: Path) -> None:
         from pixl.knowledge.context import ContextBuilder
 
         builder = ContextBuilder(indexed_project)
@@ -1116,9 +1085,7 @@ class TestContextBuilder:
             # Without source should not contain _Source: markers
             assert "_Source:" not in result_without
 
-    def test_build_context_for_feature_returns_string(
-        self, indexed_project: Path
-    ) -> None:
+    def test_build_context_for_feature_returns_string(self, indexed_project: Path) -> None:
         from pixl.knowledge.context import ContextBuilder
 
         builder = ContextBuilder(indexed_project)

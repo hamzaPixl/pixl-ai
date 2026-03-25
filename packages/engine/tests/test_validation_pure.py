@@ -156,7 +156,7 @@ class TestExtractEnvelopeMalformedJson:
 
     def test_handles_json_with_inline_comments(self) -> None:
         raw = (
-            '{\n'
+            "{\n"
             '  "schema_version": "1.0", // version\n'
             '  "stage_id": "s2",\n'
             '  "status": "ok",\n'
@@ -164,7 +164,7 @@ class TestExtractEnvelopeMalformedJson:
             '  "payload": {},\n'
             '  "artifacts_written": [],\n'
             '  "included_sources": []\n'
-            '}'
+            "}"
         )
         text = _wrap(raw)
         output, err = extract_envelope(text)

@@ -47,13 +47,11 @@ class ArtifactResolver:
         self.store = store
         self._build_contract_variables = build_contract_variables
 
-    def resolve_required_artifact_path(
-        self, artifact: str, variables: dict[str, str]
-    ) -> str:
+    def resolve_required_artifact_path(self, artifact: str, variables: dict[str, str]) -> str:
         """Resolve and normalize a required artifact path."""
         resolved_name = resolve_template_string(artifact, variables)
         if resolved_name.startswith("artifacts/"):
-            resolved_name = resolved_name[len("artifacts/"):]
+            resolved_name = resolved_name[len("artifacts/") :]
         if resolved_name.startswith(str(self.artifacts_dir)):
             with_candidate = Path(resolved_name)
             with contextlib.suppress(ValueError):
@@ -104,9 +102,7 @@ class ArtifactResolver:
                 fallback_content = self._load_session_artifact_safe(resolved_path)
                 if fallback_content is not None:
                     entry["exists"] = True
-                    entry["sha256"] = hashlib.sha256(
-                        fallback_content.encode("utf-8")
-                    ).hexdigest()
+                    entry["sha256"] = hashlib.sha256(fallback_content.encode("utf-8")).hexdigest()
                     entry["version"] = "unknown"
                     entry["producer_stage"] = "unknown"
 

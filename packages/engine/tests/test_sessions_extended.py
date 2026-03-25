@@ -56,9 +56,7 @@ def _seed_feature(db: PixlDB, feature_id: str) -> str:
 
 
 class TestListSessionsStatusFilters:
-    def test_filter_completed_returns_only_ended_sessions(
-        self, sessions: SessionDB
-    ) -> None:
+    def test_filter_completed_returns_only_ended_sessions(self, sessions: SessionDB) -> None:
         # Arrange
         s1 = sessions.create_session(feature_id=None, snapshot_hash="c1")
         s2 = sessions.create_session(feature_id=None, snapshot_hash="c2")
@@ -73,9 +71,7 @@ class TestListSessionsStatusFilters:
         assert s1["id"] in ids
         assert s2["id"] not in ids
 
-    def test_filter_paused_returns_sessions_with_gate_waiting(
-        self, sessions: SessionDB
-    ) -> None:
+    def test_filter_paused_returns_sessions_with_gate_waiting(self, sessions: SessionDB) -> None:
         s1 = sessions.create_session(feature_id=None, snapshot_hash="p1")
         s2 = sessions.create_session(feature_id=None, snapshot_hash="p2")
         sessions.upsert_node_instance(s1["id"], "gate-node", "gate_waiting")
@@ -85,9 +81,7 @@ class TestListSessionsStatusFilters:
         assert s1["id"] in ids
         assert s2["id"] not in ids
 
-    def test_filter_paused_returns_sessions_with_task_blocked(
-        self, sessions: SessionDB
-    ) -> None:
+    def test_filter_paused_returns_sessions_with_task_blocked(self, sessions: SessionDB) -> None:
         s1 = sessions.create_session(feature_id=None, snapshot_hash="pb1")
         sessions.upsert_node_instance(s1["id"], "blocked-node", "task_blocked")
 
@@ -95,9 +89,7 @@ class TestListSessionsStatusFilters:
         ids = [s["id"] for s in result]
         assert s1["id"] in ids
 
-    def test_filter_failed_returns_sessions_with_failed_nodes(
-        self, sessions: SessionDB
-    ) -> None:
+    def test_filter_failed_returns_sessions_with_failed_nodes(self, sessions: SessionDB) -> None:
         s1 = sessions.create_session(feature_id=None, snapshot_hash="f1")
         s2 = sessions.create_session(feature_id=None, snapshot_hash="f2")
         sessions.upsert_node_instance(s1["id"], "failed-node", "task_failed")
@@ -107,9 +99,7 @@ class TestListSessionsStatusFilters:
         assert s1["id"] in ids
         assert s2["id"] not in ids
 
-    def test_filter_running_returns_session_with_task_running(
-        self, sessions: SessionDB
-    ) -> None:
+    def test_filter_running_returns_session_with_task_running(self, sessions: SessionDB) -> None:
         s1 = sessions.create_session(feature_id=None, snapshot_hash="r1")
         sessions.upsert_node_instance(s1["id"], "running-node", "task_running")
 
@@ -117,9 +107,7 @@ class TestListSessionsStatusFilters:
         ids = [s["id"] for s in result]
         assert s1["id"] in ids
 
-    def test_unknown_status_filter_returns_all_sessions(
-        self, sessions: SessionDB
-    ) -> None:
+    def test_unknown_status_filter_returns_all_sessions(self, sessions: SessionDB) -> None:
         sessions.create_session(feature_id=None, snapshot_hash="u1")
         sessions.create_session(feature_id=None, snapshot_hash="u2")
         # Unknown status — no condition appended, so all sessions returned
@@ -162,9 +150,7 @@ class TestGetActiveSessions:
     def test_returns_sessions_without_ended_at(self, sessions: SessionDB) -> None:
         s1 = sessions.create_session(feature_id=None, snapshot_hash="a1")
         s2 = sessions.create_session(feature_id=None, snapshot_hash="a2")
-        sessions.update_session(
-            s2["id"], status="completed", ended_at=datetime.now().isoformat()
-        )
+        sessions.update_session(s2["id"], status="completed", ended_at=datetime.now().isoformat())
 
         result = sessions.get_active_sessions()
         ids = [s["id"] for s in result]
@@ -173,9 +159,7 @@ class TestGetActiveSessions:
 
     def test_returns_empty_list_when_all_ended(self, sessions: SessionDB) -> None:
         s1 = sessions.create_session(feature_id=None, snapshot_hash="ae1")
-        sessions.update_session(
-            s1["id"], status="completed", ended_at=datetime.now().isoformat()
-        )
+        sessions.update_session(s1["id"], status="completed", ended_at=datetime.now().isoformat())
 
         result = sessions.get_active_sessions()
         assert result == []
@@ -187,9 +171,7 @@ class TestGetActiveSessions:
 
 
 class TestGetRecentSessions:
-    def test_returns_sessions_ordered_by_created_at_desc(
-        self, sessions: SessionDB
-    ) -> None:
+    def test_returns_sessions_ordered_by_created_at_desc(self, sessions: SessionDB) -> None:
         for i in range(5):
             sessions.create_session(feature_id=None, snapshot_hash=f"rec{i}")
 
@@ -221,9 +203,7 @@ class TestListStalledRunningSessions:
         result = sessions.list_stalled_running_sessions()
         assert result == []
 
-    def test_stalled_session_detected_with_custom_threshold(
-        self, sessions: SessionDB
-    ) -> None:
+    def test_stalled_session_detected_with_custom_threshold(self, sessions: SessionDB) -> None:
         # Create a session with a running node
         s = sessions.create_session(feature_id=None, snapshot_hash="stall1")
         sessions.upsert_node_instance(s["id"], "running-node", "task_running")
@@ -239,9 +219,7 @@ class TestListStalledRunningSessions:
         result = sessions.list_stalled_running_sessions(stale_after_seconds=100)
         assert s["id"] in result
 
-    def test_fresh_running_session_not_marked_stalled(
-        self, sessions: SessionDB
-    ) -> None:
+    def test_fresh_running_session_not_marked_stalled(self, sessions: SessionDB) -> None:
         s = sessions.create_session(feature_id=None, snapshot_hash="fresh1")
         sessions.upsert_node_instance(s["id"], "running-node", "task_running")
         # last_updated_at is fresh (just created)
@@ -267,9 +245,7 @@ class TestForceUnblockForResume:
         assert node is not None
         assert node["state"] == "task_pending"
 
-    def test_also_resets_blocked_and_failed_nodes(
-        self, sessions: SessionDB
-    ) -> None:
+    def test_also_resets_blocked_and_failed_nodes(self, sessions: SessionDB) -> None:
         s = sessions.create_session(feature_id=None, snapshot_hash="fu2")
         sessions.upsert_node_instance(s["id"], "blocked-node", "task_blocked")
         sessions.upsert_node_instance(s["id"], "failed-node", "task_failed")
@@ -281,9 +257,7 @@ class TestForceUnblockForResume:
         assert "failed-node" in unblocked
         assert "gate-node" in unblocked
 
-    def test_returns_empty_list_when_no_blocked_nodes(
-        self, sessions: SessionDB
-    ) -> None:
+    def test_returns_empty_list_when_no_blocked_nodes(self, sessions: SessionDB) -> None:
         s = sessions.create_session(feature_id=None, snapshot_hash="fu3")
         sessions.upsert_node_instance(s["id"], "done-node", "task_completed")
 
@@ -311,9 +285,7 @@ class TestCleanupOrphanedSnapshots:
         sessions.save_snapshot("hash-1", '{"a": 1}')
         sessions.save_snapshot("hash-2", '{"b": 2}')
 
-        removed = sessions.cleanup_orphaned_snapshots(
-            active_hashes={"hash-1", "hash-2"}
-        )
+        removed = sessions.cleanup_orphaned_snapshots(active_hashes={"hash-1", "hash-2"})
         assert removed == 0
 
     def test_returns_zero_when_no_snapshots_exist(self, sessions: SessionDB) -> None:
@@ -327,9 +299,7 @@ class TestCleanupOrphanedSnapshots:
 
 
 class TestUpdateSessionSerialization:
-    def test_update_frozen_artifacts_serialized_as_json(
-        self, sessions: SessionDB
-    ) -> None:
+    def test_update_frozen_artifacts_serialized_as_json(self, sessions: SessionDB) -> None:
         s = sessions.create_session(feature_id=None, snapshot_hash="ser1")
         frozen = {"plan.md": "abc123checksum", "spec.md": "def456checksum"}
         sessions.update_session(s["id"], frozen_artifacts=frozen)
@@ -338,9 +308,7 @@ class TestUpdateSessionSerialization:
         assert fetched is not None
         assert fetched.get("frozen_artifacts") == frozen
 
-    def test_update_structured_outputs_serialized_as_json(
-        self, sessions: SessionDB
-    ) -> None:
+    def test_update_structured_outputs_serialized_as_json(self, sessions: SessionDB) -> None:
         s = sessions.create_session(feature_id=None, snapshot_hash="ser2")
         outputs = {"plan": {"payload": {"confidence": 0.9}}}
         sessions.update_session(s["id"], structured_outputs=outputs)
@@ -373,9 +341,7 @@ class TestGetNodesByState:
         assert len(result) == 2
         assert all(n["state"] == "task_completed" for n in result)
 
-    def test_returns_empty_list_when_no_nodes_in_state(
-        self, sessions: SessionDB
-    ) -> None:
+    def test_returns_empty_list_when_no_nodes_in_state(self, sessions: SessionDB) -> None:
         s = sessions.create_session(feature_id=None, snapshot_hash="nbs2")
         sessions.upsert_node_instance(s["id"], "node-a", "task_running")
 

@@ -285,7 +285,10 @@ def _run_workflow_inner(
         session = session_store.load_session(session.id)  # type: ignore[assignment]
         from pixl.models.session import SessionStatus
 
-        if session is not None and session.status in (SessionStatus.COMPLETED, SessionStatus.FAILED):
+        if session is not None and session.status in (
+            SessionStatus.COMPLETED,
+            SessionStatus.FAILED,
+        ):
             db.sessions.update_session(
                 session_id,
                 ended_at=datetime.now().isoformat(),

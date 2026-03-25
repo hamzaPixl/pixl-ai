@@ -216,8 +216,7 @@ class TestSandboxSync:
 
         # Verify provenance and payload
         row = conn.execute(
-            "SELECT sandbox_origin_id, payload_json FROM events"
-            " WHERE event_type = 'node_completed'"
+            "SELECT sandbox_origin_id, payload_json FROM events WHERE event_type = 'node_completed'"
         ).fetchone()
         assert row is not None
         assert row[0] == "my-sandbox"

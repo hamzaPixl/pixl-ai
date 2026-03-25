@@ -91,12 +91,14 @@ class TestLoadModelPricing:
         assert pricing == _FALLBACK_MODEL_PRICING
 
     def test_should_skip_malformed_entries_and_load_valid_ones(self) -> None:
-        mixed_yaml = yaml.dump({
-            "models": {
-                "good-model": {"input": 1.0, "output": 2.0},
-                "bad-model": {"only_input": 1.0},
+        mixed_yaml = yaml.dump(
+            {
+                "models": {
+                    "good-model": {"input": 1.0, "output": 2.0},
+                    "bad-model": {"only_input": 1.0},
+                }
             }
-        })
+        )
         with patch("builtins.open", mock_open(read_data=mixed_yaml)):
             pricing = load_model_pricing()
 
@@ -104,12 +106,14 @@ class TestLoadModelPricing:
         assert "bad-model" not in pricing
 
     def test_should_fallback_when_all_entries_malformed(self) -> None:
-        all_bad = yaml.dump({
-            "models": {
-                "bad-1": "not_a_dict",
-                "bad-2": {"only_input": 1.0},
+        all_bad = yaml.dump(
+            {
+                "models": {
+                    "bad-1": "not_a_dict",
+                    "bad-2": {"only_input": 1.0},
+                }
             }
-        })
+        )
         with patch("builtins.open", mock_open(read_data=all_bad)):
             pricing = load_model_pricing()
 
@@ -161,15 +165,11 @@ class TestEstimateCost:
             f"Expected warning about missing pricing, got: {[r.message for r in caplog.records]}"
         )
 
-    def test_should_not_log_warning_for_known_model(
-        self, caplog: pytest.LogCaptureFixture
-    ) -> None:
+    def test_should_not_log_warning_for_known_model(self, caplog: pytest.LogCaptureFixture) -> None:
         with caplog.at_level(logging.WARNING, logger="pixl.execution.task_executor"):
             self._estimate_cost(1_000, 1_000, "claude-sonnet-4-6")
 
-        pricing_warnings = [
-            r for r in caplog.records if "No pricing data" in r.message
-        ]
+        pricing_warnings = [r for r in caplog.records if "No pricing data" in r.message]
         assert len(pricing_warnings) == 0
 
     def test_should_return_zero_cost_for_zero_tokens(self) -> None:

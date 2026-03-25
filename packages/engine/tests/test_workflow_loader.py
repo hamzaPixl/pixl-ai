@@ -670,12 +670,9 @@ class TestConvertToGraphModelValidation:
         graph = loader.convert_to_graph(config, skip_model_validation=True)
         assert "plan" in graph.nodes
 
-    def test_warning_emitted_for_warning_severity_model(
-        self, tmp_path: Path, recwarn
-    ) -> None:
+    def test_warning_emitted_for_warning_severity_model(self, tmp_path: Path, recwarn) -> None:
         """When validation returns warnings (not errors), convert_to_graph emits UserWarning."""
         loader = _make_loader(tmp_path)
-
 
         def patched_validate(config):
             result = ModelValidationResult()

@@ -4,8 +4,6 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 from pixl.execution.node_state import (
     allow_simulated_execution,
     get_or_create_node_instance,
@@ -17,7 +15,6 @@ from pixl.execution.node_state import (
 )
 from pixl.models.node_instance import NodeState
 from pixl.models.session import WorkflowSession, create_node_instance
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -46,7 +43,9 @@ def _make_session() -> WorkflowSession:
     return session
 
 
-def _make_node(agent: str = "backend-engineer", model: str | None = "claude-sonnet-4-6") -> MagicMock:
+def _make_node(
+    agent: str = "backend-engineer", model: str | None = "claude-sonnet-4-6"
+) -> MagicMock:
     node = MagicMock()
     node.task_config = MagicMock()
     node.task_config.agent = agent
@@ -346,9 +345,7 @@ class TestWorkflowMaxAttempts:
         assert workflow_max_attempts(snapshot) == 5
 
     def test_confidence_block_takes_precedence_over_max_attempts(self) -> None:
-        snapshot = self._make_snapshot(
-            {"max_attempts": 10, "confidence": {"max_iterations": 4}}
-        )
+        snapshot = self._make_snapshot({"max_attempts": 10, "confidence": {"max_iterations": 4}})
         assert workflow_max_attempts(snapshot) == 4
 
     def test_clamps_to_minimum_of_1(self) -> None:
@@ -384,12 +381,15 @@ class TestAllowSimulatedExecution:
         assert result is True
 
     def test_returns_true_when_env_var_is_1(self) -> None:
-        with patch.dict("os.environ", {"PYTEST_CURRENT_TEST": "", "PIXL_ALLOW_SIMULATED_EXECUTION": "1"}):
+        with patch.dict(
+            "os.environ", {"PYTEST_CURRENT_TEST": "", "PIXL_ALLOW_SIMULATED_EXECUTION": "1"}
+        ):
             result = allow_simulated_execution()
             assert result is True
 
     def test_returns_false_when_env_var_is_false(self) -> None:
         import os
+
         saved = os.environ.pop("PYTEST_CURRENT_TEST", None)
         try:
             with patch.dict("os.environ", {"PIXL_ALLOW_SIMULATED_EXECUTION": "false"}, clear=False):

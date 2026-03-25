@@ -443,9 +443,7 @@ class TestGetOrCreateClient:
         # Locked set should be the union
         assert set(core._locked_tools[key]) == {"Read", "Write", "Edit", "Bash"}
 
-    async def test_should_preserve_original_tools_after_expansion(
-        self, tmp_path: Path
-    ) -> None:
+    async def test_should_preserve_original_tools_after_expansion(self, tmp_path: Path) -> None:
         """T-29: Original locked tools must still be present after expansion."""
         core = _make_core(tmp_path)
         key = ("agent-y", "claude-haiku-4-5")

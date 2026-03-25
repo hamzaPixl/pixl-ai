@@ -311,9 +311,7 @@ def load_model_pricing() -> dict[str, tuple[float, float]]:
         with open(pricing_path) as f:
             data = yaml.safe_load(f)
         if not isinstance(data, dict) or "models" not in data:
-            _pricing_logger.warning(
-                "pricing.yaml has unexpected format, falling back to defaults"
-            )
+            _pricing_logger.warning("pricing.yaml has unexpected format, falling back to defaults")
             _cached_model_pricing = dict(_FALLBACK_MODEL_PRICING)
             return _cached_model_pricing
 

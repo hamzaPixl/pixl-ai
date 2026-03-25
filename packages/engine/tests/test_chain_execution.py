@@ -205,8 +205,7 @@ class TestBuildWorktreeContext:
         db = _make_db()
         db.backlog.get_feature.return_value = {"title": "F"}
         nodes = [
-            _make_node(f"nx{i}", feature_id=f"f{i}", status="pending", wave=0)
-            for i in range(30)
+            _make_node(f"nx{i}", feature_id=f"f{i}", status="pending", wave=0) for i in range(30)
         ]
         store_mock = _make_chain_store(nodes=nodes)
         with patch("pixl.execution.chain.node_executor.ChainPlanDB", return_value=store_mock):
@@ -223,9 +222,7 @@ class TestBuildWorktreeContext:
 
     def test_claimed_files_capped_at_50(self) -> None:
         """claimed_files list is capped at 50 items."""
-        db = _make_db(
-            file_claims={f"file{i}.py": ["other-node"] for i in range(60)}
-        )
+        db = _make_db(file_claims={f"file{i}.py": ["other-node"] for i in range(60)})
         store_mock = _make_chain_store(nodes=[])
         with patch("pixl.execution.chain.node_executor.ChainPlanDB", return_value=store_mock):
             result = build_worktree_context(
@@ -333,8 +330,7 @@ class TestQueryArchitecturalContext:
     def test_limits_to_3_chunks_in_output(self) -> None:
         db = _make_db()
         db.knowledge.search.return_value = [
-            {"content": f"chunk {i}", "source": f"src{i}.md"}
-            for i in range(5)
+            {"content": f"chunk {i}", "source": f"src{i}.md"} for i in range(5)
         ]
         result = query_architectural_context(
             db=db,
@@ -351,9 +347,7 @@ class TestQueryArchitecturalContext:
     def test_content_truncated_at_1000_chars(self) -> None:
         db = _make_db()
         long_content = "x" * 2000
-        db.knowledge.search.return_value = [
-            {"content": long_content, "source": "big.md"}
-        ]
+        db.knowledge.search.return_value = [{"content": long_content, "source": "big.md"}]
         result = query_architectural_context(
             db=db,
             feature={"title": "feat"},
@@ -365,9 +359,7 @@ class TestQueryArchitecturalContext:
 
     def test_falls_back_to_text_key_when_content_missing(self) -> None:
         db = _make_db()
-        db.knowledge.search.return_value = [
-            {"text": "fallback text", "source": "fallback.md"}
-        ]
+        db.knowledge.search.return_value = [{"text": "fallback text", "source": "fallback.md"}]
         result = query_architectural_context(
             db=db,
             feature={"title": "feat"},

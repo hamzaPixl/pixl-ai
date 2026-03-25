@@ -226,9 +226,7 @@ class TestWorkflowBackgroundConcurrencyGuard:
         # Pre-claim the session
         _try_start_execution("sess-concurrent")
 
-        with patch(
-            "pixl.execution.workflow_background._run_workflow_inner"
-        ) as mock_inner:
+        with patch("pixl.execution.workflow_background._run_workflow_inner") as mock_inner:
             run_workflow_background(
                 project_path=Path("/tmp/fake"),
                 session_id="sess-concurrent",
@@ -284,9 +282,7 @@ class TestWorkflowBackgroundHelpers:
     def test_get_waiting_gate_node_returns_none_when_no_gate(self):
         from pixl.execution.workflow_background import _get_waiting_gate_node
 
-        session = _make_session(
-            node_instances={"task-1": {"state": "task_completed"}}
-        )
+        session = _make_session(node_instances={"task-1": {"state": "task_completed"}})
         assert _get_waiting_gate_node(session) is None
 
 
@@ -301,9 +297,7 @@ class TestWorkflowHelpers:
     def test_has_waiting_gates_true_when_gate_waiting(self):
         from pixl.execution.workflow_helpers import has_waiting_gates
 
-        session = _make_session(
-            node_instances={"gate-1": {"state": "gate_waiting"}}
-        )
+        session = _make_session(node_instances={"gate-1": {"state": "gate_waiting"}})
         assert has_waiting_gates(session) is True
 
     def test_has_waiting_gates_false_when_all_completed(self):
@@ -531,9 +525,7 @@ class TestFailedAutoJobRetryAllowed:
 
         recent_ts = (datetime.now() - timedelta(seconds=10)).isoformat()
         job = {"retry_count": 0, "completed_at": recent_ts}
-        assert (
-            _failed_auto_job_retry_allowed(job, max_retries=3, cooldown_seconds=300) is False
-        )
+        assert _failed_auto_job_retry_allowed(job, max_retries=3, cooldown_seconds=300) is False
 
     def test_allows_retry_when_no_timestamp_present(self):
         from pixl.execution.session_report_manager import _failed_auto_job_retry_allowed
@@ -688,9 +680,7 @@ class TestAutoTerminalRetryConfig:
             _auto_terminal_max_retries,
         )
 
-        with patch.dict(
-            "os.environ", {"PIXL_SESSION_REPORT_AUTO_MAX_RETRIES": "not-an-int"}
-        ):
+        with patch.dict("os.environ", {"PIXL_SESSION_REPORT_AUTO_MAX_RETRIES": "not-an-int"}):
             assert _auto_terminal_max_retries() == AUTO_TERMINAL_MAX_RETRIES
 
     def test_default_cooldown_seconds(self):
@@ -707,9 +697,7 @@ class TestAutoTerminalRetryConfig:
     def test_env_var_overrides_cooldown(self):
         from pixl.execution.session_report_manager import _auto_terminal_retry_cooldown_seconds
 
-        with patch.dict(
-            "os.environ", {"PIXL_SESSION_REPORT_AUTO_RETRY_COOLDOWN_SECONDS": "600"}
-        ):
+        with patch.dict("os.environ", {"PIXL_SESSION_REPORT_AUTO_RETRY_COOLDOWN_SECONDS": "600"}):
             assert _auto_terminal_retry_cooldown_seconds() == 600
 
 
@@ -1166,8 +1154,10 @@ class TestRunWorkflowHeartbeatLifecycle:
             )
 
         db.heartbeat_runs.complete_run.assert_called_once()
-        _run_status_arg = db.heartbeat_runs.complete_run.call_args[1].get("status") or \
-                          db.heartbeat_runs.complete_run.call_args[0][1]
+        _run_status_arg = (
+            db.heartbeat_runs.complete_run.call_args[1].get("status")
+            or db.heartbeat_runs.complete_run.call_args[0][1]
+        )
         assert _run_status_arg == "succeeded"
 
     def test_completes_heartbeat_run_with_failed_status_on_failure(self):
@@ -1190,8 +1180,10 @@ class TestRunWorkflowHeartbeatLifecycle:
             )
 
         db.heartbeat_runs.complete_run.assert_called_once()
-        _run_status_arg = db.heartbeat_runs.complete_run.call_args[1].get("status") or \
-                          db.heartbeat_runs.complete_run.call_args[0][1]
+        _run_status_arg = (
+            db.heartbeat_runs.complete_run.call_args[1].get("status")
+            or db.heartbeat_runs.complete_run.call_args[0][1]
+        )
         assert _run_status_arg == "failed"
 
     def test_uses_provided_run_id_instead_of_creating_new_one(self):

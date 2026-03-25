@@ -599,10 +599,12 @@ class TestEmitFileClaims:
 
 class TestExtractAndPersistSignals:
     def _make_baton(self, files: list[str], current_state: str = "Done") -> str:
-        return json.dumps({
-            "work_scope": {"files_modified": files},
-            "current_state": current_state,
-        })
+        return json.dumps(
+            {
+                "work_scope": {"files_modified": files},
+                "current_state": current_state,
+            }
+        )
 
     def test_emits_file_modified_and_status_update_signals(self) -> None:
         db = MagicMock()
@@ -847,8 +849,7 @@ class TestRecordCost:
         record_cost(db, "session-1", cost_usd=0.0)
 
         event_calls = [
-            c for c in db.events.emit.call_args_list
-            if c[1].get("event_type") == "budget_exceeded"
+            c for c in db.events.emit.call_args_list if c[1].get("event_type") == "budget_exceeded"
         ]
         assert len(event_calls) == 1
 
@@ -1096,9 +1097,7 @@ class TestInstallThreadExcepthook:
 
         # ExceptHookArgs is a C structseq — construct via positional tuple
         # signature: (exc_type, exc_value, exc_traceback, thread)
-        hook_args = threading.ExceptHookArgs(
-            (RuntimeError, RuntimeError("oops"), None, None)
-        )
+        hook_args = threading.ExceptHookArgs((RuntimeError, RuntimeError("oops"), None, None))
 
         with patch.object(logging.getLogger("pixl.utils.thread_hooks"), "error") as mock_log:
             threading.excepthook(hook_args)
@@ -1107,9 +1106,7 @@ class TestInstallThreadExcepthook:
     def test_hook_does_not_log_for_system_exit(self) -> None:
         install_thread_excepthook()
 
-        hook_args = threading.ExceptHookArgs(
-            (SystemExit, SystemExit(0), None, None)
-        )
+        hook_args = threading.ExceptHookArgs((SystemExit, SystemExit(0), None, None))
 
         with patch.object(logging.getLogger("pixl.utils.thread_hooks"), "error") as mock_log:
             threading.excepthook(hook_args)

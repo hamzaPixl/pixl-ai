@@ -143,8 +143,7 @@ class TestClaudeMdLoaderLoad:
 
     def test_extracts_project_overview_section(self, tmp_path) -> None:
         content = (
-            "# Header\n\n## Project Overview\n\n"
-            "This is my project.\n\n## Other\n\nOther stuff."
+            "# Header\n\n## Project Overview\n\nThis is my project.\n\n## Other\n\nOther stuff."
         )
         (tmp_path / "CLAUDE.md").write_text(content)
         loader = ClaudeMdLoader(tmp_path)
@@ -822,9 +821,7 @@ class TestVersionInfoValidation:
         assert v.version == "1.0.0-alpha"
 
     def test_accepts_version_with_build_metadata(self) -> None:
-        v = VersionInfo(
-            version="1.0.0+build.123", build_hash="abcd1234", python_version="3.11.0"
-        )
+        v = VersionInfo(version="1.0.0+build.123", build_hash="abcd1234", python_version="3.11.0")
         assert v.version == "1.0.0+build.123"
 
     def test_rejects_version_without_patch(self) -> None:

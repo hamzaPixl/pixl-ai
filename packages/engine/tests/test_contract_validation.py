@@ -1283,9 +1283,7 @@ class TestDecomposePayloadDagSemantics:
         v._validate_decompose_payload_semantics(payload, result)
 
         assert not result.passed
-        assert any(
-            "cyclic" in v_item.message.lower() for v_item in result.violations
-        )
+        assert any("cyclic" in v_item.message.lower() for v_item in result.violations)
 
     def test_detects_unknown_feature_ref(self, tmp_path: Path) -> None:
         payload = {

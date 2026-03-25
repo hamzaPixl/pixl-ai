@@ -210,9 +210,7 @@ class TestTemplateUpdate:
         assert result.exit_code == 1
         assert "not found" in result.output.lower()
 
-    def test_update_success(
-        self, runner: CliRunner, mock_db: MagicMock, tmp_path: Path
-    ) -> None:
+    def test_update_success(self, runner: CliRunner, mock_db: MagicMock, tmp_path: Path) -> None:
         yaml_file = tmp_path / "wf.yaml"
         yaml_file.write_text("id: test\n")
 

@@ -171,6 +171,7 @@ class TestProviderRegistry:
             async def query(self, prompt, **kwargs) -> AsyncIterator[dict[str, Any]]:
                 async def _gen():
                     yield {}
+
                 return _gen()
 
             def validate_model(self, model: str) -> bool:
@@ -264,6 +265,7 @@ class TestLLMProviderBase:
             async def query(self, prompt, **kwargs) -> AsyncIterator[dict[str, Any]]:
                 async def _gen():
                     yield {}
+
                 return _gen()
 
             def validate_model(self, model: str) -> bool:

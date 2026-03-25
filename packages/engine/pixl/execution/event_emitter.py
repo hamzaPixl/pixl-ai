@@ -87,9 +87,7 @@ class EventEmitter:
             for event in events:
                 self.event_callback(event)
 
-    def emit_error_event(
-        self, error: PixlError, node_id: str | None = None
-    ) -> Event | None:
+    def emit_error_event(self, error: PixlError, node_id: str | None = None) -> Event | None:
         """Emit a structured error event."""
         event = Event.error(
             self.session_id,

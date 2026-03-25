@@ -38,6 +38,7 @@ logger = logging.getLogger(__name__)
 STRUCTURED_OUTPUT_REPAIR_ATTEMPTS = 1
 RAW_OUTPUT_EXCERPT_CHARS = 20_000
 
+
 def _estimate_cost(input_tokens: int, output_tokens: int, model: str) -> float:
     """Estimate USD cost from token counts using config-loaded model pricing.
 
@@ -159,9 +160,7 @@ def execute_with_orchestrator(
                         continue_conversation=True,
                     )
                     _run_coroutine_sync(
-                        orch.send_session_command(
-                            "/compact", options=compact_options
-                        )
+                        orch.send_session_command("/compact", options=compact_options)
                     )
                 except Exception:
                     logger.debug("Session compact before retry failed", exc_info=True)
@@ -231,9 +230,7 @@ def execute_with_orchestrator(
                 query_kwargs["resume_session_id"] = fork_from_session_id
                 query_kwargs["fork_session"] = True
 
-            result_text, metadata = _run_coroutine_sync(
-                orch.query_with_streaming(**query_kwargs)
-            )
+            result_text, metadata = _run_coroutine_sync(orch.query_with_streaming(**query_kwargs))
 
             if metadata.get("sdk_session_id"):
                 llm_session_id = metadata["sdk_session_id"]

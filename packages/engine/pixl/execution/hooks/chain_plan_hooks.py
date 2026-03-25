@@ -264,7 +264,9 @@ def materialize_chain_plan_hook(ctx: HookContext) -> HookResult:
                 "estimate_points": (
                     execution_feature.get("estimate_points")
                     if ref not in feature_id_by_ref
-                    else (db.backlog.get_feature(feature_id_by_ref[ref]) or {}).get("estimate_points")
+                    else (db.backlog.get_feature(feature_id_by_ref[ref]) or {}).get(
+                        "estimate_points"
+                    )
                 ),
                 "suggested_workflow": node.get("suggested_workflow") or workflow_by_ref.get(ref),
                 "needs_refinement": refinement_by_ref.get(ref, False),

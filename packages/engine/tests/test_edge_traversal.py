@@ -214,9 +214,7 @@ class TestFollowEdgesLoopConstraint:
         executor = _make_executor(edges, loop_constraint=lc)
 
         with patch("pixl.execution.edge_traversal.can_enter_loop", return_value=True):
-            with patch(
-                "pixl.execution.edge_traversal.record_loop_iteration"
-            ) as mock_record:
+            with patch("pixl.execution.edge_traversal.record_loop_iteration") as mock_record:
                 follow_edges(executor, "review", "failed")
         mock_record.assert_called_once()
 
@@ -382,9 +380,7 @@ class TestEvaluateCondition:
         executor = MagicMock()
         executor.session.get_node_instance.return_value = {"attempt": 0}
         executor.session.artifacts = []
-        executor.session.structured_outputs = {
-            "plan": {"payload": {"confidence": 0.9}}
-        }
+        executor.session.structured_outputs = {"plan": {"payload": {"confidence": 0.9}}}
         executor._expr_evaluator = MagicMock()
         executor._expr_evaluator.evaluate.return_value = True
 

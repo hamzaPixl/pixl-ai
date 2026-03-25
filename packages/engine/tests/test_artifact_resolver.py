@@ -9,9 +9,7 @@ from __future__ import annotations
 import hashlib
 from pathlib import Path
 from typing import Any
-from unittest.mock import MagicMock, patch
-
-import pytest
+from unittest.mock import MagicMock
 
 from pixl.execution.artifact_resolver import ArtifactResolver
 
@@ -36,7 +34,9 @@ def _make_resolver(
     if store is None:
         store = _make_store()
     if build_contract_variables is None:
-        build_contract_variables = lambda node_id: {}
+
+        def build_contract_variables(node_id):
+            return {}
 
     return ArtifactResolver(
         session_id=session_id,
@@ -72,9 +72,7 @@ class TestResolveRequiredArtifactPath:
         artifacts_dir = Path("/tmp/test-artifacts")
         resolver = _make_resolver(artifacts_dir=artifacts_dir)
 
-        result = resolver.resolve_required_artifact_path(
-            "/tmp/test-artifacts/plan.md", {}
-        )
+        result = resolver.resolve_required_artifact_path("/tmp/test-artifacts/plan.md", {})
 
         assert result == "plan.md"
 
@@ -172,7 +170,7 @@ class TestBuildArtifactHandoffManifest:
         assert len(result) == 1
         assert result[0]["exists"] is True
         assert result[0]["version"] == "unknown"
-        expected_hash = hashlib.sha256("# Plan content".encode("utf-8")).hexdigest()
+        expected_hash = hashlib.sha256(b"# Plan content").hexdigest()
         assert result[0]["sha256"] == expected_hash
 
     def test_manifest_sorted_by_path(self) -> None:

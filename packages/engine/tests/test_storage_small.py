@@ -10,14 +10,12 @@ Prerequisite helpers insert the parent records required by FK constraints
 from __future__ import annotations
 
 import json
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 
 import pytest
-
 from pixl.models.metrics import AgentMetrics
 from pixl.storage.db.connection import PixlDB
-
 
 # ---------------------------------------------------------------------------
 # Shared fixture + helpers
@@ -126,7 +124,9 @@ class TestHeartbeatRunDB:
         _seed_session(db, "sess-hb5")
         db.heartbeat_runs.create_run("run-004", "sess-hb5")
         db.heartbeat_runs.start_run("run-004")
-        db.heartbeat_runs.complete_run("run-004", status="succeeded", input_tokens=100, output_tokens=50)
+        db.heartbeat_runs.complete_run(
+            "run-004", status="succeeded", input_tokens=100, output_tokens=50
+        )
         run = db.heartbeat_runs.get_run("run-004")
         assert run is not None
         assert run["status"] == "succeeded"
@@ -183,7 +183,9 @@ class TestHeartbeatRunDB:
         _seed_session(db, "sess-hb10")
         db.heartbeat_runs.create_run("run-inc", "sess-hb10")
         db.heartbeat_runs.start_run("run-inc")
-        db.heartbeat_runs.increment_usage("run-inc", input_tokens=50, output_tokens=25, cost_usd=0.01, steps=1)
+        db.heartbeat_runs.increment_usage(
+            "run-inc", input_tokens=50, output_tokens=25, cost_usd=0.01, steps=1
+        )
         run = db.heartbeat_runs.get_run("run-inc")
         assert run is not None
         assert run["input_tokens"] == 50
@@ -196,7 +198,9 @@ class TestHeartbeatRunDB:
 
 
 class TestIncidentDB:
-    def _record(self, db: PixlDB, incident_id: str = "inc-001", session_id: str = "sess-inc") -> object:
+    def _record(
+        self, db: PixlDB, incident_id: str = "inc-001", session_id: str = "sess-inc"
+    ) -> object:
         _seed_session(db, session_id)
         return db.incidents.record_incident(
             incident_id=incident_id,
@@ -411,7 +415,9 @@ class TestKnowledgeDB:
     def test_search_returns_results_for_matching_term(self, db: PixlDB) -> None:
         """should return chunks that match the search query"""
         doc_id = db.knowledge.upsert_document("src/search.py", "sh")
-        db.knowledge.add_chunk("sc-1", doc_id, "Authentication", "JWT token auth flow", "src/search.py")
+        db.knowledge.add_chunk(
+            "sc-1", doc_id, "Authentication", "JWT token auth flow", "src/search.py"
+        )
         db.knowledge._conn.commit()
         results = db.knowledge.search("authentication")
         assert len(results) >= 1
@@ -873,9 +879,7 @@ class TestChainSignalDB:
     def test_get_file_claims_returns_claims_dict(self, db: PixlDB) -> None:
         """should return a mapping of file paths to claiming nodes"""
         _seed_chain(db, "chain-006")
-        db.chain_signals.emit_signal(
-            "chain-006", "node-A", "file_claim", {"files": ["src/app.ts"]}
-        )
+        db.chain_signals.emit_signal("chain-006", "node-A", "file_claim", {"files": ["src/app.ts"]})
         claims = db.chain_signals.get_file_claims("chain-006")
         assert "src/app.ts" in claims
         assert "node-A" in claims["src/app.ts"]
