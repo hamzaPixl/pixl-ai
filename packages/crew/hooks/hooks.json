@@ -123,27 +123,12 @@
         ]
       },
       {
-        "matcher": "*",
+        "matcher": "Write|Edit",
         "hooks": [
           {
             "type": "command",
             "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/run-with-flags.sh observe-patterns advisory ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/observe-patterns.sh",
             "timeout": 3
-          },
-          {
-            "type": "command",
-            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/run-with-flags.sh suggest-compact advisory ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/suggest-compact.sh",
-            "timeout": 3
-          }
-        ]
-      },
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/run-with-flags.sh log-pr-url advisory ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/log-pr-url.sh",
-            "timeout": 5
           }
         ]
       }
