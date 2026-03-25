@@ -80,11 +80,6 @@
             "timeout": 5
           },
           {
-            "type": "command",
-            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/run-with-flags.sh detect-secrets quality ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/detect-secrets.sh",
-            "timeout": 5
-          },
-          {
             "type": "prompt",
             "prompt": "Check the tool input below. If the file_path creates a new file inside a domain/, entities/, routes/, or infrastructure/ directory, determine whether this appears to be writing backend infrastructure from scratch. If so, block it — the pixl-crew plugin has studio/stacks/saas/ templates and skills (/saas-microservice, /ddd-pattern) that should be explored first. Tool input: $ARGUMENTS\n\nRespond with JSON: {\"ok\": true} if the file is not backend infrastructure or if exploration was already done, or {\"ok\": false, \"reason\": \"Stop — explore the plugin SaaS stack and skills before writing backend infrastructure from scratch. Use the orchestrator agent or /saas-microservice skill.\"} if blocking."
           },
