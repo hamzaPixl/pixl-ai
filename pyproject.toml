@@ -44,7 +44,7 @@ source = ["packages/engine/pixl", "packages/cli/pixl_cli"]
 omit = ["*/tests/*", "*/__init__.py", "*/py.typed"]
 
 [tool.coverage.report]
-fail_under = 44
+fail_under = 47
 show_missing = true
 exclude_lines = [
     "pragma: no cover",
