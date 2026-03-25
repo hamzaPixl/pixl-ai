@@ -89,7 +89,8 @@ WorkflowTemplate → WorkflowSession → GraphExecutor → ChainRunnerManager �
 | Command | Description |
 |---------|-------------|
 | `pixl project init` | Initialize a `.pixl/` project directory |
-| `pixl workflow run` | Execute a workflow template (`--yes` to auto-approve gates) |
+| `pixl project new <name>` | Create a new project (dir + git + crew + optional setup workflow) |
+| `pixl workflow run` | Execute a workflow template (auto-selects from prompt if `--workflow` omitted, `--yes` to auto-approve gates) |
 | `pixl session list` | List workflow sessions |
 | `pixl artifact list` | List build artifacts |
 | `pixl knowledge build` | Build AST-indexed knowledge base |

@@ -11,7 +11,7 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-from pixl.paths import canonical_project_root, get_pixl_dir, get_project_id
+from pixl.paths import canonical_project_root, get_db_dir, get_project_id
 from pixl.storage import create_storage
 from pixl.storage.protocols import StorageBackend
 
@@ -47,7 +47,7 @@ class CLIContext:
             self.project_path = canonical_project_root(Path.cwd())
 
         self.project_id = get_project_id(self.project_path)
-        self.pixl_dir = get_pixl_dir(self.project_path)
+        self.pixl_dir = get_db_dir(self.project_path)
         self.is_json = is_json
 
         # Workflow context from env vars (set by OrchestratorCore._stage_env_context)

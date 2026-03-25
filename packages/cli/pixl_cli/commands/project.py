@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import json
+
 import click
 
 from pixl_cli._output import emit_detail, emit_error, emit_json, emit_table
@@ -82,15 +84,28 @@ def project_create(
 def project_init(ctx: click.Context) -> None:
     """Initialize pixl for the current project directory.
 
-    Creates the .pixl directory structure and backfills config.
+    Creates local .pixl/ context dir and registers in global workspace.
+    DB lives at ~/.pixl/projects/<id>/pixl.db (centralized).
     """
+    from pixl.paths import get_context_dir
     from pixl.projects.registry import ensure_project_config
 
     cli = get_ctx(ctx)
-    cli.pixl_dir.mkdir(parents=True, exist_ok=True)
-    (cli.pixl_dir / "sessions").mkdir(exist_ok=True)
-    (cli.pixl_dir / "workflows").mkdir(exist_ok=True)
 
+    # Create local context dir (workflows, sessions — NOT the DB)
+    context_dir = get_context_dir(cli.project_path)
+    context_dir.mkdir(parents=True, exist_ok=True)
+    (context_dir / "sessions").mkdir(exist_ok=True)
+    (context_dir / "workflows").mkdir(exist_ok=True)
+
+    # Write project marker
+    marker = context_dir / "project.json"
+    if not marker.exists():
+        marker.write_text(
+            json.dumps({"project_id": cli.project_id, "project_name": cli.project_path.name}, indent=2)
+        )
+
+    # Register in global workspace (creates ~/.pixl/projects/<id>/ + index)
     ensure_project_config(cli.project_path)
 
     if cli.is_json:
@@ -103,7 +118,8 @@ def project_init(ctx: click.Context) -> None:
         )
     else:
         click.echo(f"Initialized pixl project: {cli.project_id}")
-        click.echo(f"  Storage: {cli.pixl_dir}")
+        click.echo(f"  DB: {cli.pixl_dir}")
+        click.echo(f"  Context: {context_dir}")
 
 
 @project.command("new")
@@ -163,11 +179,21 @@ def project_new(
     readme.write_text(f"# {name}\n\n{description}\n")
     click.echo("Initialized git repository")
 
-    # 3. Pixl project init
-    pixl_dir = project_dir / ".pixl"
-    pixl_dir.mkdir(parents=True, exist_ok=True)
-    (pixl_dir / "sessions").mkdir(exist_ok=True)
-    (pixl_dir / "workflows").mkdir(exist_ok=True)
+    # 3. Pixl project init (local context + global registry)
+    from pixl.paths import get_project_id
+
+    context_dir = project_dir / ".pixl"
+    context_dir.mkdir(parents=True, exist_ok=True)
+    (context_dir / "sessions").mkdir(exist_ok=True)
+    (context_dir / "workflows").mkdir(exist_ok=True)
+
+    # Write project marker
+    project_id = get_project_id(project_dir)
+    (context_dir / "project.json").write_text(
+        json.dumps({"project_id": project_id, "project_name": name}, indent=2)
+    )
+
+    # Register in global workspace (DB dir + index)
     ensure_project_config(project_dir)
     click.echo("Registered pixl project")
 

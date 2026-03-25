@@ -102,11 +102,12 @@ def _run_workflow_sync(
     if workflow_id:
         config = loader.load_workflow(workflow_id)
     else:
-        workflows = loader.list_workflows()
-        if not workflows:
-            emit_error("No workflows available.", is_json=cli.is_json)
-            raise SystemExit(1)
-        config = loader.load_workflow(workflows[0]["id"])
+        from pixl.routing.classifier import classify_prompt_fast
+
+        detected_id = classify_prompt_fast(prompt)
+        config = loader.load_workflow(detected_id)
+        if not cli.is_json:
+            click.echo(f"  Auto-selected workflow: {detected_id}")
 
     template = loader.convert_to_template(config)
     snapshot = template.current_snapshot

@@ -186,6 +186,9 @@ class OrchestratorCore:
             "PIXL_STORAGE_PROJECT": storage_project,
             "PIXL_ACTIVE_STORAGE_MODE": "standalone",
             "PIXL_ACTIVE_GLOBAL_DIR": str(get_global_pixl_dir()),
+            # Reduce hook noise in SDK sessions — only critical hooks
+            # (avoids AbortError spam from quality/advisory hooks on teardown)
+            "PIXL_HOOK_PROFILE": "minimal",
             # Unset CLAUDECODE so SDK can spawn nested Claude Code sessions
             # (the parent session sets CLAUDECODE=1 which blocks nesting)
             "CLAUDECODE": None,
@@ -272,6 +275,12 @@ class OrchestratorCore:
             if agent_def and agent_def.tools:
                 allowed_tools = list(agent_def.tools)
 
+        # Use minimal hook profile for SDK workflow sessions to avoid
+        # AbortError spam from quality/advisory hooks on session teardown.
+        # Hooks are loaded BOTH as SDK callbacks and via the plugins system;
+        # crew_hook_profile filters SDK callbacks, env propagates to child process.
+        hook_profile = os.environ.get("PIXL_HOOK_PROFILE", "minimal")
+
         return build_sdk_options(
             project_path=self.project_path,
             allowed_tools=allowed_tools,
@@ -291,6 +300,7 @@ class OrchestratorCore:
             thinking=thinking,
             effort=effort,
             agent_registry=self.agent_registry,
+            crew_hook_profile=hook_profile,
         )
 
     def get_feature(self, feature_id: str) -> Feature | None:

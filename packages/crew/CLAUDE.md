@@ -127,6 +127,8 @@ PIXL_HOOK_PROFILE=minimal claude    # fast exploratory session
 PIXL_DISABLED_HOOKS=typecheck,tdd-check claude  # disable specific hooks
 ```
 
+**Note:** SDK sessions spawned by `pixl workflow run` automatically use `minimal` profile to reduce hook teardown noise.
+
 ## Dynamic Contexts
 
 Load context overlays for different modes (from `contexts/` directory):

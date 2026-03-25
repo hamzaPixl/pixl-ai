@@ -101,11 +101,14 @@ def find_config_file(
     if global_dir is None:
         global_dir = get_global_pixl_dir()
 
-    pixl_dir = _get_pixl_dir(project_path)
+    from pixl.paths import get_context_dir
+
+    context_dir = get_context_dir(project_path)
+    db_dir = _get_pixl_dir(project_path)
     candidates: list[tuple[Path, Literal["global-project", "global", "local"]]] = [
-        (pixl_dir / config_name, "local"),
-        (get_project_global_dir(project_path, global_dir) / config_name, "global-project"),
-        (global_dir / config_name, "global"),
+        (context_dir / config_name, "local"),  # {project}/.pixl/
+        (db_dir / config_name, "global-project"),  # ~/.pixl/projects/{id}/
+        (global_dir / config_name, "global"),  # ~/.pixl/
     ]
 
     for candidate, source_type in candidates:
@@ -137,12 +140,15 @@ def find_all_config_sources(
     if global_dir is None:
         global_dir = get_global_pixl_dir()
 
+    from pixl.paths import get_context_dir
+
     # All possible locations
-    pixl_dir = _get_pixl_dir(project_path)
+    context_dir = get_context_dir(project_path)
+    db_dir = _get_pixl_dir(project_path)
     candidates: list[tuple[Path, Literal["global-project", "global", "local"]]] = [
-        (pixl_dir / config_name, "local"),
-        (get_project_global_dir(project_path, global_dir) / config_name, "global-project"),
-        (global_dir / config_name, "global"),
+        (context_dir / config_name, "local"),  # {project}/.pixl/
+        (db_dir / config_name, "global-project"),  # ~/.pixl/projects/{id}/
+        (global_dir / config_name, "global"),  # ~/.pixl/
     ]
 
     sources = []

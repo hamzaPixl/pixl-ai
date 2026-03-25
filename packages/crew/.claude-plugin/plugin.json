@@ -1,6 +1,6 @@
 {
   "name": "pixl-crew",
-  "version": "9.0.3",
+  "version": "10.0.0",
   "description": "Multi-agent development crew: 14 specialized agents, 70 skills, studio templates, and companion plugins (LSP, Trail of Bits security, playground). Full-stack TypeScript, Python, and Swift with DDD patterns, CI/CD pipelines, design extraction, and cross-session memory.",
   "homepage": "https://github.com/hamzaPixl/pixl-ai",
   "repository": "https://github.com/hamzaPixl/pixl-ai",

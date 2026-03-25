@@ -10,6 +10,27 @@ from pydantic import ValidationError
 from pixl.config.providers import load_providers_config
 from pixl.routing.models import RouterResult
 
+# ── Lightweight keyword classifier (no LLM call) ────────────────────────
+
+_WORKFLOW_KEYWORDS: list[tuple[str, list[str]]] = [
+    ("debug", ["fix ", "bug", "error", "broken", "failing", "crash", "debug", "issue", "wrong", "not working"]),
+    ("tdd", ["test first", "tdd", "test-driven", "write tests"]),
+    ("roadmap", ["roadmap", "milestone", "strategic plan", "multi-phase"]),
+    ("decompose", ["decompose", "break down", "split into features", "epic", "multi-feature"]),
+]
+
+
+def classify_prompt_fast(prompt: str) -> str:
+    """Lightweight keyword-based workflow classifier. No LLM call.
+
+    Returns a workflow ID: 'debug', 'tdd', 'roadmap', 'decompose', or 'simple'.
+    """
+    lower = prompt.lower()
+    for workflow_id, keywords in _WORKFLOW_KEYWORDS:
+        if any(kw in lower for kw in keywords):
+            return workflow_id
+    return "simple"
+
 # Path to the bundled router prompt
 ROUTER_PROMPT_PATH = (
     Path(__file__).parent.parent / "assets" / "prompts" / "router" / "classify.yaml"

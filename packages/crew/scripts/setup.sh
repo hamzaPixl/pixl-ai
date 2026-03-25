@@ -83,6 +83,16 @@ sync_security() {
   done
 }
 
+# ─── Post-install fixups ──────────────────────────────────────────────────
+
+fix_hook_permissions() {
+  # Ensure all hook scripts are executable (some plugins ship without +x)
+  local hooks_dir="$HOME/.claude/plugins/marketplaces"
+  if [[ -d "$hooks_dir" ]]; then
+    find "$hooks_dir" -path "*/hooks*" -name "*.sh" ! -perm +111 -exec chmod +x {} \; 2>/dev/null || true
+  fi
+}
+
 # ─── Main ────────────────────────────────────────────────────────────────
 
 echo ""
@@ -92,6 +102,7 @@ echo ""
 [[ "${SKIP_PLUGINS:-}" != "1" ]] && sync_plugins
 [[ "${SKIP_LSP:-}" != "1" ]] && sync_lsp
 [[ "${SKIP_SECURITY:-}" != "1" ]] && sync_security
+fix_hook_permissions
 
 echo ""
 echo -e "  ${G}✓${R} done"

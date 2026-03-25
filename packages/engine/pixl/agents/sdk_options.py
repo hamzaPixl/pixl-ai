@@ -250,6 +250,20 @@ def build_sdk_options(
     if crew_path:
         plugins = [{"type": "local", "path": crew_path}]
 
+    # Pass hook profile to the Claude Code child process via env
+    # so plugin-loaded hooks also respect the profile (SDK-bridged hooks
+    # are already filtered by crew_hook_profile above).
+    sdk_env: dict[str, str] = {}
+    if crew_hook_profile != "standard":
+        sdk_env["PIXL_HOOK_PROFILE"] = crew_hook_profile
+
+    # Suppress Claude Code's debug/error stderr to avoid terminal corruption.
+    # When SDK sessions end, Claude Code's internal hooks (InboxPoller,
+    # nudge notifications, etc.) crash with AbortError and dump minified JS
+    # stack traces to stderr, flooding the terminal and corrupting zsh output.
+    # The orchestrator handles errors via the SDK message stream, not stderr.
+    _devnull = open(os.devnull, "w")  # noqa: SIM115
+
     options = ClaudeAgentOptions(
         allowed_tools=allowed_tools,
         permission_mode="bypassPermissions",
@@ -259,7 +273,8 @@ def build_sdk_options(
         setting_sources=["user", "project"],
         agents=agents,
         plugins=plugins,  # type: ignore[arg-type]
-        # extra_args={"debug-to-stderr": None},  # Enable for SDK debugging
+        env=sdk_env,
+        debug_stderr=_devnull,
     )
 
     if resume_session_id:
