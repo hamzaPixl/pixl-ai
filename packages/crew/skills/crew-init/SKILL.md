@@ -20,18 +20,21 @@ Drops lightweight pixl-crew awareness assets into any project so Claude knows ab
 | `.claude/rules/crew-enforcement.md` | Mandatory skill usage and agent delegation enforcement |
 | `.claude/settings.local.json` | Scoped permission wildcards (only if file doesn't exist) |
 
-## Step 0: Initialize pixl storage
+## Step 0: Initialize pixl storage + crew
 
 If `pixl` CLI is available (`command -v pixl`), run `pixl project init` in the target directory.
-This creates the `.pixl/` directory with SQLite storage for artifacts, events, knowledge index, and session data.
+This creates both the `.pixl/` directory (SQLite storage) AND installs crew templates
+(CLAUDE.md, `.claude/rules/`, `settings.local.json`) in a single command.
 
 ```bash
 if command -v pixl &>/dev/null; then
   pixl --project <target> project init
+  # Done — pixl project init handles everything.
+  # Skip to Step 6 (summary).
 fi
 ```
 
-Skip silently if pixl is not installed — file-based memory is used as fallback.
+Skip silently if pixl is not installed — continue with manual file creation below.
 
 ## Step 1: Detect project info
 

@@ -574,6 +574,23 @@ class TestProjectHelp:
 
 
 class TestProjectInit:
+    @staticmethod
+    def _make_crew_templates(tmp_path: Path) -> Path:
+        """Create a fake crew root with crew-init templates."""
+        crew_root = tmp_path / "fake_crew"
+        plugin_dir = crew_root / ".claude-plugin"
+        plugin_dir.mkdir(parents=True)
+        (plugin_dir / "plugin.json").write_text('{"version": "1.0.0"}')
+
+        tmpl_dir = crew_root / "templates" / "crew-init"
+        tmpl_dir.mkdir(parents=True)
+        (tmpl_dir / "CLAUDE.md.tmpl").write_text("# {{PROJECT_NAME}}\n\nCrew-enabled project.\n")
+        (tmpl_dir / "crew-workflow.md").write_text("# Workflow rules\n")
+        (tmpl_dir / "crew-delegation.md").write_text("# Delegation rules\n")
+        (tmpl_dir / "crew-enforcement.md").write_text("# Enforcement rules\n")
+        (tmpl_dir / "settings.local.json").write_text('{"allowedTools": []}')
+        return crew_root
+
     def test_init_succeeds(self, runner: CliRunner, tmp_path: Path) -> None:
         with patch("pixl.projects.registry.ensure_project_config"):
             result = runner.invoke(cli, ["--project", str(tmp_path), "project", "init"])
@@ -584,6 +601,122 @@ class TestProjectInit:
         with patch("pixl.projects.registry.ensure_project_config"):
             result = runner.invoke(cli, ["--project", str(tmp_path), "--json", "project", "init"])
         assert result.exit_code == 0
+        data = json.loads(result.output)
+        assert "crew_installed" in data
+        assert data["status"] == "initialized"
+
+    def test_init_installs_crew_templates(self, runner: CliRunner, tmp_path: Path) -> None:
+        project_dir = tmp_path / "my-project"
+        project_dir.mkdir()
+        crew_root = self._make_crew_templates(tmp_path)
+
+        with (
+            patch("pixl.projects.registry.ensure_project_config"),
+            patch("pixl_cli.crew.get_crew_root", return_value=crew_root),
+        ):
+            result = runner.invoke(cli, ["--project", str(project_dir), "project", "init"])
+
+        assert result.exit_code == 0
+        assert (project_dir / "CLAUDE.md").exists()
+        assert "my-project" in (project_dir / "CLAUDE.md").read_text()
+        assert (project_dir / ".claude" / "rules" / "crew-workflow.md").exists()
+        assert (project_dir / ".claude" / "rules" / "crew-delegation.md").exists()
+        assert (project_dir / ".claude" / "rules" / "crew-enforcement.md").exists()
+        assert (project_dir / ".claude" / "settings.local.json").exists()
+
+    def test_init_creates_claude_md_from_template(self, runner: CliRunner, tmp_path: Path) -> None:
+        project_dir = tmp_path / "test-app"
+        project_dir.mkdir()
+        crew_root = self._make_crew_templates(tmp_path)
+
+        with (
+            patch("pixl.projects.registry.ensure_project_config"),
+            patch("pixl_cli.crew.get_crew_root", return_value=crew_root),
+        ):
+            result = runner.invoke(
+                cli, ["--project", str(project_dir), "project", "init", "--name", "My App"]
+            )
+
+        assert result.exit_code == 0
+        content = (project_dir / "CLAUDE.md").read_text()
+        assert "# My App" in content
+
+    def test_init_skips_existing_claude_md(self, runner: CliRunner, tmp_path: Path) -> None:
+        project_dir = tmp_path / "existing"
+        project_dir.mkdir()
+        (project_dir / "CLAUDE.md").write_text("# Custom content\n")
+        crew_root = self._make_crew_templates(tmp_path)
+
+        with (
+            patch("pixl.projects.registry.ensure_project_config"),
+            patch("pixl_cli.crew.get_crew_root", return_value=crew_root),
+        ):
+            result = runner.invoke(cli, ["--project", str(project_dir), "project", "init"])
+
+        assert result.exit_code == 0
+        assert (project_dir / "CLAUDE.md").read_text() == "# Custom content\n"
+        assert "already exists" in result.output
+
+    def test_init_no_crew_flag(self, runner: CliRunner, tmp_path: Path) -> None:
+        project_dir = tmp_path / "no-crew"
+        project_dir.mkdir()
+
+        with patch("pixl.projects.registry.ensure_project_config"):
+            result = runner.invoke(
+                cli, ["--project", str(project_dir), "project", "init", "--no-crew"]
+            )
+
+        assert result.exit_code == 0
+        assert not (project_dir / "CLAUDE.md").exists()
+        assert not (project_dir / ".claude").exists()
+
+    def test_init_preserves_existing_settings(self, runner: CliRunner, tmp_path: Path) -> None:
+        project_dir = tmp_path / "with-settings"
+        project_dir.mkdir()
+        settings_dir = project_dir / ".claude"
+        settings_dir.mkdir()
+        (settings_dir / "settings.local.json").write_text('{"custom": true}')
+        crew_root = self._make_crew_templates(tmp_path)
+
+        with (
+            patch("pixl.projects.registry.ensure_project_config"),
+            patch("pixl_cli.crew.get_crew_root", return_value=crew_root),
+        ):
+            result = runner.invoke(cli, ["--project", str(project_dir), "project", "init"])
+
+        assert result.exit_code == 0
+        assert (settings_dir / "settings.local.json").read_text() == '{"custom": true}'
+
+    def test_init_idempotent(self, runner: CliRunner, tmp_path: Path) -> None:
+        project_dir = tmp_path / "idem"
+        project_dir.mkdir()
+        crew_root = self._make_crew_templates(tmp_path)
+
+        with (
+            patch("pixl.projects.registry.ensure_project_config"),
+            patch("pixl_cli.crew.get_crew_root", return_value=crew_root),
+        ):
+            result1 = runner.invoke(cli, ["--project", str(project_dir), "project", "init"])
+            result2 = runner.invoke(cli, ["--project", str(project_dir), "project", "init"])
+
+        assert result1.exit_code == 0
+        assert result2.exit_code == 0
+
+    def test_init_crew_not_found_graceful(self, runner: CliRunner, tmp_path: Path) -> None:
+        project_dir = tmp_path / "no-crew-plugin"
+        project_dir.mkdir()
+
+        with (
+            patch("pixl.projects.registry.ensure_project_config"),
+            patch(
+                "pixl_cli.crew.get_crew_root",
+                side_effect=FileNotFoundError("pixl-crew not found"),
+            ),
+        ):
+            result = runner.invoke(cli, ["--project", str(project_dir), "project", "init"])
+
+        assert result.exit_code == 0
+        assert "Crew plugin not found" in result.output
 
 
 class TestProjectList:

@@ -3,11 +3,94 @@
 from __future__ import annotations
 
 import json
+import shutil
+from pathlib import Path
+from typing import Any
 
 import click
 
 from pixl_cli._output import emit_detail, emit_error, emit_json, emit_table
 from pixl_cli.main import get_ctx
+
+_CREW_RULE_FILES = ["crew-workflow.md", "crew-delegation.md", "crew-enforcement.md"]
+
+
+def _init_project(
+    project_path: Path,
+    *,
+    project_name: str | None = None,
+    install_crew: bool = True,
+) -> dict[str, Any]:
+    """Shared helper — creates .pixl/ infrastructure and optionally installs crew templates.
+
+    Idempotent: safe to call multiple times on the same directory.
+    """
+    from pixl.paths import get_context_dir, get_project_id
+    from pixl.projects.registry import ensure_project_config
+
+    project_id = get_project_id(project_path)
+    name = project_name or project_path.name
+
+    # --- .pixl/ local context dir ---
+    context_dir = get_context_dir(project_path)
+    context_dir.mkdir(parents=True, exist_ok=True)
+    (context_dir / "sessions").mkdir(exist_ok=True)
+    (context_dir / "workflows").mkdir(exist_ok=True)
+
+    marker = context_dir / "project.json"
+    if not marker.exists():
+        marker.write_text(json.dumps({"project_id": project_id, "project_name": name}, indent=2))
+
+    # --- Global registry ---
+    ensure_project_config(project_path)
+
+    result: dict[str, Any] = {
+        "project_id": project_id,
+        "context_dir": str(context_dir),
+        "crew_installed": False,
+        "claude_md_created": False,
+    }
+
+    if not install_crew:
+        return result
+
+    # --- Crew templates ---
+    from pixl_cli.crew import get_crew_root
+
+    try:
+        crew_root = get_crew_root()
+        templates_dir = Path(crew_root) / "templates" / "crew-init"
+        if not templates_dir.is_dir():
+            click.echo("Crew templates not found — skipping crew init")
+            return result
+    except FileNotFoundError:
+        click.echo("Crew plugin not found — skipping crew init")
+        return result
+
+    # CLAUDE.md — skip if exists (idempotent, non-interactive)
+    claude_md = project_path / "CLAUDE.md"
+    tmpl = templates_dir / "CLAUDE.md.tmpl"
+    if tmpl.is_file() and not claude_md.exists():
+        content = tmpl.read_text().replace("{{PROJECT_NAME}}", name)
+        claude_md.write_text(content)
+        result["claude_md_created"] = True
+
+    # .claude/rules/ — always overwrite (crew-managed infrastructure)
+    rules_dir = project_path / ".claude" / "rules"
+    rules_dir.mkdir(parents=True, exist_ok=True)
+    for rule_file in _CREW_RULE_FILES:
+        src = templates_dir / rule_file
+        if src.is_file():
+            shutil.copy2(str(src), str(rules_dir / rule_file))
+
+    # .claude/settings.local.json — skip if exists
+    settings_src = templates_dir / "settings.local.json"
+    settings_dst = project_path / ".claude" / "settings.local.json"
+    if settings_src.is_file() and not settings_dst.exists():
+        shutil.copy2(str(settings_src), str(settings_dst))
+
+    result["crew_installed"] = True
+    return result
 
 
 @click.group()
@@ -80,46 +163,74 @@ def project_create(
 
 
 @project.command("init")
+@click.option("--name", default=None, help="Project name (default: directory name).")
+@click.option("--no-crew", is_flag=True, default=False, help="Skip crew template installation.")
+@click.option("--setup/--no-setup", default=False, help="Run project-setup workflow after init.")
 @click.pass_context
-def project_init(ctx: click.Context) -> None:
+def project_init(ctx: click.Context, name: str | None, no_crew: bool, setup: bool) -> None:
     """Initialize pixl for the current project directory.
 
-    Creates local .pixl/ context dir and registers in global workspace.
+    Creates local .pixl/ context dir, registers in global workspace,
+    and installs crew templates (CLAUDE.md, rules, permissions).
     DB lives at ~/.pixl/projects/<id>/pixl.db (centralized).
+
+    Example:
+        pixl project init
+        pixl project init --name my-app
+        pixl project init --no-crew
+        pixl project init --setup
     """
-    from pixl.paths import get_context_dir
-    from pixl.projects.registry import ensure_project_config
-
     cli = get_ctx(ctx)
-
-    # Create local context dir (workflows, sessions — NOT the DB)
-    context_dir = get_context_dir(cli.project_path)
-    context_dir.mkdir(parents=True, exist_ok=True)
-    (context_dir / "sessions").mkdir(exist_ok=True)
-    (context_dir / "workflows").mkdir(exist_ok=True)
-
-    # Write project marker
-    marker = context_dir / "project.json"
-    if not marker.exists():
-        marker.write_text(
-            json.dumps({"project_id": cli.project_id, "project_name": cli.project_path.name}, indent=2)
-        )
-
-    # Register in global workspace (creates ~/.pixl/projects/<id>/ + index)
-    ensure_project_config(cli.project_path)
+    result = _init_project(
+        cli.project_path,
+        project_name=name,
+        install_crew=not no_crew,
+    )
 
     if cli.is_json:
         emit_json(
             {
-                "project_id": cli.project_id,
+                "project_id": result["project_id"],
                 "pixl_dir": str(cli.pixl_dir),
+                "context_dir": result["context_dir"],
+                "crew_installed": result["crew_installed"],
+                "claude_md_created": result["claude_md_created"],
                 "status": "initialized",
             }
         )
     else:
-        click.echo(f"Initialized pixl project: {cli.project_id}")
+        click.echo(f"Initialized pixl project: {result['project_id']}")
         click.echo(f"  DB: {cli.pixl_dir}")
-        click.echo(f"  Context: {context_dir}")
+        click.echo(f"  Context: {result['context_dir']}")
+        if result["crew_installed"]:
+            click.echo("  Crew: rules, permissions" + (", CLAUDE.md" if result["claude_md_created"] else ""))
+            if not result["claude_md_created"]:
+                click.echo("  Note: CLAUDE.md already exists — skipped")
+
+    # Optional workflow execution
+    if setup:
+        import subprocess
+
+        click.echo("\nRunning project-setup workflow...")
+        wf_result = subprocess.run(
+            [
+                "pixl",
+                "--project",
+                str(cli.project_path),
+                "workflow",
+                "run",
+                "--workflow",
+                "project-setup",
+                "--yes",
+            ],
+            cwd=str(cli.project_path),
+        )
+        if wf_result.returncode != 0:
+            click.echo("Warning: project-setup workflow failed. Run manually with:")
+            click.echo(f"  pixl workflow run --workflow project-setup --yes")
+    elif not cli.is_json:
+        click.echo("\nTo run project setup workflow:")
+        click.echo("  pixl workflow run --workflow project-setup --yes")
 
 
 @project.command("new")
@@ -145,9 +256,8 @@ def project_new(
     This is the single entry point for starting a new project:
     1. Creates the project directory
     2. Initializes git
-    3. Registers with pixl (project init + DB)
-    4. Initializes crew (CLAUDE.md, rules, permissions from crew-init templates)
-    5. Optionally runs the project-setup workflow (backlog, knowledge index)
+    3. Registers with pixl + installs crew (CLAUDE.md, rules, permissions)
+    4. Optionally runs the project-setup workflow (backlog, knowledge index)
 
     Example:
         pixl project new demo-web
@@ -155,9 +265,6 @@ def project_new(
     """
     import os
     import subprocess
-    from pathlib import Path
-
-    from pixl.projects.registry import ensure_project_config
 
     # 1. Resolve parent directory
     if parent_dir is None:
@@ -179,61 +286,13 @@ def project_new(
     readme.write_text(f"# {name}\n\n{description}\n")
     click.echo("Initialized git repository")
 
-    # 3. Pixl project init (local context + global registry)
-    from pixl.paths import get_project_id
-
-    context_dir = project_dir / ".pixl"
-    context_dir.mkdir(parents=True, exist_ok=True)
-    (context_dir / "sessions").mkdir(exist_ok=True)
-    (context_dir / "workflows").mkdir(exist_ok=True)
-
-    # Write project marker
-    project_id = get_project_id(project_dir)
-    (context_dir / "project.json").write_text(
-        json.dumps({"project_id": project_id, "project_name": name}, indent=2)
-    )
-
-    # Register in global workspace (DB dir + index)
-    ensure_project_config(project_dir)
+    # 3. Pixl + crew init (shared helper)
+    result = _init_project(project_dir, project_name=name, install_crew=True)
     click.echo("Registered pixl project")
+    if result["crew_installed"]:
+        click.echo("Initialized crew (CLAUDE.md, rules, permissions)")
 
-    # 4. Initialize crew (copy templates from crew-init)
-    from pixl_cli.crew import get_crew_root
-
-    try:
-        crew_root = get_crew_root()
-        templates_dir = Path(crew_root) / "templates" / "crew-init"
-        if templates_dir.is_dir():
-            import shutil
-
-            # CLAUDE.md from template
-            tmpl = templates_dir / "CLAUDE.md.tmpl"
-            if tmpl.is_file():
-                content = tmpl.read_text()
-                content = content.replace("{{PROJECT_NAME}}", name)
-                (project_dir / "CLAUDE.md").write_text(content)
-
-            # .claude/rules/ from templates
-            rules_dir = project_dir / ".claude" / "rules"
-            rules_dir.mkdir(parents=True, exist_ok=True)
-            for rule_file in ["crew-workflow.md", "crew-delegation.md", "crew-enforcement.md"]:
-                src = templates_dir / rule_file
-                if src.is_file():
-                    shutil.copy2(str(src), str(rules_dir / rule_file))
-
-            # .claude/settings.local.json (only if not exists)
-            settings_src = templates_dir / "settings.local.json"
-            settings_dst = project_dir / ".claude" / "settings.local.json"
-            if settings_src.is_file() and not settings_dst.exists():
-                shutil.copy2(str(settings_src), str(settings_dst))
-
-            click.echo("Initialized crew (CLAUDE.md, rules, permissions)")
-        else:
-            click.echo("Crew templates not found — skipping crew init")
-    except FileNotFoundError:
-        click.echo("Crew plugin not found — skipping crew init")
-
-    # 5. Initial git commit (includes README, CLAUDE.md, rules, .gitignore)
+    # 4. Initial git commit
     subprocess.run(["git", "add", "-A"], cwd=str(project_dir), check=True, capture_output=True)
     subprocess.run(
         ["git", "commit", "-m", f"init: {name} — pixl project with crew"],
@@ -242,10 +301,10 @@ def project_new(
         capture_output=True,
     )
 
-    # 6. Run project-setup workflow
+    # 5. Run project-setup workflow
     if setup:
         click.echo("\nRunning project-setup workflow...")
-        result = subprocess.run(
+        wf_result = subprocess.run(
             [
                 "pixl",
                 "--project",
@@ -258,7 +317,7 @@ def project_new(
             ],
             cwd=str(project_dir),
         )
-        if result.returncode != 0:
+        if wf_result.returncode != 0:
             click.echo("Warning: project-setup workflow failed. Run manually with:")
             click.echo(f"  cd {project_dir} && pixl workflow run --workflow project-setup --yes")
     else:
