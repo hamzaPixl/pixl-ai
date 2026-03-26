@@ -1,6 +1,6 @@
 [project]
 name = "pixl-engine"
-version = "10.0.0"
+version = "10.0.1"
 description = "Pixl engine — models, providers, and utilities"
 requires-python = ">=3.12"
 dependencies = [
