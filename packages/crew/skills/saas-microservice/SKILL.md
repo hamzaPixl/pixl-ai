@@ -13,7 +13,7 @@ Orchestrates building a complete SaaS microservice using the studio's saas stack
 
 ## Studio Stack
 
-Scaffold from: `studio/stacks/saas/` (17 foundation packages + service template)
+Scaffold from: `studio/stacks/saas/` (18 foundation packages + service template)
 
 ## Suggested Team
 

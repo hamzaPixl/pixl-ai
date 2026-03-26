@@ -4,7 +4,7 @@
 
 ## Overview
 
-pixl-engine is the brain of the Pixl Platform. It handles everything from prompt classification and workflow selection to DAG-based execution, PM supervision, and recovery. Originally extracted from the **synq** project, it includes 1950+ passing tests at 50% coverage.
+pixl-engine is the brain of the Pixl Platform. It handles everything from prompt classification and workflow selection to DAG-based execution, PM supervision, and recovery. Originally extracted from the **synq** project, it includes a comprehensive test suite with 50%+ coverage.
 
 ## Features
 
@@ -64,20 +64,26 @@ make test-session       # Session tests
 
 ```
 pixl/
-├── models/        # Pydantic data models
+├── agents/        # SDK options builder, agent registry, crew hook bridge, todo bridge
+├── assets/        # Workflow YAMLs, prompts, JSON schemas
+├── config/        # Workflow/agent YAML loaders
+├── context/       # UnifiedContextCompiler
+├── events/        # EventBus (in-process pub/sub)
 ├── execution/     # GraphExecutor, ChainRunner, PMSupervisor
+├── git/           # PR automation
+├── knowledge/     # AST chunker, knowledge search
+├── loaders/       # Data loaders
+├── models/        # Pydantic data models
+├── observability/ # Logging, metrics
+├── orchestration/ # Orchestration coordination
+├── output/        # Output formatters
+├── projects/      # Project management
+├── prompts/       # Prompt templates
+├── providers/     # AI provider registry (Anthropic, OpenAI, Gemini)
+├── recovery/      # RecoveryEngine, incident store
+├── routing/       # PromptClassifier
+├── session/       # SessionManager
 ├── state/         # TransitionEngine, StateMachine, guards, effects
 ├── storage/       # SQLite WAL + FTS5, schema migrations
-├── providers/     # AI provider registry (Anthropic, OpenAI, Gemini)
-├── routing/       # PromptClassifier
-├── knowledge/     # AST chunker, knowledge search
-├── context/       # UnifiedContextCompiler
-├── session/       # SessionManager
-├── recovery/      # RecoveryEngine, incident store
-├── config/        # Workflow/agent YAML loaders
-├── agents/        # SDK options builder, agent registry, crew hook bridge, todo bridge
-├── events/        # EventBus (in-process pub/sub)
-├── git/           # PR automation
-├── assets/        # Workflow YAMLs, prompts, JSON schemas
-└── observability/ # Logging, metrics
+└── utils/         # Shared utilities
 ```

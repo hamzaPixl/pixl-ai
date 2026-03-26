@@ -3,13 +3,13 @@
 <br>
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/pixl--crew-v7.0.0-white?style=for-the-badge&labelColor=000">
-  <img alt="pixl-crew" src="https://img.shields.io/badge/pixl--crew-v7.0.0-black?style=for-the-badge&labelColor=fff">
+  <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/pixl--crew-v10.0.1-white?style=for-the-badge&labelColor=000">
+  <img alt="pixl-crew" src="https://img.shields.io/badge/pixl--crew-v10.0.1-black?style=for-the-badge&labelColor=fff">
 </picture>
 
 ### Your AI development team as a Claude Code plugin.
 
-14 agents &middot; 70 skills &middot; 11 companion plugins &middot; 2 studio stacks
+14 agents &middot; 75 skills &middot; 11 companion plugins &middot; 2 studio stacks
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Claude Code](https://img.shields.io/badge/Claude_Code-plugin-blueviolet)](https://claude.ai/code)
@@ -24,7 +24,7 @@
 
 ## What is pixl-crew?
 
-**pixl-crew** turns Claude Code into a full AI development team. Instead of one assistant, it delegates to **14 specialized agents** — an architect designs, a backend engineer builds APIs, a frontend engineer creates UI, and a QA engineer tests. It ships with **70 reusable skills**, **production-ready scaffolding** for Next.js and SaaS backends, and **automated hooks** that enforce quality and persist context across sessions.
+**pixl-crew** turns Claude Code into a full AI development team. Instead of one assistant, it delegates to **14 specialized agents** — an architect designs, a backend engineer builds APIs, a frontend engineer creates UI, and a QA engineer tests. It ships with **75 reusable skills**, **production-ready scaffolding** for Next.js and SaaS backends, and **automated hooks** that enforce quality and persist context across sessions.
 
 ---
 
@@ -76,7 +76,7 @@ After setup, open Claude Code in any project — agents and skills are immediate
 
 ## Skills
 
-70 slash commands grouped by what you're trying to do.
+75 slash commands grouped by what you're trying to do.
 
 | Category | Skills | What they do |
 | :--- | :--- | :--- |
@@ -87,10 +87,12 @@ After setup, open Claude Code in any project — agents and skills are immediate
 | **Quality & review** | `/self-review-fix-loop`, `/code-reduction`, `/react-doctor`, `/cto-review`, `/spec-review`, `/agent-browser`, `/code-review` | Review cycles, dead code removal, CTO-level critique, PR review, spec drift |
 | **Testing** | `/test-runner`, `/test-writer`, `/eval-harness`, `/benchmark` | Run tests, generate test suites (TDD red phase), evals, benchmarks |
 | **Audits** | `/schema-audit`, `/api-audit`, `/error-catalog`, `/dependency-review`, `/security-scan`, `/seo-audit` | DB schemas, API endpoints, errors, deps/CVEs, OWASP, SEO |
-| **Planning** | `/task-plan`, `/sprint-planning`, `/migration-plan`, `/content-pipeline`, `/content-marketing`, `/task-persist` | Task decomposition, sprints, migrations, content strategy |
+| **Planning** | `/task-plan`, `/sprint-planning`, `/migration-plan`, `/content-pipeline`, `/content-marketing`, `/task-persist`, `/prd-analysis`, `/prd-pipeline` | Task decomposition, sprints, migrations, content strategy, PRD analysis, autonomous PRD execution |
 | **DevOps** | `/docker-cloudrun`, `/pm2`, `/makefile` | Containerize, deploy, process management |
-| **Workflow** | `/pr-creation`, `/claude-md`, `/skill-factory`, `/client-project-setup`, `/crew-init`, `/strategic-compact`, `/continuous-learning`, `/batch` | PR workflows, project setup, context management, parallel execution, learning |
-| **Intelligence** | `/intel`, `/strategic-intel`, `/cartographer` | AST code search, business intelligence, PR decomposition |
+| **Workflow** | `/pr-creation`, `/claude-md`, `/skill-factory`, `/client-project-setup`, `/crew-init`, `/strategic-compact`, `/continuous-learning`, `/batch`, `/changelog`, `/session-wrap`, `/ship-milestone` | PR workflows, project setup, context management, parallel execution, learning, changelog, session wrap-up, milestone shipping |
+| **Intelligence** | `/intel`, `/strategic-intel`, `/cartographer`, `/vision-advisory` | AST code search, business intelligence, PR decomposition, strategic advisory |
+| **Video** | `/intro-video-brief` | Product intro video briefs, Remotion video enhancement |
+| **Incident** | `/runbook` | Production incident investigation, runbook generation |
 | **Swift** | `/swift-patterns` | SwiftUI, Swift 6.2 concurrency, actors, protocol DI |
 
 <details>
@@ -108,9 +110,9 @@ After setup, open Claude Code in any project — agents and skills are immediate
 </details>
 
 <details>
-<summary><strong>Utilities</strong> (6 skills)</summary>
+<summary><strong>Utilities</strong> (5 skills)</summary>
 
-`/file-parser`, `/multi-agent-pipeline`, `/ralph-loop-crew`, `/context-packet-template`, `/studio-guide`, `/session-export`, `/session-retrospective`
+`/file-parser`, `/multi-agent-pipeline`, `/ralph-loop-crew`, `/context-packet-template`, `/studio-guide`
 
 </details>
 

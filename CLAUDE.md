@@ -10,7 +10,7 @@ Makefile                        # setup, install, test, check, format, release
 packages/
 ├── engine/                     # pixl-engine (Python) — DAG orchestration, LLM providers, SQLite storage
 │   ├── pyproject.toml
-│   ├── pixl/                   # ~220 modules
+│   ├── pixl/                   # ~200 modules
 │   └── tests/
 ├── cli/                        # pixl-cli (Python) — Click-based `pixl` binary
 │   ├── pyproject.toml          # bundles crew via force-include
@@ -131,13 +131,13 @@ Global options: `--json` (JSON output, NDJSON streaming for workflow run), `--pr
 **Frontend**: `/website`, `/design-extraction`, `/shadcn-ui`, `/svg-icon-creation`, `/i18n-setup`
 **Website mods**: `/website-theme`, `/website-layout`
 **Backend**: `/ddd-pattern`, `/fastapi-service`, `/pydantic-api-endpoint`
-**Quality**: `/self-review-fix-loop`, `/code-reduction`, `/agent-browser`, `/react-doctor`, `/seo-audit`, `/cto-review`, `/cartographer`, `/test-runner`, `/test-writer`, `/benchmark`, `/schema-audit`, `/error-catalog`, `/api-audit`, `/dependency-review`, `/eval-harness`, `/security-scan`, `/spec-review`, `/code-review`
+**Quality**: `/self-review-fix-loop`, `/code-reduction`, `/agent-browser`, `/react-doctor`, `/seo-audit`, `/cto-review`, `/cartographer`, `/test-runner`, `/test-writer`, `/benchmark`, `/schema-audit`, `/error-catalog`, `/api-audit`, `/dependency-review`, `/eval-harness`, `/security-scan`, `/spec-review`, `/code-review`, `/runbook`
 **Utilities**: `/file-parser`
 **Marketing**: `/content-marketing`
 **Video**: `/intro-video-brief` (create or enhance Remotion product intro videos)
 **DevOps**: `/docker-cloudrun`, `/pm2`, `/makefile`, `/docker-prisma-setup`
 **Planning**: `/prd-analysis`, `/task-plan`, `/content-pipeline`, `/sprint-planning`, `/task-persist`, `/migration-plan`, `/prd-pipeline`
-**Workflow**: `/pr-creation`, `/claude-md`, `/skill-factory`, `/multi-agent-pipeline`, `/ralph-loop-crew`, `/context-packet-template`, `/crew-init`, `/studio-guide`, `/session-wrap`, `/client-project-setup`, `/strategic-compact`, `/continuous-learning`, `/batch`, `/changelog`
+**Workflow**: `/pr-creation`, `/claude-md`, `/skill-factory`, `/multi-agent-pipeline`, `/ralph-loop-crew`, `/context-packet-template`, `/crew-init`, `/studio-guide`, `/session-wrap`, `/client-project-setup`, `/strategic-compact`, `/continuous-learning`, `/batch`, `/changelog`, `/ship-milestone`
 **Swift**: `/swift-patterns`
 **Project types**: `/website-project`, `/saas-microservice`, `/fullstack-app`, `/admin-dashboard`, `/blog`, `/fastapi-api`
 **Plugin dev**: `/agent-development`, `/command-development`, `/hook-development`, `/plugin-settings`, `/plugin-structure`, `/skill-factory`

@@ -44,6 +44,9 @@ Shared domain knowledge auto-loaded by agents and skills via `references/` in CL
 | `frontend/seo-reference.md`              | Meta tags, structured data, sitemap, OG tags                       |
 | `frontend/ui-constraints.md`             | Layout constraints, responsive breakpoints, spacing system         |
 | `frontend/url-design-extraction.md`      | Extracting design tokens from live website URLs                    |
+| `frontend/seo-checklist.md`              | SEO audit checklist                                                |
+| `frontend/visual-regression.md`          | Visual regression testing with pixelmatch                          |
+| `frontend/website-design-system.md`      | Website design system conventions                                  |
 
 ## Methodology
 
@@ -77,6 +80,7 @@ Shared domain knowledge auto-loaded by agents and skills via `references/` in CL
 | File                              | Purpose                                              |
 | --------------------------------- | ---------------------------------------------------- |
 | `intel/pixl-cli-reference.md`     | pixl CLI commands for AST search, artifacts, events  |
+| `intel/cli-integration.md`        | CLI integration guide for pixl commands               |
 
 ## Standards
 

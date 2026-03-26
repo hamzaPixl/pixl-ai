@@ -33,7 +33,7 @@ Auto-init: if pixl is available but `.pixl/` doesn't exist, `pixl project init` 
 | Type | Purpose | Written by |
 |------|---------|------------|
 | `session_summary` | Per-session git diff stats and modified files | `stop-summary.sh` |
-| `decision` | Architectural and workflow decisions | `session-retrospective`, `log-pr-url.sh`, agents |
+| `decision` | Architectural and workflow decisions | `session-wrap`, `log-pr-url.sh`, agents |
 | `cost_log` | Per-session token usage and cost estimates | `cost-tracker.sh` |
 | `instinct` | Learned patterns and heuristics | `continuous-learning` |
 | `tool_usage` | Tool usage metadata for pattern analysis | `observe-patterns.sh` |

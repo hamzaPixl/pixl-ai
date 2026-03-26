@@ -1,4 +1,4 @@
-# pixl — Usage Guide (v9.0.2)
+# pixl — Usage Guide (v10.0.1)
 
 How to use pixl for a new project, from install to workflow execution.
 

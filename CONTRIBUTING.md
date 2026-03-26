@@ -229,7 +229,7 @@ make release BUMP=major
 
 The release script:
 1. Updates version in all `pyproject.toml` files
-2. Creates a git tag (`v9.0.3`)
+2. Creates a git tag (e.g. `v10.0.1`)
 3. Pushes to remote
 
 ## Common Tasks

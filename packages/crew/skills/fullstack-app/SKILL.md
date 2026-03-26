@@ -14,7 +14,7 @@ Combines the nextjs and saas studio stacks to build a complete fullstack applica
 ## Studio Stacks
 
 - Frontend: `studio/stacks/nextjs/` (75 templates)
-- Backend: `studio/stacks/saas/` (17 foundation packages + service template)
+- Backend: `studio/stacks/saas/` (18 foundation packages + service template)
 
 ## Suggested Team
 

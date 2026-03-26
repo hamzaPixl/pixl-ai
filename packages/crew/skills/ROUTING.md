@@ -111,6 +111,8 @@ Decision tree: "I want to build X" → use skill Y.
 | Persist tasks across sessions    | `/task-persist`            |
 | Create a context packet          | `/context-packet-template` |
 | Capture session decisions        | `/session-wrap`            |
+| Generate release notes from commits | `/changelog`            |
+| Ship a milestone end-to-end      | `/ship-milestone`          |
 | Onboard a new client project     | `/client-project-setup`    |
 
 ## Swift / iOS

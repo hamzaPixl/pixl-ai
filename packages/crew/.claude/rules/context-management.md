@@ -20,6 +20,6 @@
 
 ## Context Budget
 
-- Skill descriptions (~100 words each × 71 skills) consume ~7K tokens at session start
+- Skill descriptions (~100 words each × 75 skills) consume ~7.5K tokens at session start
 - Shorter descriptions free routing context for actual work
 - Move detailed trigger lists into SKILL.md body, keep description to 1-2 sentences

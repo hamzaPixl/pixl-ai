@@ -58,7 +58,7 @@ Create a compact state document:
 Based on context usage, recommend:
 - **Continue** — context is fine, no action needed
 - **Summarize** — compress verbose outputs, keep key facts
-- **Save and clear** — run `/session-export` then `/clear`
+- **Save and clear** — run `/session-wrap` then `/clear`
 - **Delegate** — offload remaining work to a subagent with a context packet
 
 ## Output

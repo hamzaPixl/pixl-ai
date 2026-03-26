@@ -2,7 +2,7 @@
 
 > Comprehensive analysis of the pixl platform across all layers, gap analysis against the Claude Agent SDK, and prioritized recommendations.
 >
-> Generated: 2026-03-23 | Engine schema: v35 | Crew: v9.0.2 | SDK: v0.1.37+
+> Generated: 2026-03-23 | Engine schema: v37 | Crew: v10.0.1 | SDK: v0.1.37+
 
 ---
 
@@ -29,14 +29,14 @@ A **project management platform** where AI agent teams work on projects through 
 
 - **Engine** — Python DAG orchestration with SQLite storage, multi-provider LLM support, and Claude Agent SDK integration
 - **CLI** — Click-based binary (`pixl`) that drives the engine
-- **Crew Plugin** — 14 specialized agents, 70+ skills, shell hooks, and reference library for Claude Code
+- **Crew Plugin** — 14 specialized agents, 75 skills, shell hooks, and reference library for Claude Code
 - **Sandboxes** — Cloudflare Workers containers where AI works in isolation with the full pixl stack
 
 The end goal: sandboxed AI agents execute workflows with plugin assistance, all wired through the Claude Agent SDK. A future API + frontend will expose execution data, sessions, and results.
 
 ### Current State
 
-The platform is **architecturally mature** with a production-grade engine (194+ modules, schema v35 with 40+ tables, FTS5 search, protocol-based storage, chain executor for parallel swarm work). The crew plugin is the most comprehensive Claude Code plugin available (14 agents, 70+ skills, hooks system with 3 profiles). The sandbox layer is functional with a full REST API.
+The platform is **architecturally mature** with a production-grade engine (200+ modules, schema v37 with 40+ tables, FTS5 search, protocol-based storage, chain executor for parallel swarm work). The crew plugin is the most comprehensive Claude Code plugin available (14 agents, 75 skills, hooks system with 3 profiles). The sandbox layer is functional with a full REST API.
 
 ### Key Findings
 
@@ -52,12 +52,12 @@ The platform is **architecturally mature** with a production-grade engine (194+ 
 
 ### 2.1 Engine Layer
 
-**Location**: `packages/engine/pixl/` — 194+ Python modules
+**Location**: `packages/engine/pixl/` — 200+ Python modules
 
 | Component | Modules | Status | Description |
 |-----------|---------|--------|-------------|
 | **Domain Models** | `models/` (22 files) | Complete | Roadmap→Epic→Feature (planning), WorkflowSession→NodeInstance (execution), Baton (context relay), StageOutput (contracts) |
-| **Storage** | `storage/` (32 files) | Complete | Protocol-based (Ports & Adapters). SQLite with WAL mode, FTS5, 40+ tables, schema v35. 5 domain stores: BacklogStore, SessionStore, ArtifactStore, EventStore, KnowledgeStore |
+| **Storage** | `storage/` (32 files) | Complete | Protocol-based (Ports & Adapters). SQLite with WAL mode, FTS5, 40+ tables, schema v37. 5 domain stores: BacklogStore, SessionStore, ArtifactStore, EventStore, KnowledgeStore |
 | **Execution** | `execution/` (56 files) | Complete | GraphExecutor (DAG step), TaskExecutor (SDK query loop), Chain executor (swarm parallel), Recovery engine |
 | **Orchestration** | `orchestration/` (6 files) | Complete | OrchestratorCore wrapping claude_agent_sdk with persistent clients, streaming, circuit breaker |
 | **Agents** | `agents/` (3 files) | Partial | SDK options builder with thinking/resume/output_format. No agent registry, no plugin loading |
@@ -921,7 +921,7 @@ Full checklist of every feature from the official Claude Agent SDK documentation
 | `execution/task_executor.py` | ~500 | SDK query loop with validation retries, structured output, baton |
 | `execution/chain/runner.py` | ~400 | Chain executor for parallel swarm orchestration |
 | `storage/protocols.py` | ~500 | Protocol interfaces for all stores |
-| `storage/db/schema.py` | ~890 | SQLite schema v35, 40+ tables, FTS5 |
+| `storage/db/schema.py` | ~890 | SQLite schema v37, 40+ tables, FTS5 |
 | `storage/db/connection.py` | ~300 | PixlDB — SQLite WAL, thread-local connections |
 | `models/workflow.py` | ~400 | WorkflowTemplate, ExecutionGraph, Node, Edge |
 | `models/session.py` | ~250 | WorkflowSession, ExecutorCursor, NodeInstance |
@@ -1119,7 +1119,7 @@ def build_sdk_options(..., load_crew_plugin: bool = True) -> ClaudeAgentOptions:
 **Pixl Today** (Mostly Working):
 - `build_sdk_options()` sets `setting_sources=["user", "project"]` — skills from `.claude/skills/` are loaded
 - `DEFAULT_TOOLS` at `agents/constants.py` includes `"Skill"`
-- Crew has 70+ skills in `packages/crew/skills/*/SKILL.md`
+- Crew has 75 skills in `packages/crew/skills/*/SKILL.md`
 - **Gap**: Crew skills only available if plugin is loaded (depends on GAP-01 fix)
 - **Gap**: `allowed-tools` frontmatter in SKILL.md is ignored by SDK — but the engine uses `bypassPermissions` so all tools available anyway
 

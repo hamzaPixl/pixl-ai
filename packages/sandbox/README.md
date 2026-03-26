@@ -158,7 +158,7 @@ Base: `cloudflare/sandbox:0.7.18`
 |------|---------|
 | Python | 3.12 |
 | uv | 0.6.0 |
-| pixl | 9.0.2 |
+| pixl | 10.0.1 |
 | Claude Code | latest |
 
 ## Verification

@@ -1,5 +1,19 @@
 # Changelog
 
+## v10.0.1 — SDK Output Migration
+
+- **refactor**: Migrate from `pixl_output` envelope to SDK native structured output
+- **docs**: Add project workflow guide with sandbox validation
+
+## v10.0.0 — Centralized DB, Workflow Classifier, SDK Hook Fixes
+
+> Major version bump: breaking changes in output format and hook configuration.
+
+- **fix**: Suppress pricing warning for empty model string
+- **fix**: Disable debug-to-stderr in SDK sessions — cleans up workflow output
+- **fix**: Remove wildcard PostToolUse hooks causing 3x errors per tool call
+- **chore**: Remove detect-secrets PreToolUse hook to reduce friction
+
 ## v9.1.0 — Architecture Gap Closure
 
 > 15 of 17 architecture gaps closed. 2 deferred by design (P3).

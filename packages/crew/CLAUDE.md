@@ -55,13 +55,13 @@ make scaffold STACK=nextjs   # interactive project scaffold
 **Frontend**: `/website`, `/design-extraction`, `/shadcn-ui`, `/svg-icon-creation`, `/i18n-setup`
 **Website mods**: `/website-theme`, `/website-layout`
 **Backend**: `/ddd-pattern`, `/fastapi-service`, `/pydantic-api-endpoint`
-**Quality**: `/self-review-fix-loop`, `/code-reduction`, `/agent-browser`, `/react-doctor`, `/seo-audit`, `/cto-review`, `/cartographer`, `/test-runner`, `/test-writer`, `/benchmark`, `/schema-audit`, `/error-catalog`, `/api-audit`, `/dependency-review`, `/eval-harness`, `/security-scan`, `/spec-review`, `/code-review`
+**Quality**: `/self-review-fix-loop`, `/code-reduction`, `/agent-browser`, `/react-doctor`, `/seo-audit`, `/cto-review`, `/cartographer`, `/test-runner`, `/test-writer`, `/benchmark`, `/schema-audit`, `/error-catalog`, `/api-audit`, `/dependency-review`, `/eval-harness`, `/security-scan`, `/spec-review`, `/code-review`, `/runbook`
 **Utilities**: `/file-parser`
 **Marketing**: `/content-marketing`
 **Video**: `/intro-video-brief` (create or enhance Remotion product intro videos)
 **DevOps**: `/docker-cloudrun`, `/pm2`, `/makefile`, `/docker-prisma-setup`
 **Planning**: `/prd-analysis`, `/task-plan`, `/content-pipeline`, `/sprint-planning`, `/task-persist`, `/migration-plan`, `/prd-pipeline`
-**Workflow**: `/pr-creation`, `/claude-md`, `/skill-factory`, `/multi-agent-pipeline`, `/ralph-loop-crew`, `/context-packet-template`, `/crew-init`, `/studio-guide`, `/session-wrap`, `/client-project-setup`, `/strategic-compact`, `/continuous-learning`, `/batch`, `/changelog`
+**Workflow**: `/pr-creation`, `/claude-md`, `/skill-factory`, `/multi-agent-pipeline`, `/ralph-loop-crew`, `/context-packet-template`, `/crew-init`, `/studio-guide`, `/session-wrap`, `/client-project-setup`, `/strategic-compact`, `/continuous-learning`, `/batch`, `/changelog`, `/ship-milestone`
 **Swift**: `/swift-patterns`
 **Scripts**: `download-assets.sh` (asset downloading), `visual-diff.mjs` (pixelmatch visual regression)
 **Project types**: `/website-project`, `/saas-microservice`, `/fullstack-app`, `/admin-dashboard`, `/blog`, `/fastapi-api`

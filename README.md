@@ -95,13 +95,13 @@ The crew plugin provides 14 specialized agents that Claude Code can delegate to:
 
 **Backend** `/ddd-pattern` · `/fastapi-service` · `/pydantic-api-endpoint`
 
-**Quality** `/self-review-fix-loop` · `/code-reduction` · `/react-doctor` · `/seo-audit` · `/cto-review` · `/test-runner` · `/test-writer` · `/benchmark` · `/schema-audit` · `/error-catalog` · `/api-audit` · `/dependency-review` · `/security-scan` · `/code-review`
+**Quality** `/self-review-fix-loop` · `/code-reduction` · `/react-doctor` · `/seo-audit` · `/cto-review` · `/test-runner` · `/test-writer` · `/benchmark` · `/schema-audit` · `/error-catalog` · `/api-audit` · `/dependency-review` · `/security-scan` · `/code-review` · `/runbook`
 
-**Planning** `/task-plan` · `/sprint-planning` · `/content-pipeline` · `/task-persist` · `/migration-plan`
+**Planning** `/task-plan` · `/sprint-planning` · `/content-pipeline` · `/task-persist` · `/migration-plan` · `/prd-analysis` · `/prd-pipeline`
 
 **DevOps** `/docker-cloudrun` · `/pm2` · `/makefile` · `/docker-prisma-setup`
 
-**Workflow** `/pr-creation` · `/claude-md` · `/skill-factory` · `/batch` · `/session-retrospective` · `/continuous-learning` · `/crew-init`
+**Workflow** `/pr-creation` · `/claude-md` · `/skill-factory` · `/batch` · `/session-wrap` · `/continuous-learning` · `/crew-init` · `/changelog` · `/ship-milestone`
 
 **Project Scaffolding** `/website-project` · `/saas-microservice` · `/fullstack-app` · `/admin-dashboard` · `/blog` · `/fastapi-api`
 
@@ -114,7 +114,7 @@ Pre-built project templates for scaffolding client projects:
 | Stack | Use Case | Skill |
 |-------|----------|-------|
 | **Next.js** | Websites, landing pages — 10 pages, i18n, blog, Stripe, Supabase, SEO | `/website` |
-| **SaaS** | Backend microservices — 17 foundation packages: identity, tenancy, RBAC, audit, outbox, DDD | `/saas-microservice` |
+| **SaaS** | Backend microservices — 18 foundation packages: identity, tenancy, RBAC, audit, outbox, DDD | `/saas-microservice` |
 
 ## Hooks & Memory
 

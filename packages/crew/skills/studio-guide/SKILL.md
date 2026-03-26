@@ -1,6 +1,6 @@
 ---
 name: studio-guide
-description: "Explain how to use pixl-crew's studio stacks for project scaffolding. Covers the nextjs stack (website with i18n, blog, Stripe, Supabase), saas stack (backend microservices with 17 foundation packages), the scaffold.sh token system, and when to use each stack vs building from scratch. Use when asked 'how does studio work', 'what stacks are available', 'how to scaffold a project', 'explain studio templates', or 'how to use studio'."
+description: "Explain how to use pixl-crew's studio stacks for project scaffolding. Covers the nextjs stack (website with i18n, blog, Stripe, Supabase), saas stack (backend microservices with 18 foundation packages), the scaffold.sh token system, and when to use each stack vs building from scratch. Use when asked 'how does studio work', 'what stacks are available', 'how to scaffold a project', 'explain studio templates', or 'how to use studio'."
 allowed-tools: Read, Glob, Grep
 argument-hint: "<optional: nextjs | saas | scaffold | tokens>"
 disable-model-invocation: true
@@ -25,7 +25,7 @@ Explains the pixl-crew **studio** system — pre-built project stacks and a scaf
 Two stacks live under `studio/stacks/`:
 
 - **`nextjs/`** — Full Next.js website scaffold. See `studio/stacks/nextjs/README.md` for complete docs (components, hooks, types, API routes, pages).
-- **`saas/`** — Backend microservice scaffold with 17 foundation packages and a service template. See `studio/stacks/saas/` for structure.
+- **`saas/`** — Backend microservice scaffold with 18 foundation packages and a service template. See `studio/stacks/saas/` for structure.
 
 Each stack has a `manifest.yaml` defining its token registry, conditional files, and file conditions.
 
@@ -70,7 +70,7 @@ Read `studio/stacks/nextjs/README.md` for full details.
 
 ## Step 5: SaaS Stack (if relevant)
 
-**17 foundation packages** (pre-built, shared across services):
+**18 foundation packages** (pre-built, shared across services):
 
 | Package           | Purpose                                               |
 | ----------------- | ----------------------------------------------------- |
