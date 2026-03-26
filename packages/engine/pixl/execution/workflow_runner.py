@@ -507,6 +507,16 @@ def _run_workflow_inner(
         wt_path = Path(session.workspace_root) if session.workspace_root else None  # type: ignore[reportPossiblyUnbound]
         _auto_push_if_enabled(wt_path, feature_id)  # type: ignore[reportPossiblyUnbound]
     finally:
+        # Clean up persistent SDK clients (kills subprocess) before unregistering.
+        # This prevents orphaned claude processes when sessions are cancelled,
+        # paused, or exit early without reaching _finalize_terminal_session().
+        try:
+            from pixl.utils.async_compat import run_coroutine_sync as _rcs
+
+            _rcs(orchestrator.cleanup_sdk_clients())
+        except Exception:
+            logger.debug("Failed to cleanup SDK clients for session %s", session_id, exc_info=True)
+
         try:
             from pixl.execution.workflow_runner_manager import WorkflowRunnerManager
 

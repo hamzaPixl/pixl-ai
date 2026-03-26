@@ -108,30 +108,33 @@ class PromptClassifier:
         orchestrator = OrchestratorCore(self.project_path)
         full_prompt = self._build_prompt(prompt)
 
-        # First attempt
-        response_text, metadata = await orchestrator.query_with_streaming(
-            prompt=full_prompt,
-            model=self.model,
-            max_turns=1,
-            feature_id="router",
-        )
-
         try:
+            # First attempt
+            response_text, metadata = await orchestrator.query_with_streaming(
+                prompt=full_prompt,
+                model=self.model,
+                max_turns=1,
+                feature_id="router",
+            )
+
+            try:
+                return self._parse_response(response_text)
+            except ClassificationError:
+                pass
+
+            retry_prompt = (
+                f"{full_prompt}\n\n"
+                "IMPORTANT: Respond ONLY with a valid JSON object. "
+                "No markdown, no explanation, just the JSON."
+            )
+
+            response_text, metadata = await orchestrator.query_with_streaming(
+                prompt=retry_prompt,
+                model=self.model,
+                max_turns=1,
+                feature_id="router",
+            )
+
             return self._parse_response(response_text)
-        except ClassificationError:
-            pass
-
-        retry_prompt = (
-            f"{full_prompt}\n\n"
-            "IMPORTANT: Respond ONLY with a valid JSON object. "
-            "No markdown, no explanation, just the JSON."
-        )
-
-        response_text, metadata = await orchestrator.query_with_streaming(
-            prompt=retry_prompt,
-            model=self.model,
-            max_turns=1,
-            feature_id="router",
-        )
-
-        return self._parse_response(response_text)
+        finally:
+            await orchestrator.cleanup_sdk_clients()

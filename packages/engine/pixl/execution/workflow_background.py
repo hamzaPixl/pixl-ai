@@ -316,4 +316,12 @@ def _run_workflow_inner(
                 payload={"error": str(exc), "workflow_id": workflow_id},
             )
     finally:
+        # Kill orphaned SDK subprocesses before unregistering
+        try:
+            from pixl.utils.async_compat import run_coroutine_sync as _rcs
+
+            _rcs(orchestrator.cleanup_sdk_clients())
+        except Exception:
+            logger.debug("Failed to cleanup SDK clients for session %s", session_id, exc_info=True)
+
         WorkflowRunnerManager.unregister_orchestrator(session_id)
