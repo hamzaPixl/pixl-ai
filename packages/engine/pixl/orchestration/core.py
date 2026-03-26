@@ -625,6 +625,8 @@ class OrchestratorCore:
             "duration_seconds": duration,
             "success": error_message is None,
             "error": error_message,
+            "model": model,
+            "provider": "anthropic",
         }
 
         if sdk_result and hasattr(sdk_result, "usage"):
