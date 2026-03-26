@@ -9,7 +9,20 @@
       "Bash(git status)",
       "Bash(git diff:*)",
       "Bash(git log:*)",
-      "Bash(npx *)"
+      "Bash(npx *)",
+      "Bash(uv *)",
+      "Bash(pip install *)",
+      "Bash(python -m pytest *)",
+      "Bash(pytest *)",
+      "Bash(pixl *)",
+      "Bash(docker *)",
+      "Bash(gh *)",
+      "Bash(ls *)",
+      "Bash(find *)",
+      "Bash(cat *)",
+      "Bash(head *)",
+      "Bash(tail *)",
+      "Bash(wc *)"
     ]
   }
 }

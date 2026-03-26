@@ -228,6 +228,27 @@ def execute_with_orchestrator(
 
             result_text, metadata = _run_coroutine_sync(orch.query_with_streaming(**query_kwargs))
 
+            # Detect instant empty responses — SDK client silently failed.
+            # A real query takes at least a few seconds; <1s with empty text
+            # means the subprocess crashed or the connection was stale.
+            if (
+                not result_text
+                and metadata.get("success")
+                and metadata.get("duration_seconds", 999) < 1.0
+            ):
+                logger.warning(
+                    "instant_empty_response: node=%s duration=%.3fs — "
+                    "SDK client likely crashed or stale connection. "
+                    "Check .pixl/sdk-stderr.log for details.",
+                    node.id,
+                    metadata.get("duration_seconds", 0),
+                )
+                metadata["success"] = False
+                metadata["error"] = (
+                    "SDK returned empty response instantly — "
+                    "subprocess may have crashed (check .pixl/sdk-stderr.log)"
+                )
+
             if metadata.get("sdk_session_id"):
                 llm_session_id = metadata["sdk_session_id"]
                 update_node_instance_metadata(

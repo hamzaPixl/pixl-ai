@@ -257,12 +257,13 @@ def build_sdk_options(
     if crew_hook_profile != "standard":
         sdk_env["PIXL_HOOK_PROFILE"] = crew_hook_profile
 
-    # Suppress Claude Code's debug/error stderr to avoid terminal corruption.
-    # When SDK sessions end, Claude Code's internal hooks (InboxPoller,
-    # nudge notifications, etc.) crash with AbortError and dump minified JS
-    # stack traces to stderr, flooding the terminal and corrupting zsh output.
-    # The orchestrator handles errors via the SDK message stream, not stderr.
-    _devnull = open(os.devnull, "w")  # noqa: SIM115
+    # Redirect Claude Code's stderr to a log file instead of /dev/null.
+    # SDK sessions emit AbortError stack traces on teardown (InboxPoller,
+    # nudge hooks) which corrupt the terminal. We capture them to a log file
+    # for debugging instead of discarding silently.
+    _sdk_log_dir = Path(project_path or ".") / ".pixl"
+    _sdk_log_dir.mkdir(parents=True, exist_ok=True)
+    _stderr_log = open(_sdk_log_dir / "sdk-stderr.log", "a")  # noqa: SIM115
 
     options = ClaudeAgentOptions(
         allowed_tools=allowed_tools,
@@ -274,7 +275,7 @@ def build_sdk_options(
         agents=agents,
         plugins=plugins,  # type: ignore[arg-type]
         env=sdk_env,
-        debug_stderr=_devnull,
+        debug_stderr=_stderr_log,
     )
 
     if resume_session_id:

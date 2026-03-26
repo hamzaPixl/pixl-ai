@@ -86,6 +86,47 @@ def session_cancel(ctx: click.Context, session_id: str) -> None:
         emit_detail({"id": session_id, "status": "cancelled"}, is_json=False)
 
 
+@session.command("cleanup")
+@click.option("--stale-minutes", default=5, type=int, help="Cancel sessions idle longer than this (default: 5).")
+@click.pass_context
+def session_cleanup(ctx: click.Context, stale_minutes: int) -> None:
+    """Cancel sessions stuck in 'running' state.
+
+    Auto-cancels sessions that haven't been updated in --stale-minutes.
+    """
+    from datetime import datetime, timedelta, timezone
+
+    cli = get_ctx(ctx)
+    sessions = cli.db.sessions.list_sessions(status="running", limit=100)
+    cutoff = datetime.now(timezone.utc) - timedelta(minutes=stale_minutes)
+    cancelled = []
+
+    for s in sessions:
+        updated = s.get("last_updated_at", "")
+        if not updated:
+            continue
+        # Parse ISO timestamp (may or may not have timezone)
+        try:
+            ts = datetime.fromisoformat(updated.replace("Z", "+00:00"))
+            if ts.tzinfo is None:
+                ts = ts.replace(tzinfo=timezone.utc)
+        except (ValueError, AttributeError):
+            continue
+        if ts < cutoff:
+            cli.db.sessions.update_session(s["id"], status="cancelled")
+            cancelled.append(s["id"])
+
+    if cli.is_json:
+        emit_json({"cancelled": cancelled, "count": len(cancelled)})
+    else:
+        if cancelled:
+            click.echo(f"Cancelled {len(cancelled)} stale session(s):")
+            for sid in cancelled:
+                click.echo(f"  {sid}")
+        else:
+            click.echo("No stale sessions found.")
+
+
 @session.command("create")
 @click.option("--feature-id", required=True, help="Feature ID to execute.")
 @click.option("--workflow-id", default=None, help="Workflow ID (uses default if not specified).")
