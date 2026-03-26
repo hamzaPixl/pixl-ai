@@ -99,7 +99,7 @@ def artifact_list(ctx: click.Context, session: str | None) -> None:
         results = cli.db.artifacts.list_by_session(session_id)
     else:
         # List recent artifacts across all sessions
-        results = cli.db.artifacts.list_page(session_id="", limit=50)
+        results = cli.db.artifacts.list_page(limit=50)
 
     emit_table(
         results,

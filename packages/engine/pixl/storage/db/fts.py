@@ -13,7 +13,8 @@ def prepare_fts_query(query: str) -> str:
     Handles:
     - Empty/whitespace queries → empty string (caller should skip MATCH)
     - FTS5 operator syntax (quotes, AND, OR, NOT) → passed through
-    - Simple words → cleaned, filtered (min 2 chars), joined with OR
+    - Simple words → cleaned, filtered (min 2 chars), quoted to escape
+      special characters (hyphens, dots), joined with OR
 
     Returns:
         FTS5-safe query string, or empty string if no valid terms.
@@ -27,8 +28,13 @@ def prepare_fts_query(query: str) -> str:
 
     words = []
     for word in query.split():
-        cleaned = "".join(c for c in word if c.isalnum() or c in "_-")
+        cleaned = "".join(c for c in word if c.isalnum() or c in "_-.")
         if len(cleaned) >= 2:
-            words.append(cleaned)
+            # Quote words containing special FTS5 characters (hyphens, dots)
+            # to prevent them being parsed as operators or column filters
+            if "-" in cleaned or "." in cleaned:
+                words.append(f'"{cleaned}"')
+            else:
+                words.append(cleaned)
 
     return " OR ".join(words) if words else ""

@@ -818,6 +818,29 @@ class TestPrepareFtsQuery:
         result = prepare_fts_query("hello!")
         assert "!" not in result
 
+    def test_hyphens_are_quoted(self) -> None:
+        """should quote words with hyphens to prevent FTS5 NOT operator"""
+        from pixl.storage.db.fts import prepare_fts_query
+
+        result = prepare_fts_query("api-spec")
+        assert result == '"api-spec"'
+
+    def test_dots_are_quoted(self) -> None:
+        """should preserve dots and quote words containing them"""
+        from pixl.storage.db.fts import prepare_fts_query
+
+        result = prepare_fts_query("api-spec.md")
+        assert result == '"api-spec.md"'
+
+    def test_mixed_hyphen_and_plain_words(self) -> None:
+        """should quote hyphenated words and leave plain words unquoted"""
+        from pixl.storage.db.fts import prepare_fts_query
+
+        result = prepare_fts_query("my-file report")
+        assert '"my-file"' in result
+        assert "report" in result
+        assert "OR" in result
+
     def test_all_short_words_returns_empty(self) -> None:
         """should return empty string when all words are too short"""
         from pixl.storage.db.fts import prepare_fts_query

@@ -68,7 +68,7 @@ Skip silently if pixl is not installed — continue with manual file creation be
 
 1. Check if `<target>/.claude/settings.local.json` exists
 2. If it does NOT exist:
-   - Read `${CLAUDE_PLUGIN_ROOT}/templates/crew-init/settings.local.json.tmpl`
+   - Read `${CLAUDE_PLUGIN_ROOT}/templates/crew-init/settings.local.json`
    - Write it to `<target>/.claude/settings.local.json`
 3. If it DOES exist:
    - Read the existing file

@@ -280,18 +280,31 @@ class ArtifactDB(BaseStore):
     def list_page(
         self,
         *,
-        session_id: str,
+        session_id: str = "",
         limit: int = 100,
         offset: int = 0,
     ) -> list[dict[str, Any]]:
-        """List artifacts for a session with stable pagination defaults."""
-        rows = self._conn.execute(
-            """SELECT * FROM artifacts
-               WHERE session_id = ?
-               ORDER BY created_at DESC
-               LIMIT ? OFFSET ?""",
-            (session_id, max(int(limit), 1), max(int(offset), 0)),
-        ).fetchall()
+        """List artifacts with stable pagination defaults.
+
+        If session_id is empty, lists across all sessions.
+        """
+        safe_limit = max(int(limit), 1)
+        safe_offset = max(int(offset), 0)
+        if session_id:
+            rows = self._conn.execute(
+                """SELECT * FROM artifacts
+                   WHERE session_id = ?
+                   ORDER BY created_at DESC
+                   LIMIT ? OFFSET ?""",
+                (session_id, safe_limit, safe_offset),
+            ).fetchall()
+        else:
+            rows = self._conn.execute(
+                """SELECT * FROM artifacts
+                   ORDER BY created_at DESC
+                   LIMIT ? OFFSET ?""",
+                (safe_limit, safe_offset),
+            ).fetchall()
         return [self._row_to_dict(r) for r in rows]
 
     def search_session(
