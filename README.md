@@ -2,7 +2,7 @@
 
 AI dev platform — orchestration engine + Claude Code crew plugin.
 
-**14 agents · 75 skills · 11 workflows · sandboxed execution**
+**14 agents · 75 skills · 11 workflows · cost tracking · session resume · sandboxed execution**
 
 ## What is pixl?
 
