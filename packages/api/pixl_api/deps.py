@@ -11,7 +11,6 @@ from typing import Annotated, Any
 
 from fastapi import Depends, Request
 from fastapi import Path as PathParam
-
 from pixl.projects.registry import get_project
 from pixl.storage.db.connection import PixlDB
 
@@ -24,6 +23,7 @@ __all__ = [
     "ProjectDB",
     "ProjectId",
     "ProjectPath",
+    "ProjectRoot",
     "get_pool",
     "get_project_db",
 ]
@@ -70,7 +70,25 @@ def get_project_path(
     return Path(storage_dir)
 
 
+def get_project_root(
+    project_id: Annotated[str, PathParam(description="Project identifier")],
+) -> Path:
+    """Return the project root path (where .pixl/ lives).
+
+    Falls back to storage_dir if project_root is not set.
+    """
+    info = _require_project(project_id)
+    root = info.get("project_root")
+    if root:
+        return Path(root)
+    storage_dir = info.get("storage_dir")
+    if not storage_dir:
+        raise ValueError(f"No path for project: {project_id}")
+    return Path(storage_dir)
+
+
 # Type aliases for clean route signatures
 ProjectDB = Annotated[PixlDB, Depends(get_project_db)]
 ProjectId = Annotated[str, Depends(get_project_id)]
 ProjectPath = Annotated[Path, Depends(get_project_path)]
+ProjectRoot = Annotated[Path, Depends(get_project_root)]
