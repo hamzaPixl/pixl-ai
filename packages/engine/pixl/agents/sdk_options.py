@@ -141,12 +141,13 @@ def resolve_thinking_config(
     return None
 
 
-def _build_crew_system_prompt(crew_path: Path) -> str | None:
+def _build_crew_system_prompt(crew_path: str | Path) -> str | None:
     """Build a system prompt listing available crew skills from the plugin directory.
 
     Reads skill names dynamically from the crew's skills/ directory so the
     prompt stays in sync as skills are added or removed.
     """
+    crew_path = Path(crew_path) if not isinstance(crew_path, Path) else crew_path
     skills_dir = crew_path / "skills"
     if not skills_dir.is_dir():
         return None
