@@ -454,6 +454,31 @@ def _run_workflow_inner(
                 ended_at=datetime.now().isoformat(),
             )
             record_autonomy_outcome(db, session)
+
+            # Bridge cost data to crew memory (.claude/memory/costs.jsonl)
+            try:
+                import json as _json
+
+                costs_file = project_path / ".claude" / "memory" / "costs.jsonl"
+                costs_file.parent.mkdir(parents=True, exist_ok=True)
+                cost_rows = db.cost_events.list_by_session(session_id)
+                total_input = sum(r.get("input_tokens", 0) for r in cost_rows)
+                total_output = sum(r.get("output_tokens", 0) for r in cost_rows)
+                total_cost = sum(r.get("cost_usd", 0.0) for r in cost_rows)
+                model_name = cost_rows[0].get("model_name", "unknown") if cost_rows else "unknown"
+                if total_input or total_output:
+                    entry = {
+                        "date": datetime.now().isoformat(),
+                        "session_id": session_id,
+                        "input_tokens": total_input,
+                        "output_tokens": total_output,
+                        "cost_usd": total_cost,
+                        "model": model_name,
+                    }
+                    with open(costs_file, "a") as cf:
+                        cf.write(_json.dumps(entry) + "\n")
+            except Exception:
+                logger.debug("Failed to bridge cost data to crew memory", exc_info=True)
             # Auto-push feature branch to preserve work
             wt = Path(session.workspace_root) if session.workspace_root else None
             pushed = _auto_push_if_enabled(wt, feature_id)

@@ -141,6 +141,28 @@ def resolve_thinking_config(
     return None
 
 
+def _build_crew_system_prompt(crew_path: Path) -> str | None:
+    """Build a system prompt listing available crew skills from the plugin directory.
+
+    Reads skill names dynamically from the crew's skills/ directory so the
+    prompt stays in sync as skills are added or removed.
+    """
+    skills_dir = crew_path / "skills"
+    if not skills_dir.is_dir():
+        return None
+    skills = sorted(
+        d.name for d in skills_dir.iterdir() if d.is_dir() and (d / "SKILL.md").exists()
+    )
+    if not skills:
+        return None
+    skill_list = ", ".join(f"/{s}" for s in skills)
+    return (
+        "You have access to pixl-crew skills via the Skill tool. "
+        "Prefer invoking a skill over building from scratch when the task matches.\n\n"
+        f"Available skills: {skill_list}"
+    )
+
+
 def build_sdk_options(
     *,
     project_path: Path,
@@ -285,9 +307,15 @@ def build_sdk_options(
     if model:
         options.model = model
 
-    # System prompt — keeps user prompt clean
+    # System prompt — keeps user prompt clean.
+    # When no explicit prompt is given, inject crew skill awareness so the
+    # agent knows which skills are available and prefers them over ad-hoc code.
     if system_prompt:
         options.system_prompt = system_prompt
+    elif crew_path:
+        crew_prompt = _build_crew_system_prompt(crew_path)
+        if crew_prompt:
+            options.system_prompt = crew_prompt
 
     # Cost safety net per query
     if max_budget_usd is not None:

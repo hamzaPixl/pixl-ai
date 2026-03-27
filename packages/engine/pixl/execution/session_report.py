@@ -201,3 +201,16 @@ def save_session_summary(
     session_dir.mkdir(parents=True, exist_ok=True)
     summary_file = session_dir / "summary.md"
     summary_file.write_text("\n".join(lines))
+
+    # Bridge to crew memory so SessionStart hook can load this summary
+    try:
+        import shutil
+
+        # Walk up from session_dir to find project root (.pixl parent)
+        project_root = session_dir.parent.parent.parent
+        claude_memory = project_root / ".claude" / "memory" / "sessions"
+        claude_memory.mkdir(parents=True, exist_ok=True)
+        timestamp = started_at.strftime("%Y-%m-%d-%H-%M")
+        shutil.copy2(str(summary_file), str(claude_memory / f"{timestamp}.md"))
+    except Exception:
+        pass  # Best-effort; crew memory is optional

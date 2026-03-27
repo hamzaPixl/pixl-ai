@@ -976,8 +976,25 @@ class GraphExecutor:
         return self.event_emitter.emit_error_event(error, node_id=node_id)
 
     def _persist_event(self, event: Event) -> None:
-        """Persist a pre-built Event to storage. Delegates to EventEmitter."""
+        """Persist a pre-built Event to storage. Delegates to EventEmitter.
+
+        Also refreshes session heartbeat on SDK activity events to prevent
+        false stall detection during long-running queries (2-5 min).
+        """
         self.event_emitter.persist_event(event)
+
+        # Heartbeat: refresh last_updated_at on SDK activity so the session
+        # isn't marked "stalled" while tool calls are actively happening.
+        if event.type in (
+            EventType.SDK_TOOL_CALL_STARTED,
+            EventType.SDK_THINKING_STARTED,
+            EventType.SDK_TEXT_DELTA,
+        ):
+            try:
+                if self.db:
+                    self.db.sessions.touch_session(self.session.id)
+            except Exception:
+                pass  # Best-effort; don't block event persistence
 
     def _commit_transition(
         self,
