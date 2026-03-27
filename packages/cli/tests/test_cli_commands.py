@@ -458,6 +458,48 @@ class TestSessionCancel:
         assert result.exit_code == 0
 
 
+class TestSessionResume:
+    def test_resume_help(self, runner: CliRunner) -> None:
+        result = runner.invoke(cli, ["session", "resume", "--help"])
+        assert result.exit_code == 0
+        assert "stalled" in result.output.lower() or "resume" in result.output.lower()
+
+    def test_resume_not_found(self, runner: CliRunner, mock_db: MagicMock) -> None:
+        mock_db.sessions.get_session.return_value = None
+        with _db_patch(mock_db):
+            result = runner.invoke(cli, ["session", "resume", "sess-missing"])
+        assert result.exit_code == 1
+        assert "not found" in result.output.lower()
+
+    def test_resume_completed_rejected(self, runner: CliRunner, mock_db: MagicMock) -> None:
+        mock_db.sessions.get_session.return_value = {"id": "sess-1", "status": "completed"}
+        with _db_patch(mock_db):
+            result = runner.invoke(cli, ["session", "resume", "sess-1"])
+        assert result.exit_code == 1
+        assert "cannot resume" in result.output.lower()
+
+
+class TestSessionRetry:
+    def test_retry_help(self, runner: CliRunner) -> None:
+        result = runner.invoke(cli, ["session", "retry", "--help"])
+        assert result.exit_code == 0
+        assert "retry" in result.output.lower() or "failed" in result.output.lower()
+
+    def test_retry_not_found(self, runner: CliRunner, mock_db: MagicMock) -> None:
+        mock_db.sessions.get_session.return_value = None
+        with _db_patch(mock_db):
+            result = runner.invoke(cli, ["session", "retry", "sess-missing"])
+        assert result.exit_code == 1
+        assert "not found" in result.output.lower()
+
+    def test_retry_completed_rejected(self, runner: CliRunner, mock_db: MagicMock) -> None:
+        mock_db.sessions.get_session.return_value = {"id": "sess-1", "status": "completed"}
+        with _db_patch(mock_db):
+            result = runner.invoke(cli, ["session", "retry", "sess-1"])
+        assert result.exit_code == 1
+        assert "already completed" in result.output.lower()
+
+
 # ---------------------------------------------------------------------------
 # state commands
 # ---------------------------------------------------------------------------

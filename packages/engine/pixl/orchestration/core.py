@@ -570,6 +570,14 @@ class OrchestratorCore:
                             if aborted:
                                 break
                     sdk_result = sdk_result_ref[0]
+
+                    # Disconnect after each query so the next stage gets a fresh
+                    # subprocess and _read_messages() task.  The SDK's Query
+                    # object exhausts its message stream after one response;
+                    # reusing it returns empty instantly (0.0008s bug).
+                    with contextlib.suppress(Exception):
+                        await client.disconnect()
+                    self._sdk_clients_connected.discard(client_key)
                 else:
                     sdk_result_ref: list[ResultMessage | None] = [None]  # type: ignore[no-redef]
                     async with asyncio.timeout(_SDK_QUERY_TIMEOUT):

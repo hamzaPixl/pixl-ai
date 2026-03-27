@@ -127,6 +127,163 @@ def session_cleanup(ctx: click.Context, stale_minutes: int) -> None:
             click.echo("No stale sessions found.")
 
 
+@session.command("resume")
+@click.argument("session_id")
+@click.option("--yes", is_flag=True, default=False, help="Auto-approve all gates.")
+@click.pass_context
+def session_resume(ctx: click.Context, session_id: str, yes: bool) -> None:
+    """Resume a stalled or paused session from its saved cursor.
+
+    Restarts execution from the last checkpoint. The executor picks up
+    where it left off — completed stages are skipped.
+    """
+    cli = get_ctx(ctx)
+    result = cli.db.sessions.get_session(session_id)
+
+    if result is None:
+        emit_error(f"Session not found: {session_id}", is_json=cli.is_json)
+        raise SystemExit(1)
+
+    status = result.get("status", "")
+    if status in ("completed",):
+        emit_error(f"Cannot resume session in status: {status}", is_json=cli.is_json)
+        raise SystemExit(1)
+
+    # Reset status so the runner can pick it up
+    cli.db.sessions.update_session(session_id, status="running")
+
+    if not cli.is_json:
+        click.echo(f"Resuming session {session_id} (was: {status})...")
+
+    _resume_session(cli, session_id, skip_approval=yes)
+
+
+@session.command("retry")
+@click.argument("session_id")
+@click.option("--yes", is_flag=True, default=False, help="Auto-approve all gates.")
+@click.pass_context
+def session_retry(ctx: click.Context, session_id: str, yes: bool) -> None:
+    """Retry a failed or cancelled session.
+
+    Resets failed/cancelled nodes to pending and re-executes the DAG
+    from the first incomplete stage.
+    """
+    cli = get_ctx(ctx)
+    result = cli.db.sessions.get_session(session_id)
+
+    if result is None:
+        emit_error(f"Session not found: {session_id}", is_json=cli.is_json)
+        raise SystemExit(1)
+
+    status = result.get("status", "")
+    if status == "completed":
+        emit_error(f"Session already completed", is_json=cli.is_json)
+        raise SystemExit(1)
+
+    # Reset status so the runner can pick it up
+    cli.db.sessions.update_session(session_id, status="running")
+
+    if not cli.is_json:
+        click.echo(f"Retrying session {session_id} (was: {status})...")
+
+    _resume_session(cli, session_id, skip_approval=yes, workflow_id="retry")
+
+
+def _resume_session(cli, session_id: str, *, skip_approval: bool = False, workflow_id: str = "resumed") -> None:
+    """Shared logic for resume/retry — loads session and re-executes the DAG."""
+    from pixl.execution import GraphExecutor
+    from pixl.execution.workflow_helpers import get_waiting_gate_node, has_waiting_gates
+    from pixl.orchestration.core import OrchestratorCore
+    from pixl.paths import get_sessions_dir
+    from pixl.storage import SessionManager, WorkflowSessionStore
+
+    try:
+        session_store = WorkflowSessionStore(cli.project_path)
+        session = session_store.load_session(session_id)
+
+        if session is None:
+            emit_error(f"Cannot load session state: {session_id}", is_json=cli.is_json)
+            raise SystemExit(1)
+
+        snapshot = session_store.load_snapshot(session.snapshot_hash)
+        if snapshot is None:
+            emit_error(f"Cannot load workflow snapshot for session: {session_id}", is_json=cli.is_json)
+            raise SystemExit(1)
+
+        # For retry: reset failed/cancelled nodes to pending
+        if workflow_id == "retry":
+            for node_id, instance in session.node_instances.items():
+                node_status = instance.get("status", "")
+                if node_status in ("task_failed", "task_cancelled"):
+                    instance["status"] = "task_pending"
+                    instance.pop("error", None)
+                    instance.pop("ended_at", None)
+
+        session_dir = get_sessions_dir(cli.project_path) / session_id
+        session_dir.mkdir(parents=True, exist_ok=True)
+
+        orchestrator = OrchestratorCore(cli.project_path)
+        session_manager = SessionManager(cli.project_path)
+
+        from pixl_cli.commands.workflow import _ndjson_event_callback
+
+        event_callback = _ndjson_event_callback if cli.is_json else None
+
+        executor = GraphExecutor(
+            session,
+            snapshot,
+            session_dir,
+            project_root=cli.project_path,
+            orchestrator=orchestrator,
+            event_callback=event_callback,
+            session_manager=session_manager,
+            db=cli.db,
+        )
+
+        step_count = 0
+        max_steps = 100
+
+        while step_count < max_steps:
+            session = executor.session
+            if has_waiting_gates(session):
+                gate_node_id = get_waiting_gate_node(session)
+                if not gate_node_id:
+                    break
+                if skip_approval:
+                    if not cli.is_json:
+                        click.echo(f"  Auto-approving gate: {gate_node_id}")
+                    session = session_manager.approve_gate(
+                        session.id, gate_node_id, approver="auto", snapshot=snapshot,
+                    )
+                else:
+                    if not cli.is_json:
+                        click.echo(f"  Paused at gate: {gate_node_id} (use --yes to auto-approve)")
+                    break
+
+            result = executor.step()
+            if not result["executed"]:
+                break
+            step_count += 1
+            if not cli.is_json:
+                node_id = result.get("node_id", "?")
+                click.echo(f"  Step {step_count}: {node_id}")
+
+        status_val = session.status
+        final_status = status_val.value if hasattr(status_val, "value") else str(status_val)
+
+        if cli.is_json:
+            emit_json({"session_id": session_id, "status": final_status, "steps": step_count})
+        else:
+            click.echo(f"  Session {final_status} ({step_count} steps).")
+
+    except ImportError as exc:
+        emit_error(f"Execution requires additional dependencies: {exc}", is_json=cli.is_json)
+        raise SystemExit(1) from None
+    except Exception as exc:
+        emit_error(f"Session execution failed: {exc}", is_json=cli.is_json)
+        raise SystemExit(1) from None
+
+
 @session.command("create")
 @click.option("--feature-id", required=True, help="Feature ID to execute.")
 @click.option("--workflow-id", default=None, help="Workflow ID (uses default if not specified).")
