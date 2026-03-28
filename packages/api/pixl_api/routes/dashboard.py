@@ -34,7 +34,7 @@ async def _build_overview(db: ProjectDB) -> dict[str, Any]:
         asyncio.to_thread(db.backlog.get_stats),
         asyncio.to_thread(db.cost_events.summary),
         asyncio.to_thread(db.sessions.get_active_sessions),
-        asyncio.to_thread(db.sessions.get_recent_sessions, 10),
+        asyncio.to_thread(db.sessions.get_recent_sessions, 10),  # type: ignore[attr-defined]
     )
 
     # Phase 2: secondary queries in parallel

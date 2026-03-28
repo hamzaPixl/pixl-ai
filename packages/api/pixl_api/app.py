@@ -9,7 +9,6 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from starlette.responses import JSONResponse
 
 from pixl_api.config import CORS_ORIGINS, LOG_LEVEL
 from pixl_api.foundation.api.errors import register_error_handlers
@@ -65,8 +64,8 @@ def create_app() -> FastAPI:
     if get_scalar_api_reference is not None:
 
         @app.get("/docs", include_in_schema=False)
-        async def scalar_docs() -> JSONResponse:
-            return get_scalar_api_reference(
+        async def scalar_docs():  # type: ignore[misc]
+            return get_scalar_api_reference(  # type: ignore[misc]
                 openapi_url=app.openapi_url,
                 title=app.title,
             )

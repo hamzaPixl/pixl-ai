@@ -107,10 +107,11 @@ async def artifact_versions_by_path(
     """List versions of an artifact by its logical path."""
     try:
         return await asyncio.to_thread(
-            db.artifacts.get_versions_by_path, path, session_id=session_id
+            db.artifacts.get_versions_by_path,  # type: ignore[attr-defined]
+            path,  # type: ignore[attr-defined], session_id=session_id
         )
     except (AttributeError, TypeError) as e:
-        logger.warning("get_versions_by_path not available, falling back to search: %s", e)
+        logger.warning("get_versions_by_path not available, falling back to search: %s", e)  # type: ignore[attr-defined]
         # Fallback: search by path name
         results = await asyncio.to_thread(db.artifacts.search, path, limit=20)
         return [r for r in results if r.get("path") == path or r.get("name") == path]

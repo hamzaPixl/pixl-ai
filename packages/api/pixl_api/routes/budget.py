@@ -16,7 +16,10 @@ router = APIRouter(prefix="/projects/{project_id}/budget", tags=["budget"])
 async def get_budget(db: ProjectDB) -> dict[str, Any]:
     """Get budget configuration and current spend."""
     try:
-        monthly_usd = await asyncio.to_thread(db.config.get, "budget_monthly_usd")
+        monthly_usd = await asyncio.to_thread(
+            db.config.get,  # type: ignore[attr-defined]
+            "budget_monthly_usd",  # type: ignore[attr-defined]
+        )
     except Exception:
         monthly_usd = None
 
@@ -33,7 +36,11 @@ async def update_budget(db: ProjectDB, body: dict[str, Any]) -> dict[str, Any]:
     """Set monthly budget limit."""
     monthly_usd = body.get("monthly_usd")
     try:
-        await asyncio.to_thread(db.config.set, "budget_monthly_usd", str(monthly_usd))
+        await asyncio.to_thread(
+            db.config.set,  # type: ignore[attr-defined]
+            "budget_monthly_usd",
+            str(monthly_usd),  # type: ignore[attr-defined]
+        )
     except Exception:
         pass
     return {

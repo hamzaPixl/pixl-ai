@@ -12,7 +12,7 @@ import shutil
 from pathlib import Path
 from typing import Any
 
-from pixl.paths import get_global_pixl_dir, get_project_id, get_project_workspace_dir
+from pixl.paths import get_global_pixl_dir, get_project_workspace_dir
 
 _INDEX_FILE = "projects.json"
 

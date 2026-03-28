@@ -200,7 +200,10 @@ async def list_models(db: ProjectDB) -> list[dict[str, Any]]:
 async def get_classification_model(db: ProjectDB) -> dict[str, Any]:
     """Get the current classification model config."""
     try:
-        val = await asyncio.to_thread(db.config.get, "classification_model")
+        val = await asyncio.to_thread(
+            db.config.get,  # type: ignore[attr-defined]
+            "classification_model",  # type: ignore[attr-defined]
+        )
     except Exception:
         val = None
     return {"model": val or "sonnet", "provider": "anthropic"}
@@ -211,7 +214,11 @@ async def update_classification_model(db: ProjectDB, body: dict[str, Any]) -> di
     """Update the classification model."""
     model = body.get("model", "sonnet")
     try:
-        await asyncio.to_thread(db.config.set, "classification_model", model)
+        await asyncio.to_thread(
+            db.config.set,  # type: ignore[attr-defined]
+            "classification_model",
+            model,  # type: ignore[attr-defined]
+        )
     except Exception:
         pass
     return {"model": model, "provider": "anthropic"}
@@ -221,7 +228,10 @@ async def update_classification_model(db: ProjectDB, body: dict[str, Any]) -> di
 async def get_session_report_model(db: ProjectDB) -> dict[str, Any]:
     """Get the current session report model config."""
     try:
-        val = await asyncio.to_thread(db.config.get, "session_report_model")
+        val = await asyncio.to_thread(
+            db.config.get,  # type: ignore[attr-defined]
+            "session_report_model",  # type: ignore[attr-defined]
+        )
     except Exception:
         val = None
     return {"model": val or "sonnet", "provider": "anthropic"}
@@ -232,7 +242,11 @@ async def update_session_report_model(db: ProjectDB, body: dict[str, Any]) -> di
     """Update the session report model."""
     model = body.get("model", "sonnet")
     try:
-        await asyncio.to_thread(db.config.set, "session_report_model", model)
+        await asyncio.to_thread(
+            db.config.set,  # type: ignore[attr-defined]
+            "session_report_model",
+            model,  # type: ignore[attr-defined]
+        )
     except Exception:
         pass
     return {"model": model, "provider": "anthropic"}
@@ -245,7 +259,11 @@ async def update_agent_model(
     """Update the model for a specific agent."""
     model = body.get("model")
     try:
-        await asyncio.to_thread(db.config.set, f"agent_model:{agent_name}", model)
+        await asyncio.to_thread(
+            db.config.set,  # type: ignore[attr-defined]
+            f"agent_model:{agent_name}",
+            model,  # type: ignore[attr-defined]
+        )
     except Exception:
         pass
     # Find the agent and return updated info

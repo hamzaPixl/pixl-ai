@@ -19,7 +19,6 @@ Options:
 from __future__ import annotations
 
 import argparse
-import io
 import os
 import re
 import sys
@@ -52,6 +51,7 @@ CLAUDE_CODE_MARKERS = ["Agent tool", "subagent", "pixl ", "pixl_cli", "run_in_ba
 
 # --- Frontmatter parsing ---
 
+
 def parse_frontmatter(text: str) -> tuple[dict[str, str], str]:
     """Parse YAML frontmatter from SKILL.md content. Returns (fields, body)."""
     if not text.startswith("---"):
@@ -62,7 +62,7 @@ def parse_frontmatter(text: str) -> tuple[dict[str, str], str]:
         return {}, text
 
     fm_block = text[4:end]
-    body = text[end + 4:].lstrip("\n")
+    body = text[end + 4 :].lstrip("\n")
 
     fields: dict[str, str] = {}
     for line in fm_block.split("\n"):
@@ -73,7 +73,7 @@ def parse_frontmatter(text: str) -> tuple[dict[str, str], str]:
         if colon == -1:
             continue
         key = line[:colon].strip()
-        value = line[colon + 1:].strip()
+        value = line[colon + 1 :].strip()
         # Strip surrounding quotes
         if len(value) >= 2 and value[0] == value[-1] and value[0] in ('"', "'"):
             value = value[1:-1]
@@ -85,7 +85,10 @@ def parse_frontmatter(text: str) -> tuple[dict[str, str], str]:
 def rebuild_skill_md(name: str, description: str, body: str) -> str:
     """Reconstruct SKILL.md with only name + description in frontmatter."""
     # Escape description for YAML if it contains special chars
-    needs_quotes = any(c in description for c in (':', '"', "'", "{", "}", "[", "]", "#", "&", "*", "!", "|", ">", ","))
+    needs_quotes = any(
+        c in description
+        for c in (":", '"', "'", "{", "}", "[", "]", "#", "&", "*", "!", "|", ">", ",")
+    )
     if needs_quotes:
         escaped_desc = '"' + description.replace("\\", "\\\\").replace('"', '\\"') + '"'
     else:
@@ -95,6 +98,7 @@ def rebuild_skill_md(name: str, description: str, body: str) -> str:
 
 
 # --- Validation ---
+
 
 def validate_name(name: str) -> list[str]:
     """Validate skill name for claude.ai compatibility. Returns list of errors."""
@@ -146,8 +150,12 @@ def check_warnings(name: str, body: str, skill_dir: Path) -> list[str]:
 
 # --- ZIP creation ---
 
+
 def collect_bundle_files(skill_dir: Path) -> list[tuple[str, Path]]:
-    """Collect files from references/, scripts/, examples/ subdirs. Returns (arcname, filepath) pairs."""
+    """Collect files from references/, scripts/, examples/ subdirs.
+
+    Returns (arcname, filepath) pairs.
+    """
     files = []
     for subdir_name in BUNDLE_DIRS:
         subdir = skill_dir / subdir_name
@@ -226,11 +234,18 @@ def create_skill_zip(
 
 # --- Main ---
 
+
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Export pixl-crew skills as claude.ai-compatible ZIPs")
-    parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR, help="Output directory")
+    parser = argparse.ArgumentParser(
+        description="Export pixl-crew skills as claude.ai-compatible ZIPs"
+    )
+    parser.add_argument(
+        "--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR, help="Output directory"
+    )
     parser.add_argument("--skill", type=str, help="Export a single skill by directory name")
-    parser.add_argument("--mega-zip", action="store_true", help="Also create one ZIP containing all individual ZIPs")
+    parser.add_argument(
+        "--mega-zip", action="store_true", help="Also create one ZIP containing all individual ZIPs"
+    )
     parser.add_argument("--dry-run", action="store_true", help="Validate and report only")
     parser.add_argument("--verbose", action="store_true", help="Verbose logging")
     args = parser.parse_args()
@@ -247,8 +262,7 @@ def main() -> int:
             return 1
     else:
         skill_dirs = sorted(
-            d for d in SKILLS_DIR.iterdir()
-            if d.is_dir() and (d / "SKILL.md").exists()
+            d for d in SKILLS_DIR.iterdir() if d.is_dir() and (d / "SKILL.md").exists()
         )
 
     if not skill_dirs:
@@ -256,9 +270,9 @@ def main() -> int:
         return 1
 
     mode = "DRY RUN" if args.dry_run else "EXPORT"
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"pixl-crew skill export ({mode})")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
     print(f"Skills directory: {SKILLS_DIR}")
     print(f"Output directory: {args.output_dir}")
     print(f"Skills found: {len(skill_dirs)}")
@@ -271,7 +285,10 @@ def main() -> int:
 
     for skill_dir in skill_dirs:
         result, errors, warnings = create_skill_zip(
-            skill_dir, args.output_dir, args.dry_run, args.verbose,
+            skill_dir,
+            args.output_dir,
+            args.dry_run,
+            args.verbose,
         )
 
         if errors:
@@ -298,21 +315,21 @@ def main() -> int:
             print(f"\n  MEGA: {mega_path.name} ({len(zip_paths)} skills)")
 
     # Summary
-    print(f"\n{'='*60}")
-    print(f"Summary")
-    print(f"{'='*60}")
+    print(f"\n{'=' * 60}")
+    print("Summary")
+    print(f"{'=' * 60}")
     print(f"  Exported: {len(exported)}")
     print(f"  Errors:   {len(all_errors)}")
     print(f"  Warnings: {len(all_warnings)}")
 
     if all_errors:
-        print(f"\nFailed skills:")
+        print("\nFailed skills:")
         for name, errors in sorted(all_errors.items()):
             for e in errors:
                 print(f"  {name}: {e}")
 
     if all_warnings and args.verbose:
-        print(f"\nWarnings:")
+        print("\nWarnings:")
         for name, warnings in sorted(all_warnings.items()):
             for w in warnings:
                 print(f"  {name}: {w}")

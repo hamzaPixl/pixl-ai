@@ -281,9 +281,9 @@ def _run_workflow_inner(
         # Create a callback to wake WS streams on every event
         def _event_notify(event):
             try:
-                from pixl_api.ws import notify_new_events
+                from pixl_api.ws import notify_new_events  # type: ignore[import-not-found]
 
-                notify_new_events()
+                notify_new_events()  # type: ignore[no-untyped-call]
             except ImportError:
                 pass
 
@@ -538,7 +538,7 @@ def _run_workflow_inner(
         try:
             from pixl.utils.async_compat import run_coroutine_sync as _rcs
 
-            _rcs(orchestrator.cleanup_sdk_clients())
+            _rcs(orchestrator.cleanup_sdk_clients())  # type: ignore[possibly-undefined]
         except Exception:
             logger.debug("Failed to cleanup SDK clients for session %s", session_id, exc_info=True)
 

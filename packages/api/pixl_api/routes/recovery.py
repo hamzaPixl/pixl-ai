@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import asyncio
-from typing import Any
+from typing import Any, Never
 
 from fastapi import APIRouter, Query
 
@@ -66,7 +66,11 @@ async def retry_blocked_node(
     executor picks it up on the next cycle.
     """
     try:
-        return await asyncio.to_thread(db.sessions.retry_blocked_node, session_id, node_id)
+        return await asyncio.to_thread(
+            db.sessions.retry_blocked_node,  # type: ignore[attr-defined]
+            session_id,
+            node_id,
+        )
     except ValueError as exc:
         _raise_api_error(str(exc), session_id, node_id)
 
@@ -82,12 +86,16 @@ async def skip_blocked_node(
 ) -> dict[str, Any]:
     """Skip a blocked node by marking it as skipped/completed."""
     try:
-        return await asyncio.to_thread(db.sessions.skip_blocked_node, session_id, node_id)
+        return await asyncio.to_thread(
+            db.sessions.skip_blocked_node,  # type: ignore[attr-defined]
+            session_id,
+            node_id,
+        )
     except ValueError as exc:
         _raise_api_error(str(exc), session_id, node_id)
 
 
-def _raise_api_error(message: str, session_id: str, node_id: str) -> None:
+def _raise_api_error(message: str, session_id: str, node_id: str) -> Never:
     """Convert ValueError from engine into the appropriate API error."""
     from pixl_api.errors import EntityNotFoundError, InvalidTransitionError
 

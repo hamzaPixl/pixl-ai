@@ -88,6 +88,7 @@ async def draft_report(
     return await asyncio.to_thread(
         db.sessions.enqueue_or_get_inflight_session_report_job,
         session_id=session_id,
+        trigger="manual_draft",
     )
 
 
