@@ -17,7 +17,7 @@ from pixl_api.foundation.auth.secret import get_jwt_secret
 def _use_tmp_db(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Redirect DB_PATH to a temp directory for every test."""
     db_path = tmp_path / "api.db"
-    monkeypatch.setattr("pixl_api.db.DB_PATH", db_path)
+    monkeypatch.setattr("pixl_api.db._connection.DB_PATH", db_path)
     init_db()
 
 
@@ -85,8 +85,54 @@ def test_get_workspace(
 
 
 def test_get_workspace_not_found(client: TestClient, auth_headers: dict[str, str]) -> None:
+    # Nonexistent workspace returns 403 (user is not a member)
     resp = client.get("/api/workspaces/nonexistent", headers=auth_headers)
-    assert resp.status_code == 404
+    assert resp.status_code == 403
+
+
+# --- Authorization ---
+
+
+def test_non_member_cannot_access_workspace(
+    client: TestClient, user_and_token: dict[str, Any]
+) -> None:
+    """A user who is not a member of a workspace should get 403."""
+    ws_id = user_and_token["workspace"]["id"]
+    # Create a second user who is NOT a member of the workspace
+    other_user = create_user("other@example.com", "hashed_pw", "Other", "User")
+    other_token = encode_jwt(
+        {"sub": other_user["id"], "email": other_user["email"]}, get_jwt_secret()
+    )
+    other_headers = {"Authorization": f"Bearer {other_token}"}
+
+    resp = client.get(f"/api/workspaces/{ws_id}", headers=other_headers)
+    assert resp.status_code == 403
+
+    resp = client.get(f"/api/workspaces/{ws_id}/members", headers=other_headers)
+    assert resp.status_code == 403
+
+    resp = client.get(f"/api/workspaces/{ws_id}/teams", headers=other_headers)
+    assert resp.status_code == 403
+
+    resp = client.get(f"/api/workspaces/{ws_id}/projects", headers=other_headers)
+    assert resp.status_code == 403
+
+    resp = client.get(f"/api/workspaces/{ws_id}/invitations", headers=other_headers)
+    assert resp.status_code == 403
+
+
+def test_member_can_access_workspace(client: TestClient, user_and_token: dict[str, Any]) -> None:
+    """A user who has been added as a member should get 200."""
+    ws_id = user_and_token["workspace"]["id"]
+    member = create_user("member@example.com", "hashed_pw", "Member", "User")
+    from pixl_api.db import add_workspace_member
+
+    add_workspace_member(ws_id, member["id"], "member")
+    member_token = encode_jwt({"sub": member["id"], "email": member["email"]}, get_jwt_secret())
+    member_headers = {"Authorization": f"Bearer {member_token}"}
+
+    resp = client.get(f"/api/workspaces/{ws_id}", headers=member_headers)
+    assert resp.status_code == 200
 
 
 # --- GET /workspaces/{id}/members ---

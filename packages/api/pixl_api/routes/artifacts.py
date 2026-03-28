@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 from typing import Any
 
 from fastapi import APIRouter, Query
@@ -12,6 +13,8 @@ from pixl_api.helpers import get_or_404
 from pixl_api.schemas.artifacts import (
     CreateArtifactRequest,
 )
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/projects/{project_id}/artifacts", tags=["artifacts"])
 
@@ -106,7 +109,8 @@ async def artifact_versions_by_path(
         return await asyncio.to_thread(
             db.artifacts.get_versions_by_path, path, session_id=session_id
         )
-    except (AttributeError, TypeError):
+    except (AttributeError, TypeError) as e:
+        logger.warning("get_versions_by_path not available, falling back to search: %s", e)
         # Fallback: search by path name
         results = await asyncio.to_thread(db.artifacts.search, path, limit=20)
         return [r for r in results if r.get("path") == path or r.get("name") == path]

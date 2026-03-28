@@ -29,9 +29,29 @@ from pixl_api.db import (
     revoke_invitation,
     update_team,
 )
-from pixl_api.errors import NotFoundError
+from pixl_api.errors import AuthorizationError, NotFoundError
 
 router = APIRouter(prefix="/workspaces", tags=["workspaces"])
+
+
+# ---------------------------------------------------------------------------
+# Authorization helper
+# ---------------------------------------------------------------------------
+
+
+def _verify_access(user_id: str, ws_id: str) -> None:
+    """Verify the user is the workspace owner or a member.
+
+    Raises AuthorizationError if the user has no access.
+    """
+    ws = get_workspace(ws_id)
+    if ws and ws["owner_id"] == user_id:
+        return
+    members = list_workspace_members(ws_id)
+    for member in members:
+        if member["user_id"] == user_id:
+            return
+    raise AuthorizationError("Not a member of this workspace")
 
 
 # ---------------------------------------------------------------------------
@@ -94,6 +114,7 @@ def create_new_workspace(user: CurrentUser, body: CreateWorkspaceRequest) -> dic
 @router.get("/{ws_id}")
 def get_workspace_detail(ws_id: str, user: CurrentUser) -> dict[str, Any]:
     """Get workspace details."""
+    _verify_access(user["id"], ws_id)
     ws = get_workspace(ws_id)
     if not ws:
         raise NotFoundError(f"Workspace '{ws_id}' not found")
@@ -103,6 +124,7 @@ def get_workspace_detail(ws_id: str, user: CurrentUser) -> dict[str, Any]:
 @router.delete("/{ws_id}")
 def delete_workspace_endpoint(ws_id: str, user: CurrentUser) -> dict[str, str]:
     """Delete a workspace."""
+    _verify_access(user["id"], ws_id)
     if not delete_workspace(ws_id):
         raise NotFoundError(f"Workspace '{ws_id}' not found")
     return {"message": "Workspace deleted"}
@@ -116,6 +138,7 @@ def delete_workspace_endpoint(ws_id: str, user: CurrentUser) -> dict[str, str]:
 @router.get("/{ws_id}/members")
 def list_members(ws_id: str, user: CurrentUser) -> dict[str, Any]:
     """List workspace members."""
+    _verify_access(user["id"], ws_id)
     members = list_workspace_members(ws_id)
     return {"members": members}
 
@@ -125,6 +148,7 @@ def change_role(
     ws_id: str, user_id: str, body: ChangeRoleRequest, user: CurrentUser
 ) -> dict[str, str]:
     """Change a member's role."""
+    _verify_access(user["id"], ws_id)
     if not change_member_role(ws_id, user_id, body.role):
         raise NotFoundError(f"Member '{user_id}' not found in workspace")
     return {"message": "Role updated"}
@@ -133,6 +157,7 @@ def change_role(
 @router.post("/{ws_id}/leave")
 def leave_workspace(ws_id: str, user: CurrentUser) -> dict[str, str]:
     """Leave a workspace."""
+    _verify_access(user["id"], ws_id)
     remove_workspace_member(ws_id, user["id"])
     return {"message": "Left workspace"}
 
@@ -145,6 +170,7 @@ def leave_workspace(ws_id: str, user: CurrentUser) -> dict[str, str]:
 @router.post("/{ws_id}/invitations")
 def invite_member(ws_id: str, body: InviteRequest, user: CurrentUser) -> dict[str, Any]:
     """Create an invitation."""
+    _verify_access(user["id"], ws_id)
     inv = create_invitation(ws_id, body.email, body.role)
     return {"invitation": inv}
 
@@ -152,6 +178,7 @@ def invite_member(ws_id: str, body: InviteRequest, user: CurrentUser) -> dict[st
 @router.post("/{ws_id}/invitations/bulk")
 def bulk_invite(ws_id: str, body: BulkInviteRequest, user: CurrentUser) -> dict[str, Any]:
     """Create multiple invitations."""
+    _verify_access(user["id"], ws_id)
     invitations = []
     for item in body.invitations:
         inv = create_invitation(ws_id, item.email, item.role)
@@ -162,6 +189,7 @@ def bulk_invite(ws_id: str, body: BulkInviteRequest, user: CurrentUser) -> dict[
 @router.get("/{ws_id}/invitations")
 def get_invitations(ws_id: str, user: CurrentUser) -> dict[str, Any]:
     """List pending invitations."""
+    _verify_access(user["id"], ws_id)
     invitations = list_invitations(ws_id)
     return {"invitations": invitations}
 
@@ -169,6 +197,7 @@ def get_invitations(ws_id: str, user: CurrentUser) -> dict[str, Any]:
 @router.delete("/{ws_id}/invitations/{inv_id}")
 def revoke_invitation_endpoint(ws_id: str, inv_id: str, user: CurrentUser) -> dict[str, str]:
     """Revoke an invitation."""
+    _verify_access(user["id"], ws_id)
     if not revoke_invitation(ws_id, inv_id):
         raise NotFoundError(f"Invitation '{inv_id}' not found")
     return {"message": "Invitation revoked"}
@@ -182,6 +211,7 @@ def revoke_invitation_endpoint(ws_id: str, inv_id: str, user: CurrentUser) -> di
 @router.get("/{ws_id}/teams")
 def get_teams(ws_id: str, user: CurrentUser) -> dict[str, Any]:
     """List teams in a workspace."""
+    _verify_access(user["id"], ws_id)
     teams = list_teams(ws_id)
     return {"teams": teams}
 
@@ -189,6 +219,7 @@ def get_teams(ws_id: str, user: CurrentUser) -> dict[str, Any]:
 @router.post("/{ws_id}/teams")
 def create_team_endpoint(ws_id: str, body: CreateTeamRequest, user: CurrentUser) -> dict[str, Any]:
     """Create a new team."""
+    _verify_access(user["id"], ws_id)
     team = create_team(ws_id, body.name, body.description, body.color)
     return {"team": team}
 
@@ -198,6 +229,7 @@ def update_team_endpoint(
     ws_id: str, team_id: str, body: UpdateTeamRequest, user: CurrentUser
 ) -> dict[str, Any]:
     """Update a team."""
+    _verify_access(user["id"], ws_id)
     team = update_team(
         ws_id, team_id, name=body.name, description=body.description, color=body.color
     )
@@ -209,6 +241,7 @@ def update_team_endpoint(
 @router.delete("/{ws_id}/teams/{team_id}")
 def delete_team_endpoint(ws_id: str, team_id: str, user: CurrentUser) -> dict[str, str]:
     """Delete a team."""
+    _verify_access(user["id"], ws_id)
     if not delete_team(ws_id, team_id):
         raise NotFoundError(f"Team '{team_id}' not found")
     return {"message": "Team deleted"}
@@ -222,6 +255,7 @@ def delete_team_endpoint(ws_id: str, team_id: str, user: CurrentUser) -> dict[st
 @router.get("/{ws_id}/teams/{team_id}/members")
 def get_team_members(ws_id: str, team_id: str, user: CurrentUser) -> dict[str, Any]:
     """List team members."""
+    _verify_access(user["id"], ws_id)
     members = list_team_members(ws_id, team_id)
     return {"members": members}
 
@@ -231,6 +265,7 @@ def add_team_member_endpoint(
     ws_id: str, team_id: str, body: AddTeamMemberRequest, user: CurrentUser
 ) -> dict[str, Any]:
     """Add a member to a team."""
+    _verify_access(user["id"], ws_id)
     member = add_team_member(ws_id, team_id, body.user_id)
     return {"member": member}
 
@@ -240,6 +275,7 @@ def remove_team_member_endpoint(
     ws_id: str, team_id: str, user_id: str, user: CurrentUser
 ) -> dict[str, str]:
     """Remove a member from a team."""
+    _verify_access(user["id"], ws_id)
     if not remove_team_member(ws_id, team_id, user_id):
         raise NotFoundError(f"Team member '{user_id}' not found")
     return {"message": "Team member removed"}
@@ -253,6 +289,7 @@ def remove_team_member_endpoint(
 @router.get("/{ws_id}/projects")
 def get_projects(ws_id: str, user: CurrentUser) -> dict[str, Any]:
     """List projects linked to a workspace."""
+    _verify_access(user["id"], ws_id)
     projects = list_workspace_projects(ws_id)
     return {"projects": projects}
 
@@ -260,5 +297,6 @@ def get_projects(ws_id: str, user: CurrentUser) -> dict[str, Any]:
 @router.post("/{ws_id}/projects/{project_id}/link")
 def link_project_endpoint(ws_id: str, project_id: str, user: CurrentUser) -> dict[str, Any]:
     """Link a project to a workspace."""
+    _verify_access(user["id"], ws_id)
     project = link_project(ws_id, project_id)
     return {"project": project}

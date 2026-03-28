@@ -615,6 +615,80 @@ class SessionDB(BaseStore):
 
         return unblocked + gate_nodes
 
+    def retry_blocked_node(self, session_id: str, node_id: str) -> dict[str, Any]:
+        """Reset a blocked node to pending for retry.
+
+        Raises:
+            ValueError: If the node is not found or not in task_blocked state.
+        """
+        row = self._conn.execute(
+            "SELECT state FROM node_instances WHERE session_id = ? AND node_id = ?",
+            (session_id, node_id),
+        ).fetchone()
+        if row is None:
+            raise ValueError(f"node_instance '{session_id}/{node_id}' not found")
+
+        current_state = row["state"]
+        if current_state != "task_blocked":
+            raise ValueError(f"Node '{node_id}' is '{current_state}', not 'task_blocked'")
+
+        self._conn.execute(
+            """UPDATE node_instances
+               SET state = 'task_pending',
+                   blocked_reason = NULL,
+                   error_message = NULL,
+                   failure_kind = NULL,
+                   started_at = NULL,
+                   ended_at = NULL
+               WHERE session_id = ? AND node_id = ?""",
+            (session_id, node_id),
+        )
+        self._conn.commit()
+
+        return {
+            "session_id": session_id,
+            "node_id": node_id,
+            "action": "retry",
+            "status": "task_pending",
+            "message": "Node reset to pending for retry",
+        }
+
+    def skip_blocked_node(self, session_id: str, node_id: str) -> dict[str, Any]:
+        """Mark a blocked node as skipped.
+
+        Raises:
+            ValueError: If the node is not found or not in task_blocked state.
+        """
+        row = self._conn.execute(
+            "SELECT state FROM node_instances WHERE session_id = ? AND node_id = ?",
+            (session_id, node_id),
+        ).fetchone()
+        if row is None:
+            raise ValueError(f"node_instance '{session_id}/{node_id}' not found")
+
+        current_state = row["state"]
+        if current_state != "task_blocked":
+            raise ValueError(f"Node '{node_id}' is '{current_state}', not 'task_blocked'")
+
+        now = datetime.now().isoformat()
+        self._conn.execute(
+            """UPDATE node_instances
+               SET state = 'task_skipped',
+                   blocked_reason = NULL,
+                   ended_at = ?
+               WHERE session_id = ? AND node_id = ?""",
+            (now, session_id, node_id),
+        )
+        self._conn.commit()
+
+        return {
+            "session_id": session_id,
+            "node_id": node_id,
+            "action": "skip",
+            "status": "task_skipped",
+            "message": "Node skipped",
+        }
+
     def find_sessions_with_failed_nodes(self) -> list[str]:
         """Find session IDs that have failed nodes."""
         rows = self._conn.execute(

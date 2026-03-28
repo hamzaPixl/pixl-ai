@@ -1,132 +1,31 @@
-"""Roadmap endpoints: CRUD and status transitions."""
+"""Roadmap endpoints: CRUD, status transitions, and child epics."""
 
 from __future__ import annotations
 
 import asyncio
 from typing import Any
 
-from fastapi import APIRouter, Query
-
 from pixl_api.deps import ProjectDB
-from pixl_api.errors import EntityNotFoundError, InvalidTransitionError
-from pixl_api.helpers import get_or_404
-from pixl_api.schemas.features import TransitionRequest
+from pixl_api.routes._crud import make_crud_router
 from pixl_api.schemas.roadmaps import CreateRoadmapRequest, UpdateRoadmapRequest
 
-router = APIRouter(prefix="/projects/{project_id}/roadmaps", tags=["roadmaps"])
-
-
-@router.get(
-    "",
+router = make_crud_router(
+    prefix="/projects/{project_id}/roadmaps",
+    tag="roadmaps",
+    entity_name="roadmap",
+    entity_id_param="roadmap_id",
+    list_method="list_roadmaps",
+    get_method="get_roadmap",
+    create_method="add_roadmap",
+    update_method="update_roadmap",
+    remove_method="remove_roadmap",
+    create_schema=CreateRoadmapRequest,
+    update_schema=UpdateRoadmapRequest,
+    paginate=False,
 )
-async def list_roadmaps(
-    db: ProjectDB,
-    status: str | None = Query(None, description="Filter by status"),
-) -> list[dict[str, Any]]:
-    """List roadmaps with optional status filter."""
-    return await asyncio.to_thread(
-        db.backlog.list_roadmaps,
-        status=status,
-    )
 
 
-@router.post("", status_code=201)
-async def create_roadmap(
-    db: ProjectDB,
-    body: CreateRoadmapRequest,
-) -> dict[str, Any]:
-    """Create a new roadmap."""
-    return await asyncio.to_thread(
-        db.backlog.add_roadmap,
-        title=body.title,
-        original_prompt=body.original_prompt,
-        status=body.status,
-    )
-
-
-@router.get(
-    "/{roadmap_id}",
-)
-async def get_roadmap(
-    db: ProjectDB,
-    roadmap_id: str,
-) -> dict[str, Any]:
-    """Get a single roadmap by ID."""
-    roadmap = await asyncio.to_thread(db.backlog.get_roadmap, roadmap_id)
-    return get_or_404(roadmap, "roadmap", roadmap_id)
-
-
-@router.put(
-    "/{roadmap_id}",
-)
-@router.patch(
-    "/{roadmap_id}",
-)
-async def update_roadmap(
-    db: ProjectDB,
-    roadmap_id: str,
-    body: UpdateRoadmapRequest,
-) -> dict[str, Any]:
-    """Update an existing roadmap."""
-    roadmap = await asyncio.to_thread(db.backlog.get_roadmap, roadmap_id)
-    get_or_404(roadmap, "roadmap", roadmap_id)
-
-    fields = body.model_dump(exclude_none=True)
-    if fields:
-        await asyncio.to_thread(db.backlog.update_roadmap, roadmap_id, **fields)
-
-    updated = await asyncio.to_thread(db.backlog.get_roadmap, roadmap_id)
-    return get_or_404(updated, "roadmap", roadmap_id)
-
-
-@router.delete("/{roadmap_id}")
-async def delete_roadmap(
-    db: ProjectDB,
-    roadmap_id: str,
-) -> dict[str, bool]:
-    """Delete a roadmap."""
-    roadmap = await asyncio.to_thread(db.backlog.get_roadmap, roadmap_id)
-    get_or_404(roadmap, "roadmap", roadmap_id)
-    await asyncio.to_thread(db.backlog.remove_roadmap, roadmap_id)
-    return {"deleted": True}
-
-
-@router.post(
-    "/{roadmap_id}/transition",
-)
-async def transition_roadmap(
-    db: ProjectDB,
-    roadmap_id: str,
-    body: TransitionRequest,
-) -> dict[str, Any]:
-    """Transition a roadmap to a new status."""
-    roadmap = await asyncio.to_thread(db.backlog.get_roadmap, roadmap_id)
-    get_or_404(roadmap, "roadmap", roadmap_id)
-
-    old_status = roadmap["status"]  # type: ignore[index]
-
-    try:
-        from pixl.state.engine import TransitionEngine
-
-        engine = TransitionEngine.default(db.backlog)
-        result = await asyncio.to_thread(
-            engine.transition, roadmap_id, body.to_status, note=body.reason
-        )
-        if not result.success:
-            raise InvalidTransitionError(
-                "roadmap", roadmap_id, result.error or "Transition not allowed"
-            )
-        return {"old_status": old_status, "new_status": body.to_status}
-    except ImportError:
-        updated = await asyncio.to_thread(
-            db.backlog.update_roadmap_status,
-            roadmap_id,
-            body.to_status,
-            note=body.reason,
-        )
-        if updated is None:
-            raise EntityNotFoundError("roadmap", roadmap_id)
-        return {"old_status": old_status, "new_status": body.to_status}
+# -- Custom endpoint: child epics -------------------------------------------
 
 
 @router.get("/{roadmap_id}/epics")
@@ -136,21 +35,3 @@ async def roadmap_epics(
 ) -> list[dict[str, Any]]:
     """List epics belonging to a roadmap."""
     return await asyncio.to_thread(db.backlog.list_epics, roadmap_id=roadmap_id)
-
-
-@router.get("/{roadmap_id}/history")
-async def roadmap_history(
-    db: ProjectDB,
-    roadmap_id: str,
-) -> list[dict[str, Any]]:
-    """Get state transition history for a roadmap."""
-    return await asyncio.to_thread(db.events.get_entity_history, roadmap_id)
-
-
-@router.get("/{roadmap_id}/transitions")
-async def roadmap_transitions(
-    db: ProjectDB,
-    roadmap_id: str,
-) -> list[dict[str, Any]]:
-    """Get state transitions for a roadmap."""
-    return await asyncio.to_thread(db.events.get_history, "roadmap", roadmap_id)

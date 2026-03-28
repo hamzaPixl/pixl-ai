@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import re
+from pathlib import Path
 from typing import Any
 
 from fastapi import APIRouter
@@ -15,41 +17,15 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/projects/{project_id}/agents", tags=["agents"])
 
-# Static agent list derived from crew/agents/*.md
-# AgentRegistry requires filesystem access to crew markdown files which may
-# not be available from the API process. We expose the canonical list here.
-_KNOWN_AGENTS: list[dict[str, Any]] = [
+
+# ---------------------------------------------------------------------------
+# Dynamic agent loading from crew/agents/*.md
+# ---------------------------------------------------------------------------
+
+_FALLBACK_AGENTS: list[dict[str, Any]] = [
     {
         "name": "orchestrator",
         "description": "Multi-agent coordination",
-        "model": None,
-        "tools": [],
-        "max_turns": 50,
-    },
-    {
-        "name": "architect",
-        "description": "System design, DDD",
-        "model": None,
-        "tools": [],
-        "max_turns": 50,
-    },
-    {
-        "name": "product-owner",
-        "description": "Task planning, sprints",
-        "model": None,
-        "tools": [],
-        "max_turns": 50,
-    },
-    {
-        "name": "tech-lead",
-        "description": "Code review, quality gates",
-        "model": None,
-        "tools": [],
-        "max_turns": 50,
-    },
-    {
-        "name": "frontend-engineer",
-        "description": "React/Next.js, shadcn/ui",
         "model": None,
         "tools": [],
         "max_turns": 50,
@@ -62,62 +38,133 @@ _KNOWN_AGENTS: list[dict[str, Any]] = [
         "max_turns": 50,
     },
     {
-        "name": "fullstack-engineer",
-        "description": "End-to-end across API boundary",
+        "name": "frontend-engineer",
+        "description": "React/Next.js, shadcn/ui",
         "model": None,
-        "tools": [],
-        "max_turns": 50,
-    },
-    {
-        "name": "qa-engineer",
-        "description": "Testing, browser verification",
-        "model": None,
-        "tools": [],
-        "max_turns": 50,
-    },
-    {
-        "name": "devops-engineer",
-        "description": "Docker, CI/CD, deployment",
-        "model": None,
-        "tools": [],
-        "max_turns": 50,
-    },
-    {
-        "name": "security-engineer",
-        "description": "OWASP audits, RBAC",
-        "model": None,
-        "tools": [],
-        "max_turns": 50,
-    },
-    {
-        "name": "explorer",
-        "description": "Fast codebase exploration",
-        "model": "haiku",
-        "tools": [],
-        "max_turns": 50,
-    },
-    {
-        "name": "onboarding-agent",
-        "description": "Client project onboarding",
-        "model": "haiku",
-        "tools": [],
-        "max_turns": 50,
-    },
-    {
-        "name": "build-error-resolver",
-        "description": "Surgical build/type error fixes",
-        "model": "sonnet",
-        "tools": [],
-        "max_turns": 50,
-    },
-    {
-        "name": "doc-updater",
-        "description": "Keep docs in sync with code",
-        "model": "haiku",
         "tools": [],
         "max_turns": 50,
     },
 ]
+
+_cached_agents: list[dict[str, Any]] | None = None
+
+_FRONTMATTER_RE = re.compile(r"^---\s*\n(.*?)\n---", re.DOTALL)
+
+
+def _parse_frontmatter(text: str) -> dict[str, str]:
+    """Extract key-value pairs from YAML frontmatter (simple single-line values)."""
+    match = _FRONTMATTER_RE.match(text)
+    if not match:
+        return {}
+    result: dict[str, str] = {}
+    for line in match.group(1).splitlines():
+        # Skip continuation lines (indented or starting with special YAML chars)
+        if not line or line[0] in (" ", "\t", "-", "#"):
+            continue
+        if ":" not in line:
+            continue
+        key, _, value = line.partition(":")
+        key = key.strip()
+        value = value.strip()
+        # Strip trailing YAML block indicators like >
+        if value == ">":
+            continue
+        result[key] = value
+    return result
+
+
+def _extract_description(text: str) -> str:
+    """Extract the first sentence of the description from frontmatter."""
+    match = _FRONTMATTER_RE.match(text)
+    if not match:
+        return ""
+    fm = match.group(1)
+    # Find description field
+    desc_match = re.search(r"^description:\s*>?\s*\n([ \t]+\S.*)", fm, re.MULTILINE)
+    if desc_match:
+        # First non-empty indented line after description:
+        first_line = desc_match.group(1).strip()
+        # Take up to the first period or dash that starts a new concept
+        period_idx = first_line.find(" -- ")
+        if period_idx == -1:
+            period_idx = first_line.find(" — ")
+        if period_idx != -1:
+            first_line = first_line[:period_idx]
+        return first_line.rstrip(".")
+    # Inline description
+    desc_match = re.search(r"^description:\s*(.+)$", fm, re.MULTILINE)
+    if desc_match:
+        return desc_match.group(1).strip().rstrip(".")
+    return ""
+
+
+def _load_agents_from_crew() -> list[dict[str, Any]]:
+    """Load agent definitions from crew/agents/*.md files.
+
+    Falls back to a minimal hardcoded list if the crew directory is not found.
+    """
+    agents_dir: Path | None = None
+    try:
+        from pixl_cli.crew import get_crew_root
+
+        agents_dir = get_crew_root() / "agents"
+    except (ImportError, FileNotFoundError):
+        agents_dir = None
+
+    if agents_dir is None or not agents_dir.is_dir():
+        logger.info("Crew agents directory not found, using fallback agent list")
+        return list(_FALLBACK_AGENTS)
+
+    agents: list[dict[str, Any]] = []
+    for md_file in sorted(agents_dir.glob("*.md")):
+        try:
+            text = md_file.read_text(encoding="utf-8")
+        except OSError:
+            continue
+
+        fm = _parse_frontmatter(text)
+        name = fm.get("name", md_file.stem)
+        model_val = fm.get("model")
+        if model_val in ("inherit", "null", "None", ""):
+            model_val = None
+
+        tools_raw = fm.get("tools", "")
+        tools = [t.strip() for t in tools_raw.split(",") if t.strip()] if tools_raw else []
+
+        max_turns_raw = fm.get("maxTurns", "50")
+        try:
+            max_turns = int(max_turns_raw)
+        except ValueError:
+            max_turns = 50
+
+        description = _extract_description(text)
+        if not description:
+            description = name.replace("-", " ").title()
+
+        agents.append(
+            {
+                "name": name,
+                "description": description,
+                "model": model_val,
+                "tools": tools,
+                "max_turns": max_turns,
+            }
+        )
+
+    if not agents:
+        logger.warning("No agents found in %s, using fallback list", agents_dir)
+        return list(_FALLBACK_AGENTS)
+
+    return agents
+
+
+def _get_agents() -> list[dict[str, Any]]:
+    """Return the cached agent list, loading on first access."""
+    global _cached_agents  # noqa: PLW0603
+    if _cached_agents is None:
+        _cached_agents = _load_agents_from_crew()
+    return _cached_agents
+
 
 _KNOWN_MODELS: list[dict[str, Any]] = [
     {
@@ -137,7 +184,7 @@ _KNOWN_MODELS: list[dict[str, Any]] = [
 @router.get("", response_model=list[AgentResponse])
 async def list_agents(db: ProjectDB) -> list[dict[str, Any]]:
     """List configured agents for a project."""
-    return _KNOWN_AGENTS
+    return _get_agents()
 
 
 @router.get("/models", response_model=list[ModelResponse])
@@ -202,7 +249,7 @@ async def update_agent_model(
     except Exception:
         pass
     # Find the agent and return updated info
-    for agent in _KNOWN_AGENTS:
+    for agent in _get_agents():
         if agent["name"] == agent_name:
             return {**agent, "model": model}
     from pixl_api.errors import EntityNotFoundError

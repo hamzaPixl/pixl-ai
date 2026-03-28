@@ -17,7 +17,7 @@ from pixl_api.foundation.auth.secret import get_jwt_secret
 def _use_tmp_db(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Redirect DB_PATH to a temp directory for every test."""
     db_path = tmp_path / "api.db"
-    monkeypatch.setattr("pixl_api.db.DB_PATH", db_path)
+    monkeypatch.setattr("pixl_api.db._connection.DB_PATH", db_path)
     init_db()
 
 

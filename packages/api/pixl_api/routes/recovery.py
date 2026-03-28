@@ -65,8 +65,10 @@ async def retry_blocked_node(
     Resets the node state from task_blocked to task_pending so the
     executor picks it up on the next cycle.
     """
-    result = await asyncio.to_thread(_do_retry_node, db, session_id, node_id)
-    return result
+    try:
+        return await asyncio.to_thread(db.sessions.retry_blocked_node, session_id, node_id)
+    except ValueError as exc:
+        _raise_api_error(str(exc), session_id, node_id)
 
 
 @router.post(
@@ -79,92 +81,16 @@ async def skip_blocked_node(
     node_id: str,
 ) -> dict[str, Any]:
     """Skip a blocked node by marking it as skipped/completed."""
-    result = await asyncio.to_thread(_do_skip_node, db, session_id, node_id)
-    return result
+    try:
+        return await asyncio.to_thread(db.sessions.skip_blocked_node, session_id, node_id)
+    except ValueError as exc:
+        _raise_api_error(str(exc), session_id, node_id)
 
 
-def _do_retry_node(db: Any, session_id: str, node_id: str) -> dict[str, Any]:
-    """Sync helper: reset a blocked node to pending."""
-    conn = db.conn
-    row = conn.execute(
-        "SELECT state FROM node_instances WHERE session_id = ? AND node_id = ?",
-        (session_id, node_id),
-    ).fetchone()
-    if row is None:
-        from pixl_api.errors import EntityNotFoundError
+def _raise_api_error(message: str, session_id: str, node_id: str) -> None:
+    """Convert ValueError from engine into the appropriate API error."""
+    from pixl_api.errors import EntityNotFoundError, InvalidTransitionError
 
+    if "not found" in message:
         raise EntityNotFoundError("node_instance", f"{session_id}/{node_id}")
-
-    current_state = row["state"]
-    if current_state != "task_blocked":
-        from pixl_api.errors import InvalidTransitionError
-
-        raise InvalidTransitionError(
-            "node_instance",
-            node_id,
-            f"Node is '{current_state}', not 'task_blocked'",
-        )
-
-    conn.execute(
-        """UPDATE node_instances
-           SET state = 'task_pending',
-               blocked_reason = NULL,
-               error_message = NULL,
-               failure_kind = NULL,
-               started_at = NULL,
-               ended_at = NULL
-           WHERE session_id = ? AND node_id = ?""",
-        (session_id, node_id),
-    )
-    conn.commit()
-
-    return {
-        "session_id": session_id,
-        "node_id": node_id,
-        "action": "retry",
-        "status": "task_pending",
-        "message": "Node reset to pending for retry",
-    }
-
-
-def _do_skip_node(db: Any, session_id: str, node_id: str) -> dict[str, Any]:
-    """Sync helper: mark a blocked node as skipped."""
-    conn = db.conn
-    row = conn.execute(
-        "SELECT state FROM node_instances WHERE session_id = ? AND node_id = ?",
-        (session_id, node_id),
-    ).fetchone()
-    if row is None:
-        from pixl_api.errors import EntityNotFoundError
-
-        raise EntityNotFoundError("node_instance", f"{session_id}/{node_id}")
-
-    current_state = row["state"]
-    if current_state != "task_blocked":
-        from pixl_api.errors import InvalidTransitionError
-
-        raise InvalidTransitionError(
-            "node_instance",
-            node_id,
-            f"Node is '{current_state}', not 'task_blocked'",
-        )
-
-    from datetime import datetime
-
-    conn.execute(
-        """UPDATE node_instances
-           SET state = 'task_skipped',
-               blocked_reason = NULL,
-               ended_at = ?
-           WHERE session_id = ? AND node_id = ?""",
-        (datetime.now().isoformat(), session_id, node_id),
-    )
-    conn.commit()
-
-    return {
-        "session_id": session_id,
-        "node_id": node_id,
-        "action": "skip",
-        "status": "task_skipped",
-        "message": "Node skipped",
-    }
+    raise InvalidTransitionError("node_instance", node_id, message)
