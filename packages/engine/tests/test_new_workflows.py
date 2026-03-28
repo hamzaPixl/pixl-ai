@@ -16,7 +16,6 @@ from unittest.mock import MagicMock
 
 import pytest
 import yaml
-
 from pixl.execution.hooks import HOOK_REGISTRY, HookContext
 
 WORKFLOWS_DIR = Path(__file__).resolve().parent.parent / "pixl" / "assets" / "workflows"
@@ -110,7 +109,7 @@ class TestSecurityAuditWorkflow:
 
     def test_loop_from_gate_to_remediate(self, config: dict) -> None:
         loops = config["loops"]
-        sec_loop = next(l for l in loops if l["id"] == "security-fix-loop")
+        sec_loop = next(lp for lp in loops if lp["id"] == "security-fix-loop")
         assert sec_loop["from"] == "findings-gate"
         assert sec_loop["to"] == "remediate"
         assert sec_loop["max_iterations"] == 2
@@ -150,7 +149,7 @@ class TestRefactorWorkflow:
 
     def test_loop_from_verify_to_implement(self, config: dict) -> None:
         loops = config["loops"]
-        ref_loop = next(l for l in loops if "fix" in l["id"] or "regression" in l["id"])
+        ref_loop = next(lp for lp in loops if "fix" in lp["id"] or "regression" in lp["id"])
         assert ref_loop["from"] == "verify"
         assert ref_loop["to"] == "implement"
         assert ref_loop["trigger"] == "failure"
@@ -181,7 +180,7 @@ class TestTddWorkflowImproved:
         assert impl_idx < eval_idx < final_idx
 
     def test_has_evaluate_loop(self, config: dict) -> None:
-        loop_ids = [l["id"] for l in config["loops"]]
+        loop_ids = [lp["id"] for lp in config["loops"]]
         assert any("evaluate" in lid or "eval" in lid for lid in loop_ids)
 
     def test_version_bumped(self, config: dict) -> None:
@@ -208,11 +207,11 @@ class TestDebugWorkflowImproved:
         assert fix_idx < reg_idx < final_idx
 
     def test_has_regression_loop(self, config: dict) -> None:
-        loop_ids = [l["id"] for l in config["loops"]]
+        loop_ids = [lp["id"] for lp in config["loops"]]
         assert any("regression" in lid for lid in loop_ids)
 
     def test_original_debug_loop_preserved(self, config: dict) -> None:
-        loop_ids = [l["id"] for l in config["loops"]]
+        loop_ids = [lp["id"] for lp in config["loops"]]
         assert "debug-loop" in loop_ids
 
     def test_version_bumped(self, config: dict) -> None:
