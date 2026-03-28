@@ -1,0 +1,134 @@
+id: harness
+name: Harness — Generate-Evaluate-Iterate
+description: >-
+  GAN-inspired multi-agent harness that separates generation from evaluation.
+  A planner expands a short prompt into a product spec, a generator builds
+  the application, and an evaluator scores it on four axes using Playwright.
+  The loop iterates until all scores pass the threshold or limits are reached.
+version: 1.0.0
+tags:
+  - harness
+  - autonomous
+  - full-stack
+
+tier: orchestration
+workflow_format: v2
+session_mode: plugin
+routing:
+  auto_route: true
+  sub_invocable: false
+  category: general
+
+variables:
+  spec_file: "harness-spec.md"
+  critique_file: "harness-critique.md"
+
+parameters:
+  - id: prompt
+    label: Product description
+    type: text
+    required: true
+    description: A 1-4 sentence description of the application to build
+  - id: threshold
+    label: Pass threshold
+    type: number
+    required: false
+    default: 7
+    description: Minimum score (1-10) on each grading criterion to pass
+  - id: max_iterations
+    label: Max iterations
+    type: number
+    required: false
+    default: 5
+    description: Maximum generate-evaluate cycles before stopping
+
+stages:
+  # Phase 1: Plan — convert prompt into ambitious product specification
+  - id: plan
+    name: Plan Product Specification
+    type: task
+    agent: architect
+    max_turns: 40
+    prompt_ref: stages/harness-plan.yaml
+    prompt: |
+      The user wants to build:
+
+      > {{prompt}}
+
+      Expand this into a comprehensive product specification.
+      Write the spec to `{{spec_file}}`.
+    outputs:
+      - "{{spec_file}}"
+    contract:
+      must_write:
+        - "{{spec_file}}"
+      must_include_sections:
+        "{{spec_file}}":
+          - "Product Vision|Vision"
+          - "Feature"
+          - "Design Direction|Design"
+
+  # Phase 2: Generate — build the application from spec (+ critique on re-entry)
+  - id: generate
+    name: Generate Application
+    type: task
+    max_turns: 200
+    required_artifacts:
+      - "{{spec_file}}"
+    prompt_ref: stages/harness-generate.yaml
+    prompt: |
+      Build the application described in `{{spec_file}}`.
+
+      If this is a re-entry from the evaluate loop, read the baton's
+      stage_hints["generate"] for the evaluator's critique and make
+      targeted fixes. Do NOT rebuild from scratch on subsequent iterations.
+
+      After building/fixing, start the dev server and verify it runs.
+    contract:
+      detect_stubs: true
+
+  # Phase 3: Evaluate — score the running app with Playwright
+  - id: evaluate
+    name: Evaluate Application
+    type: task
+    max_turns: 60
+    prompt_ref: stages/harness-evaluate.yaml
+    prompt: |
+      Evaluate the running application against the four grading criteria:
+      design quality, originality, craft, and functionality.
+
+      Use Playwright to interact with the live application.
+      Score each criterion 1-10 and update the baton's quality_signals.
+      The pass threshold is {{threshold}}.
+
+      Write detailed critique to `{{critique_file}}`.
+    outputs:
+      - "{{critique_file}}"
+    context_needs:
+      must_include:
+        - "{{spec_file}}"
+
+  # Phase 4: Score Gate — deterministic pass/fail based on scores
+  - id: score-gate
+    name: Score Gate
+    type: hook
+    hook: score-gate
+    hook_params:
+      threshold: "{{threshold}}"
+      criteria:
+        - design_quality
+        - originality
+        - craft
+        - functionality
+
+loops:
+  - id: improve-quality
+    from: score-gate
+    to: generate
+    trigger: failure
+    max_iterations: "{{max_iterations}}"
+
+edges:
+  plan: [generate]
+  generate: [evaluate]
+  evaluate: [score-gate]

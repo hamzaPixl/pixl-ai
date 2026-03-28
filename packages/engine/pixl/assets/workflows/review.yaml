@@ -1,0 +1,251 @@
+id: review
+name: Code Review Workflow
+description: >-
+  Multi-perspective code review with automated fix loop.
+  Analyzes changed code, reviews for correctness/security/conventions,
+  fixes P0-P1 findings, and iterates until clean or limits are reached.
+version: 1.0.0
+tags:
+  - review
+  - quality
+
+tier: orchestration
+workflow_format: v2
+session_mode: plugin
+routing:
+  auto_route: true
+  sub_invocable: false
+  category: general
+
+parameters:
+  - id: scope
+    label: Review scope
+    type: text
+    required: false
+    description: >-
+      What to review — a file path, glob pattern, branch diff, or description.
+      If omitted, the workflow auto-detects changes from git diff.
+  - id: severity_threshold
+    label: Severity threshold
+    type: text
+    required: false
+    default: "P1"
+    description: >-
+      Maximum severity that blocks approval. P0 = only P0 blocks,
+      P1 = P0+P1 block (default), P2 = P0+P1+P2 block.
+  - id: max_iterations
+    label: Max review-fix iterations
+    type: number
+    required: false
+    default: 3
+    description: Maximum review-and-fix cycles before stopping
+
+stages:
+  # Phase 1: Analyze — detect what changed, identify review scope
+  - id: analyze
+    name: Analyze Scope
+    type: task
+    max_turns: 40
+    prompt: |
+      Detect what needs to be reviewed and produce a review scope document.
+
+      ## Scope Detection
+
+      {{#if scope}}
+      The user specified a review scope:
+
+      > {{scope}}
+
+      Parse this into concrete file paths and focus areas.
+      {{else}}
+      No explicit scope provided. Auto-detect changes:
+
+      1. Run `git diff --name-only HEAD~1..HEAD` to find recently changed files
+      2. Run `git diff --stat` for a change summary
+      3. If on a feature branch, diff against the base branch:
+         `git diff --name-only $(git merge-base HEAD main)..HEAD`
+      4. Fall back to `git status` for uncommitted changes
+      {{/if}}
+
+      ## Analysis Steps
+
+      1. Identify all changed files and categorize them:
+         - Source code (business logic, domain, services)
+         - Tests (unit, integration, E2E)
+         - Configuration (env, CI, build)
+         - Infrastructure (Docker, deployment)
+      2. Detect the language/framework stack for each file
+      3. Identify high-risk areas:
+         - Auth/security code
+         - Payment/billing logic
+         - Data migrations or schema changes
+         - Public API surface changes
+      4. Note cross-cutting concerns (shared utilities, type definitions)
+
+      ## Output
+
+      Write `review-scope.md` with:
+      - **Changed Files**: categorized list with line counts
+      - **Focus Areas**: ranked by risk (high-risk areas first)
+      - **Stack Detection**: language, framework, test runner per area
+      - **Review Strategy**: which perspectives matter most for these changes
+    outputs:
+      - review-scope.md
+    contract:
+      must_write:
+        - review-scope.md
+      must_include_sections:
+        review-scope.md:
+          - "Changed Files|Files"
+          - "Focus Areas|Risk Areas"
+
+  # Phase 2: Review & Fix — review code, fix issues, update baton
+  - id: review-and-fix
+    name: Review and Fix
+    type: task
+    max_turns: 150
+    required_artifacts:
+      - review-scope.md
+    prompt: |
+      Review the code identified in `review-scope.md` from three perspectives,
+      fix any blocking issues found, and report remaining findings.
+
+      ## Re-entry Check
+
+      If this is a re-entry from a previous iteration, read the baton's
+      `stage_hints["review-and-fix"]` for the previous findings summary.
+      Focus on:
+      1. Verifying that previous fixes are correct and complete
+      2. Checking for regressions introduced by fixes
+      3. Finding any remaining issues not yet addressed
+      Do NOT re-review already-approved code areas — focus on deltas.
+
+      ## Perspective 1: Correctness
+
+      - Logic errors, off-by-one, null/undefined handling
+      - Missing error handling or silent failures
+      - Race conditions in async code
+      - Incorrect API contracts (request/response shape mismatches)
+      - Missing input validation at system boundaries
+      - N+1 queries, unbounded result sets, missing pagination
+      - Dead code, unreachable branches
+      - Test coverage gaps for critical paths
+
+      ## Perspective 2: Security
+
+      - SQL/command injection (parameterized queries?)
+      - XSS vectors (output escaping?)
+      - Auth/authz bypasses (every route guarded?)
+      - Secrets in code or config committed to git
+      - SSRF risks (outbound URL validation?)
+      - Mass assignment (strict schema validation?)
+      - Insecure crypto or token handling
+      - Dependency vulnerabilities (`npm audit` / `pip audit`)
+
+      ## Perspective 3: Conventions
+
+      - Naming consistency (files, variables, functions, types)
+      - Code organization (file size, function length, single responsibility)
+      - Import ordering and grouping
+      - Error handling patterns (typed errors vs string messages)
+      - Test naming and structure (Arrange-Act-Assert)
+      - Commit hygiene (conventional commits, atomic changes)
+      - Documentation for public APIs and complex logic
+
+      ## Severity Framework
+
+      Classify every finding by severity:
+
+      - **P0 — Blocking correctness/safety**: Crashes, data loss, security holes,
+        auth bypasses. Must fix before merge.
+      - **P1 — High-impact bug/regression**: Incorrect behavior under realistic
+        conditions, broken tests, missing validation on critical paths.
+      - **P2 — Moderate issue**: Code smell, minor logic gap, suboptimal pattern.
+        Should fix but not blocking.
+      - **P3 — Low-impact polish**: Style nits, naming preferences, minor
+        documentation gaps. Nice to fix but not required.
+
+      ## Fix Phase
+
+      After completing the review:
+
+      1. Fix all P0 findings immediately — these are non-negotiable
+      2. Fix all P1 findings — high-impact issues that block approval
+      3. For each fix:
+         a. Make the change
+         b. Run relevant tests to verify the fix
+         c. Check that no regressions were introduced
+      4. Do NOT fix P2/P3 findings in this stage — note them for later
+      5. Commit fixes with conventional commit messages
+
+      ## Baton Update (CRITICAL)
+
+      After reviewing and fixing, you MUST update the baton's quality_signals.
+      Use `pixl artifact put` to report findings, then update the baton:
+
+      Set `baton.quality_signals` to:
+      - `open_findings`: count of remaining P0+P1 findings after fixes
+      - `max_severity`: highest remaining severity ("P0", "P1", "P2", "P3", or "none")
+      - `findings_summary`: 1-3 sentence summary of remaining issues (for next iteration)
+
+      If all P0+P1 findings are fixed, set `open_findings: 0` and `max_severity`
+      to the highest remaining P2/P3, or "none" if everything is clean.
+
+      ## Output
+
+      Write `review-findings.md` with:
+      - **Summary**: overall assessment and finding counts by severity
+      - **Findings**: each finding with severity, file, line, description, and fix status
+      - **Fixes Applied**: list of fixes made with before/after
+      - **Remaining Items**: P2/P3 items deferred for later
+
+      ## Available Crew Skills
+
+      - `/self-review-fix-loop` — run additional iterative review cycles
+      - `/test-runner` — execute test suites to verify fixes
+      - `/security-scan` — deep OWASP audit for security-sensitive changes
+      - `/schema-audit` — validate database schema changes
+      - `/api-audit` — check API contract consistency
+    outputs:
+      - review-findings.md
+    contract:
+      must_write:
+        - review-findings.md
+      must_include_sections:
+        review-findings.md:
+          - "Summary"
+          - "Findings"
+
+  # Phase 3: Findings Gate — deterministic pass/fail based on open findings
+  - id: findings-gate
+    name: Findings Gate
+    type: hook
+    hook: findings-gate
+    hook_params:
+      target_stage: "review-and-fix"
+      severity_threshold: "{{severity_threshold}}"
+
+  # Phase 4: Approve — human approval of final state
+  - id: approve
+    name: Approve Review
+    type: gate
+    timeout_minutes: 60
+    timeout_policy: reject
+    required_artifacts:
+      - review-findings.md
+    description: >-
+      Review is clean — all findings at or above the severity threshold
+      have been resolved. Approve to finalize, or reject to request
+      additional changes.
+
+loops:
+  - id: review-fix-loop
+    from: findings-gate
+    to: review-and-fix
+    trigger: failure
+    max_iterations: "{{max_iterations}}"
+
+edges:
+  analyze: [review-and-fix]
+  review-and-fix: [findings-gate]
+  findings-gate: [approve]

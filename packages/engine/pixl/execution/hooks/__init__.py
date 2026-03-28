@@ -74,6 +74,7 @@ def list_hooks() -> list[str]:
 # Auto-register built-in hooks on import
 from pixl.execution.hooks import chain_plan_hooks as _chain_plan_hooks  # noqa: F401, E402
 from pixl.execution.hooks import git_hooks as _git_hooks  # noqa: F401, E402
+from pixl.execution.hooks import harness_hooks as _harness_hooks  # noqa: F401, E402
 from pixl.execution.hooks import replan_hooks as _replan_hooks  # noqa: F401, E402
 from pixl.execution.hooks import roadmap_plan_hooks as _roadmap_plan_hooks  # noqa: F401, E402
 from pixl.execution.hooks import sync_hooks as _sync_hooks  # noqa: F401, E402

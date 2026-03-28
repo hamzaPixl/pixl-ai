@@ -1,7 +1,7 @@
 id: tdd
 name: TDD Workflow
 description: Test-driven development with plugin-delegated sessions
-version: 2.0.0
+version: 2.1.0
 tags: [tdd, feature]
 tier: orchestration
 workflow_format: v2
@@ -71,7 +71,48 @@ stages:
     contract:
       detect_stubs: true
 
-  # Phase 3: Review & Finalize
+  # Phase 3: Evaluate — verify the implementation works end-to-end
+  - id: evaluate
+    name: Evaluate
+    type: task
+    max_turns: 60
+    prompt: |
+      Evaluate the implementation by running functional tests against the
+      actual running application.
+
+      ## Frontend Projects (has UI components)
+      1. Start the dev server if not already running
+      2. Use Playwright / agent-browser to navigate key user flows
+      3. Verify visual output matches design expectations
+      4. Check for console errors, broken links, layout issues
+      5. Use `/react-doctor` if React-specific issues are detected
+
+      ## Backend Projects (API / service only)
+      1. Run integration tests against live endpoints
+      2. Verify API contracts (request/response shapes, status codes)
+      3. Test error paths and edge cases
+      4. Verify database state changes are correct
+
+      ## For All Projects
+      1. Score each acceptance criterion from the design as PASS or FAIL
+      2. Run the full test suite with `/test-runner`
+      3. Write `evaluation-results.md` via `pixl artifact put` with:
+         - Test evidence (screenshots, response payloads, test output)
+         - Pass/fail verdict per acceptance criterion
+         - Overall result: PASS or FAIL
+         - If FAIL: specific issues that need fixing
+
+      ## Available Crew Skills
+      - `/test-runner` — run test suites with smart discovery
+      - `/react-doctor` — diagnose and fix React rendering issues
+    required_artifacts: [design.md]
+    outputs: [evaluation-results.md]
+    contract:
+      must_write: [evaluation-results.md]
+      must_include_sections:
+        evaluation-results.md: ["Test Evidence", "Pass/Fail", "Overall Result"]
+
+  # Phase 4: Review & Finalize
   - id: finalize
     name: Review & Finalize
     type: task
@@ -93,6 +134,11 @@ stages:
 loops:
   - id: fix-implementation
     from: finalize
+    to: implement
+    trigger: failure
+    max_iterations: 2
+  - id: evaluate-fix
+    from: evaluate
     to: implement
     trigger: failure
     max_iterations: 2
