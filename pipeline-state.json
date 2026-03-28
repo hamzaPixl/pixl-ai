@@ -1,0 +1,19 @@
+{
+  "version": "1.0",
+  "started_at": "2026-03-27T22:30:00Z",
+  "updated_at": "2026-03-27T22:30:00Z",
+  "prd_source": ".context/spec/api-console-prd.md",
+  "current_phase": "foundation",
+  "phases": {
+    "setup": { "status": "completed", "started_at": "2026-03-27T22:00:00Z", "completed_at": "2026-03-27T22:30:00Z" },
+    "planning": { "status": "completed", "started_at": "2026-03-27T22:00:00Z", "completed_at": "2026-03-27T22:30:00Z" },
+    "foundation": { "status": "in_progress", "started_at": "2026-03-27T22:30:00Z" },
+    "implementation": { "status": "pending" },
+    "quality": { "status": "pending" },
+    "delivery": { "status": "pending" }
+  },
+  "sprints_completed": 0,
+  "total_sprints": 4,
+  "coverage_percentage": 0.0,
+  "branch": "feat/api-console-service"
+}

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from datetime import UTC
+
 import click
 
 from pixl_cli._output import emit_detail, emit_error, emit_json, emit_table
@@ -87,18 +89,23 @@ def session_cancel(ctx: click.Context, session_id: str) -> None:
 
 
 @session.command("cleanup")
-@click.option("--stale-minutes", default=5, type=int, help="Cancel sessions idle longer than this (default: 5).")
+@click.option(
+    "--stale-minutes",
+    default=5,
+    type=int,
+    help="Cancel sessions idle longer than this (default: 5).",
+)
 @click.pass_context
 def session_cleanup(ctx: click.Context, stale_minutes: int) -> None:
     """Cancel sessions stuck in 'running' state.
 
     Auto-cancels sessions that haven't been updated in --stale-minutes.
     """
-    from datetime import datetime, timedelta, timezone
+    from datetime import datetime, timedelta
 
     cli = get_ctx(ctx)
     sessions = cli.db.sessions.list_sessions(status="running", limit=100)
-    cutoff = datetime.now(timezone.utc) - timedelta(minutes=stale_minutes)
+    cutoff = datetime.now(UTC) - timedelta(minutes=stale_minutes)
     cancelled = []
 
     for s in sessions:
@@ -109,7 +116,7 @@ def session_cleanup(ctx: click.Context, stale_minutes: int) -> None:
         try:
             ts = datetime.fromisoformat(updated.replace("Z", "+00:00"))
             if ts.tzinfo is None:
-                ts = ts.replace(tzinfo=timezone.utc)
+                ts = ts.replace(tzinfo=UTC)
         except (ValueError, AttributeError):
             continue
         if ts < cutoff:
@@ -177,7 +184,7 @@ def session_retry(ctx: click.Context, session_id: str, yes: bool) -> None:
 
     status = result.get("status", "")
     if status == "completed":
-        emit_error(f"Session already completed", is_json=cli.is_json)
+        emit_error("Session already completed", is_json=cli.is_json)
         raise SystemExit(1)
 
     # Reset status so the runner can pick it up
@@ -189,7 +196,9 @@ def session_retry(ctx: click.Context, session_id: str, yes: bool) -> None:
     _resume_session(cli, session_id, skip_approval=yes, workflow_id="retry")
 
 
-def _resume_session(cli, session_id: str, *, skip_approval: bool = False, workflow_id: str = "resumed") -> None:
+def _resume_session(
+    cli, session_id: str, *, skip_approval: bool = False, workflow_id: str = "resumed"
+) -> None:
     """Shared logic for resume/retry — loads session and re-executes the DAG."""
     from pixl.execution import GraphExecutor
     from pixl.execution.workflow_helpers import get_waiting_gate_node, has_waiting_gates
@@ -207,7 +216,9 @@ def _resume_session(cli, session_id: str, *, skip_approval: bool = False, workfl
 
         snapshot = session_store.load_snapshot(session.snapshot_hash)
         if snapshot is None:
-            emit_error(f"Cannot load workflow snapshot for session: {session_id}", is_json=cli.is_json)
+            emit_error(
+                f"Cannot load workflow snapshot for session: {session_id}", is_json=cli.is_json
+            )
             raise SystemExit(1)
 
         # For retry: reset failed/cancelled nodes to pending
@@ -253,7 +264,10 @@ def _resume_session(cli, session_id: str, *, skip_approval: bool = False, workfl
                     if not cli.is_json:
                         click.echo(f"  Auto-approving gate: {gate_node_id}")
                     session = session_manager.approve_gate(
-                        session.id, gate_node_id, approver="auto", snapshot=snapshot,
+                        session.id,
+                        gate_node_id,
+                        approver="auto",
+                        snapshot=snapshot,
                     )
                 else:
                     if not cli.is_json:

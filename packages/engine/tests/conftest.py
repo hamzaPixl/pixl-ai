@@ -7,7 +7,7 @@ import pytest
 
 
 @pytest.fixture(autouse=True)
-def _isolate_global_pixl(tmp_path: "pytest.TempPathFactory", monkeypatch: pytest.MonkeyPatch) -> None:
+def _isolate_global_pixl(tmp_path: pytest.TempPathFactory, monkeypatch: pytest.MonkeyPatch) -> None:
     """Prevent tests from polluting ~/.pixl/.
 
     Redirects all global pixl storage to a temp directory so tests

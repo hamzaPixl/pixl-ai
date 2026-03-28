@@ -13,7 +13,21 @@ from pixl.routing.models import RouterResult
 # ── Lightweight keyword classifier (no LLM call) ────────────────────────
 
 _WORKFLOW_KEYWORDS: list[tuple[str, list[str]]] = [
-    ("debug", ["fix ", "bug", "error", "broken", "failing", "crash", "debug", "issue", "wrong", "not working"]),
+    (
+        "debug",
+        [
+            "fix ",
+            "bug",
+            "error",
+            "broken",
+            "failing",
+            "crash",
+            "debug",
+            "issue",
+            "wrong",
+            "not working",
+        ],
+    ),
     ("tdd", ["test first", "tdd", "test-driven", "write tests"]),
     ("roadmap", ["roadmap", "milestone", "strategic plan", "multi-phase"]),
     ("decompose", ["decompose", "break down", "split into features", "epic", "multi-feature"]),
@@ -30,6 +44,7 @@ def classify_prompt_fast(prompt: str) -> str:
         if any(kw in lower for kw in keywords):
             return workflow_id
     return "simple"
+
 
 # Path to the bundled router prompt
 ROUTER_PROMPT_PATH = (

@@ -28,10 +28,10 @@ jobs:
         run: uv sync --all-extras
 
       - name: Ruff lint
-        run: uv run ruff check packages/engine/ packages/cli/
+        run: uv run ruff check packages/engine/ packages/cli/ packages/api/
 
       - name: Ruff format
-        run: uv run ruff format --check packages/engine/ packages/cli/
+        run: uv run ruff format --check packages/engine/ packages/cli/ packages/api/
 
   # ── Python: Type Check ────────────────────────────────────
   typecheck:
@@ -103,10 +103,14 @@ jobs:
       - name: Build CLI wheel
         run: uv build --package pixl-cli
 
+      - name: Build API wheel
+        run: uv build --package pixl-api
+
       - name: Verify importability
         run: |
           uv run python -c "import pixl; print('pixl-engine OK')"
           uv run python -c "import pixl_cli; print('pixl-cli OK')"
+          uv run python -c "import pixl_api; print('pixl-api OK')"
 
   # ── Python: Security Audit ─────────────────────────────────
   audit-python:
@@ -131,6 +135,33 @@ jobs:
         # CVE-2026-4539: pygments 2.19.2 — no fix available yet (latest version)
         # Remove --ignore-vuln once pygments releases a patch
         run: uv run pip-audit --ignore-vuln CVE-2026-4539
+
+  # ── TypeScript: Console Checks ─────────────────────────────
+  console:
+    name: Console (TypeScript)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/console
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: TypeScript type check
+        run: pnpm tsc --noEmit
+
+      - name: Build
+        run: pnpm build
 
   # ── TypeScript: Sandbox Checks ─────────────────────────────
   sandbox:

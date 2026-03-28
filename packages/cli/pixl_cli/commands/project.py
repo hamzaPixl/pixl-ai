@@ -203,7 +203,10 @@ def project_init(ctx: click.Context, name: str | None, no_crew: bool, setup: boo
         click.echo(f"  DB: {cli.pixl_dir}")
         click.echo(f"  Context: {result['context_dir']}")
         if result["crew_installed"]:
-            click.echo("  Crew: rules, permissions" + (", CLAUDE.md" if result["claude_md_created"] else ""))
+            click.echo(
+                "  Crew: rules, permissions"
+                + (", CLAUDE.md" if result["claude_md_created"] else "")
+            )
             if not result["claude_md_created"]:
                 click.echo("  Note: CLAUDE.md already exists — skipped")
 
@@ -227,7 +230,7 @@ def project_init(ctx: click.Context, name: str | None, no_crew: bool, setup: boo
         )
         if wf_result.returncode != 0:
             click.echo("Warning: project-setup workflow failed. Run manually with:")
-            click.echo(f"  pixl workflow run --workflow project-setup --yes")
+            click.echo("  pixl workflow run --workflow project-setup --yes")
     elif not cli.is_json:
         click.echo("\nTo run project setup workflow:")
         click.echo("  pixl workflow run --workflow project-setup --yes")

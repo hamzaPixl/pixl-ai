@@ -1,0 +1,181 @@
+id: security-audit
+name: Security Audit Workflow
+description: >-
+  OWASP security audit with automated remediation loop.
+  Runs static analysis (Semgrep, CodeQL), dependency CVE checks, and secret
+  scanning. Findings are remediated in priority order (P0 first, then P1),
+  verified with a re-scan, and gated until all blocking findings are resolved.
+version: 1.0.0
+tags:
+  - security
+  - audit
+  - owasp
+
+tier: orchestration
+workflow_format: v2
+session_mode: plugin
+routing:
+  auto_route: true
+  sub_invocable: false
+
+stages:
+  # Phase 1: Scan — static analysis, dependency audit, secret scan, OWASP checklist
+  - id: scan
+    name: Security Scan
+    type: task
+    agent: default
+    max_turns: 60
+    prompt: |
+      Run a comprehensive security scan of the codebase.
+
+      ## Scan Checklist
+
+      1. **Static analysis** — run Semgrep and CodeQL to detect code-level
+         vulnerabilities (injection, XSS, SSRF, insecure deserialization, etc.)
+      2. **Dependency audit** — check for known CVEs:
+         - `npm audit` for Node.js projects
+         - `pip audit` for Python projects
+         - Review lockfiles for pinned vulnerable versions
+      3. **Secret scanning** — search for leaked API keys, tokens, passwords,
+         and credentials committed to the repository
+      4. **OWASP Top 10 checklist** — evaluate the codebase against each
+         OWASP Top 10 category and note any gaps
+
+      ## Output
+
+      Write all findings to `security-scan-results.md` with sections:
+      - Executive Summary (total findings, severity breakdown)
+      - Static Analysis Findings (tool, rule, file, line, severity)
+      - Dependency Vulnerabilities (package, CVE, severity, fix available)
+      - Secret Scan Results (file, type, status)
+      - OWASP Top 10 Assessment (category, status, notes)
+
+      Classify each finding by severity: P0 (critical), P1 (high), P2 (medium), P3 (low).
+
+      ## Baton Update
+
+      Update `baton.quality_signals` with:
+      - `total_findings`: total count of all findings
+      - `p0_count`: number of P0 (critical) findings
+      - `p1_count`: number of P1 (high) findings
+      - `open_findings`: count of P0 + P1 findings (actionable)
+      - `max_severity`: highest severity found ("P0", "P1", "P2", "P3", or "none")
+      - `findings_summary`: one-paragraph summary of what needs fixing
+
+      ## Available Crew Skills
+      - `/security-scan` — OWASP security audit with automated scanning
+      - `/semgrep-rule-creator` — create custom Semgrep rules for project-specific patterns
+    outputs: [security-scan-results.md]
+    contract:
+      must_write:
+        - security-scan-results.md
+
+  # Phase 2: Remediate — fix P0 and P1 findings in priority order
+  - id: remediate
+    name: Remediate Findings
+    type: task
+    max_turns: 150
+    prompt: |
+      Fix all P0 (critical) and P1 (high) security findings.
+
+      ## Instructions
+
+      1. Read `security-scan-results.md` for the full findings list
+      2. Check `baton.stage_hints["remediate"]` — if present, this is a
+         re-entry from the findings gate with remaining issues to address
+      3. Fix findings in priority order:
+         - **P0 (critical)** first — these are exploitable vulnerabilities
+         - **P1 (high)** second — these are significant security risks
+      4. After each fix, run the relevant test suite to ensure no regressions
+      5. Update `baton.current_state` with a summary of fixes applied
+
+      ## Fix Categories
+
+      - **Injection**: Switch to parameterized queries, escape user input
+      - **Auth/AuthZ**: Add missing checks, fix broken access control
+      - **Secrets**: Remove hardcoded secrets, use environment variables
+      - **Dependencies**: Upgrade vulnerable packages to patched versions
+      - **Config**: Fix security misconfigurations (CORS, headers, TLS)
+      - **Crypto**: Replace weak algorithms, fix key management issues
+
+      ## Available Crew Skills
+      - `/security-scan` — re-scan after fixes to verify resolution
+      - `/test-runner` — run test suite to verify no regressions
+      - `/dependency-review` — analyze dependency upgrade impact
+    required_artifacts:
+      - security-scan-results.md
+    contract:
+      detect_stubs: true
+
+  # Phase 3: Verify — re-scan to count remaining findings
+  - id: verify
+    name: Verify Remediation
+    type: task
+    max_turns: 40
+    prompt: |
+      Re-run the same security scans from Phase 1 to verify remediation.
+
+      ## Verification Steps
+
+      1. Re-run static analysis (Semgrep, CodeQL) on the updated codebase
+      2. Re-run dependency audit (`npm audit`, `pip audit`)
+      3. Re-run secret scanning
+      4. Re-check OWASP Top 10 assessment
+
+      ## Output
+
+      Write results to `security-verify-results.md` with:
+      - Summary: findings resolved vs remaining
+      - Comparison table: before vs after for each finding
+      - Any new findings introduced during remediation
+      - Remaining P2/P3 findings (acceptable risk)
+
+      ## Baton Update
+
+      Update `baton.quality_signals` with new counts:
+      - `total_findings`: remaining total
+      - `p0_count`: remaining P0 count
+      - `p1_count`: remaining P1 count
+      - `open_findings`: remaining P0 + P1 count
+      - `max_severity`: highest remaining severity
+      - `findings_summary`: summary of remaining issues (for findings-gate)
+
+      ## Available Crew Skills
+      - `/security-scan` — full OWASP security audit
+      - `/semgrep-rule-creator` — verify custom rules still pass
+    outputs: [security-verify-results.md]
+    contract:
+      must_write:
+        - security-verify-results.md
+
+  # Phase 4: Findings Gate — pass only when P0/P1 findings are resolved
+  - id: findings-gate
+    name: Findings Gate
+    type: hook
+    hook: findings-gate
+    hook_params:
+      target_stage: "remediate"
+      severity_threshold: "P1"
+
+  # Phase 5: Approve — human review of final security posture
+  - id: approve
+    name: Approve Security Posture
+    type: gate
+    timeout_minutes: 120
+    required_artifacts: [security-verify-results.md]
+    description: >-
+      Human review of the final security posture. P0 and P1 findings must be
+      resolved. Remaining P2/P3 findings are presented for risk acceptance.
+
+loops:
+  - id: security-fix-loop
+    from: findings-gate
+    to: remediate
+    trigger: failure
+    max_iterations: 2
+
+edges:
+  scan: [remediate]
+  remediate: [verify]
+  verify: [findings-gate]
+  findings-gate: [approve]

@@ -20,6 +20,29 @@ packages/
 │   │   ├── sandbox_client.py   # HTTP client for sandbox API (JWT, SSE, token refresh)
 │   │   └── commands/           # artifact, config, cost, events, knowledge, project, sandbox, session, setup, state, template, workflow
 │   └── tests/
+├── api/                        # pixl-api (Python) — FastAPI service over pixl-cli
+│   ├── pyproject.toml
+│   ├── pixl_api/               # 24 route modules, 144 endpoints
+│   │   ├── app.py              # FastAPI factory + lifespan
+│   │   ├── auth/               # JWT auth, bcrypt, dependencies
+│   │   ├── routes/             # All API routes (sessions, features, views, budget, etc.)
+│   │   ├── schemas/            # Pydantic request/response models
+│   │   ├── foundation/         # JWT, error handlers, pagination
+│   │   ├── ws.py               # WebSocket event stream
+│   │   ├── pool.py             # LRU ProjectDB connection pool
+│   │   └── db.py               # User/workspace/API-key SQLite DB
+│   └── tests/                  # 123 tests (DB, routes, auth, workspaces, API keys)
+├── console/                    # pixl-console (TypeScript) — React SPA
+│   ├── package.json
+│   ├── src/                    # 321 TS/TSX files
+│   │   ├── routes/             # TanStack Router file-based routing
+│   │   ├── components/         # Dashboard, sessions, features, settings
+│   │   ├── hooks/              # React Query hooks, WebSocket event stream
+│   │   ├── lib/api/            # Typed API client (12 domain modules)
+│   │   ├── stores/             # Zustand (auth, project, UI)
+│   │   └── types/              # TypeScript interfaces
+│   ├── vite.config.ts          # Vite + proxy to API at :8420
+│   └── tests/                  # Playwright E2E
 ├── crew/                       # pixl-crew (bash/md) — NOT a Python package
 │   ├── .claude-plugin/
 │   ├── agents/                 # 14 agents
@@ -51,6 +74,9 @@ uv tool install pixl && pixl setup
 
 # Crew-only (no Python/engine needed)
 cd packages/crew && make setup
+
+# Start API + Console (web UI)
+make dev-platform               # API at :8420 + Console at :5173
 ```
 
 ## Engine Architecture
@@ -162,13 +188,17 @@ When the CLI is installed, hooks use `.pixl/pixl.db` (SQLite) as primary storage
 |---------|-------------|
 | `make setup` | Full setup: install + register crew |
 | `make install` | Install workspace packages |
-| `make test` | Run all tests |
+| `make test` | Run all tests (engine + cli + api) |
 | `make test-engine` | Engine tests only |
 | `make test-cli` | CLI tests only |
+| `make test-api` | API tests only (123 tests) |
 | `make test-cov` | Run tests with coverage report |
 | `make check` | Lint + type check |
 | `make typecheck` | Type check only (pyright) |
 | `make format` | Auto-format |
+| `make dev-api` | Start API dev server (port 8420) |
+| `make dev-console` | Start Console dev server (port 5173) |
+| `make dev-platform` | Start both API + Console |
 | `make release` | Bump version, tag, push |
 
 Engine deps are split: core deps always installed, API deps (`fastapi`, `redis`, `bcrypt`, `pyjwt`) optional via `[api]` extra.

@@ -1,4 +1,4 @@
-.PHONY: setup install crew-setup test test-engine test-cli test-cov check typecheck format release clean pre-commit help
+.PHONY: setup install crew-setup test test-engine test-cli test-api test-cov check typecheck format release clean pre-commit help dev-api dev-console dev-platform
 
 # Load .env file if present
 ifneq (,$(wildcard .env))
@@ -26,20 +26,32 @@ test-engine:  ## Engine tests only
 test-cli:  ## CLI tests only
 	$(PYTEST) packages/cli/tests/
 
+test-api:  ## API tests only
+	$(PYTEST) packages/api/tests/
+
 test-cov:  ## Run tests with coverage
 	$(PYTEST) --cov --cov-report=term-missing
 
 check:  ## Lint + type check
-	uv run ruff check packages/engine/ packages/cli/
-	uv run ruff format --check packages/engine/ packages/cli/
+	uv run ruff check packages/engine/ packages/cli/ packages/api/
+	uv run ruff format --check packages/engine/ packages/cli/ packages/api/
 	uv run pyright
 
 typecheck:  ## Type check only
 	uv run pyright
 
 format:  ## Auto-format
-	uv run ruff check --fix packages/engine/ packages/cli/
-	uv run ruff format packages/engine/ packages/cli/
+	uv run ruff check --fix packages/engine/ packages/cli/ packages/api/
+	uv run ruff format packages/engine/ packages/cli/ packages/api/
+
+dev-api:  ## Start API dev server
+	uv run uvicorn pixl_api:create_app --factory --reload --port 8420
+
+dev-console:  ## Start console dev server
+	cd packages/console && pnpm dev
+
+dev-platform:  ## Start API + console
+	$(MAKE) dev-api & $(MAKE) dev-console
 
 BUMP ?= patch
 release:  ## Bump version, tag, push

@@ -1,7 +1,7 @@
 id: debug
 name: Debug Workflow
 description: RED-FIX-PROVE debugging with plugin-delegated sessions
-version: 2.0.0
+version: 2.1.0
 tags: [debug, bugfix]
 tier: orchestration
 workflow_format: v2
@@ -76,7 +76,42 @@ stages:
     contract:
       must_write: [proof-bundle.md]
 
-  # Phase 3: Finalize
+  # Phase 3: Regression Test — ensure the bug stays fixed
+  - id: regression-test
+    name: Regression Test
+    type: task
+    max_turns: 40
+    prompt: |
+      Generate and verify a regression test that would have caught this bug.
+
+      1. Read the `proof-bundle.md` artifact for root cause and fix details
+      2. Use `/test-writer` to generate a focused regression test that:
+         - Reproduces the exact conditions that triggered the bug
+         - Asserts the correct behavior (not just absence of error)
+         - Is named clearly to indicate it guards against this regression
+      3. Write the test file to the project's test directory
+      4. Run the regression test with `/test-runner` — it MUST pass
+      5. If feasible, verify the test would FAIL without the fix:
+         - `git stash` the fix changes
+         - Run the regression test (expect failure)
+         - `git stash pop` to restore the fix
+      6. Update baton with the regression test file path
+
+      Save `regression-test-report.md` via `pixl artifact put` with:
+      - Test file path and description
+      - Test output (passing with fix)
+      - Reverse verification result (failing without fix, if performed)
+      - Overall result: PASS or FAIL
+
+      ## Available Crew Skills
+      - `/test-writer` — generate regression test suites
+      - `/test-runner` — run tests with smart discovery
+    required_artifacts: [proof-bundle.md]
+    outputs: [regression-test-report.md]
+    contract:
+      must_write: [regression-test-report.md]
+
+  # Phase 4: Finalize
   - id: finalize
     name: Review & Finalize
     type: task
@@ -98,3 +133,8 @@ loops:
     to: reproduce
     trigger: failure
     max_iterations: 3
+  - id: regression-fix
+    from: regression-test
+    to: fix
+    trigger: failure
+    max_iterations: 2

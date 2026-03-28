@@ -1,0 +1,217 @@
+id: refactor
+name: Refactoring Workflow
+description: Safe refactoring with analysis, planning, human approval, and regression verification
+version: 1.0.0
+tags: [refactor, quality]
+tier: orchestration
+workflow_format: v2
+session_mode: plugin
+routing:
+  auto_route: true
+  sub_invocable: false
+
+stages:
+  # Phase 1: Analyze — identify code smells and refactoring targets
+  - id: analyze
+    name: Analyze Code Quality
+    type: task
+    max_turns: 60
+    prompt: |
+      Analyze the codebase for code smells and refactoring opportunities.
+
+      ## What to Look For
+      - **Complexity**: Functions/methods exceeding cyclomatic complexity thresholds
+      - **Duplication**: Repeated logic across files (copy-paste patterns)
+      - **Large files**: Source files exceeding 300 lines or functions exceeding 50 lines
+      - **Tight coupling**: Modules importing deeply from each other, circular dependencies
+      - **Dead code**: Unused exports, unreachable branches, commented-out blocks
+      - **Naming**: Vague names, inconsistent conventions, misleading identifiers
+
+      ## Process
+      1. Run existing lint and typecheck to capture baseline warnings
+      2. Use `/code-reduction` to identify dead code and reduction candidates
+      3. Use `/cto-review` for architectural-level assessment
+      4. Prioritize findings by impact (how much each smell hinders development)
+      5. Save findings to `refactor-analysis.md` using `pixl artifact put`
+
+      ## Output Structure
+      Include in `refactor-analysis.md`:
+      - **Summary**: High-level assessment of codebase health
+      - **Findings**: Each smell with location, severity, and evidence
+      - **Priority Targets**: Ordered list of refactoring targets by impact
+      - **Baseline Metrics**: Current test count, lint warnings, type errors
+
+      ## Available Crew Skills
+      - `/code-reduction` — identify dead code, unused exports, reduction targets
+      - `/cto-review` — architectural review with actionable recommendations
+    outputs: [refactor-analysis.md]
+    contract:
+      must_write: [refactor-analysis.md]
+
+  # Phase 2: Plan — produce step-by-step refactoring plan
+  - id: plan
+    name: Plan Refactoring Steps
+    type: task
+    max_turns: 40
+    required_artifacts: [refactor-analysis.md]
+    prompt: |
+      Read the analysis and produce a step-by-step refactoring plan.
+
+      ## Rules
+      1. Each step must be independently testable — tests must pass after each step
+      2. Order steps from lowest risk to highest risk
+      3. Each step should touch a bounded set of files (ideally < 8)
+      4. Never mix behavior changes with refactoring — each step preserves behavior
+      5. Include a rollback strategy for each step (what to revert if it breaks)
+      6. Identify risks per step: what could go wrong, what tests to watch
+
+      ## Process
+      1. Read `refactor-analysis.md` for prioritized targets
+      2. Group related smells into coherent refactoring steps
+      3. Determine dependency ordering between steps
+      4. Estimate effort and risk for each step
+      5. Save plan to `refactor-plan.md` using `pixl artifact put`
+
+      ## Output Structure
+      Include in `refactor-plan.md`:
+      - **Objective**: What the refactoring achieves overall
+      - **Steps**: Numbered steps, each with:
+        - Description of the change
+        - Files affected
+        - Risk level (low/medium/high)
+        - Rollback strategy
+        - Verification command (test/lint/typecheck)
+      - **Risks**: Cross-cutting risks and mitigations
+      - **Success Criteria**: How to confirm the refactoring is complete
+
+      ## Available Crew Skills
+      - `/task-plan` — dependency-aware task decomposition
+      - `/cartographer` — codebase structure mapping for impact analysis
+    outputs: [refactor-plan.md]
+    contract:
+      must_write: [refactor-plan.md]
+      must_include_sections:
+        refactor-plan.md: ["Steps", "Risks|Risk"]
+
+  # Gate: Human approves plan before execution
+  - id: approve-plan
+    name: Approve Refactoring Plan
+    type: gate
+    timeout_minutes: 120
+    required_artifacts: [refactor-plan.md]
+    freeze_artifacts: [refactor-plan.md]
+
+  # Phase 3: Implement — execute refactoring steps from approved plan
+  - id: implement
+    name: Implement Refactoring
+    type: task
+    max_turns: 200
+    required_artifacts: [refactor-plan.md]
+    prompt: |
+      Execute the refactoring steps from the approved plan.
+
+      ## Critical Rules
+      - Follow the plan step by step — do not skip or reorder steps
+      - Run tests after EACH step, not just at the end
+      - Commit after each successful step with a descriptive message
+      - If a test fails after a step, fix it before moving to the next step
+      - Never change behavior — refactoring preserves existing functionality
+
+      ## On Re-entry from Verify Loop
+      If this is a re-entry from the fix-regressions loop:
+      1. Check `baton.stage_hints["implement"]` for what failed
+      2. Read `refactor-verify.md` for specific failures and regression details
+      3. Fix only the regressions — do not continue with remaining steps
+      4. Update `baton.current_state` with what was fixed
+
+      ## Process
+      1. Read the approved `refactor-plan.md`
+      2. For each step in order:
+         a. Make the code changes described in the step
+         b. Run the verification command specified in the step
+         c. If tests pass, commit the change
+         d. If tests fail, fix or rollback per the step's rollback strategy
+      3. Update `baton.current_state` with steps completed
+
+      ## Available Crew Skills
+      Full crew available — use the right skill for the job:
+      - `/ddd-pattern` — if refactoring toward domain-driven design
+      - `/code-reduction` — for dead code removal steps
+      - `/test-runner` — run test suites with smart discovery
+    contract:
+      detect_stubs: true
+
+  # Phase 4: Verify — full regression check
+  - id: verify
+    name: Verify No Regressions
+    type: task
+    max_turns: 60
+    prompt: |
+      Verify the refactoring introduced no regressions.
+
+      ## Verification Checklist
+      1. Run the FULL test suite — every test must pass
+      2. Run lint — must be clean (no new warnings)
+      3. Run typecheck — must pass with zero errors
+      4. Compare test count before/after — should not decrease
+      5. Check for any skipped or disabled tests that were previously passing
+
+      ## Quality Signals
+      Update `baton.quality_signals` with:
+      - `tests_pass` (bool): whether all tests pass
+      - `lint_clean` (bool): whether lint is clean
+      - `regression_count` (int): number of test regressions found
+      - `test_count_before` (int): test count from analysis baseline
+      - `test_count_after` (int): current test count
+
+      ## On Failure
+      If any verification fails:
+      - Document exactly what failed in `refactor-verify.md`
+      - Set `baton.stage_hints["implement"]` with failure details
+      - The fix-regressions loop will re-enter the implement stage
+
+      ## Output
+      Save verification results to `refactor-verify.md` using `pixl artifact put`.
+      Include: test results summary, lint output, typecheck output,
+      before/after comparison, and pass/fail verdict.
+    outputs: [refactor-verify.md]
+
+  # Phase 5: Finalize — review and create PR
+  - id: finalize
+    name: Review & Finalize
+    type: task
+    max_turns: 80
+    prompt: |
+      Final review and PR creation for the refactoring.
+
+      ## Process
+      1. Use `/self-review-fix-loop` to run automated review + fix cycles
+      2. Use `/code-review` for a quality gate on the overall refactoring
+      3. Ensure tests pass and lint is clean after any final fixes
+      4. Create a PR with:
+         - Title summarizing the refactoring scope
+         - Body listing what was refactored and why
+         - Before/after metrics from `refactor-verify.md`
+         - Link to the refactoring plan for reviewer context
+
+      Use `gh pr create` to create the pull request.
+
+      ## Available Crew Skills
+      - `/self-review-fix-loop` — iterative review + auto-fix
+      - `/code-review` — multi-agent PR review with confidence scoring
+    contract:
+      detect_stubs: true
+
+loops:
+  - id: fix-regressions
+    from: verify
+    to: implement
+    trigger: failure
+    max_iterations: 3
+
+edges:
+  analyze: [plan]
+  plan: [approve-plan]
+  approve-plan: [implement]
+  implement: [verify]
+  verify: [finalize]

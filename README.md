@@ -1,19 +1,23 @@
 # pixl
 
-AI dev platform — orchestration engine + Claude Code crew plugin.
+AI dev platform — orchestration engine, web console, and Claude Code crew plugin.
 
-**14 agents · 75 skills · 11 workflows · cost tracking · session resume · sandboxed execution**
+**14 agents · 75 skills · 11 workflows · 144 API endpoints · real-time WebSocket events · cost tracking · session resume · sandboxed execution**
 
 ## What is pixl?
 
-Four components, one install:
+Six components, one install:
 
 1. **Engine** — DAG-based workflow orchestration, multi-provider LLMs (Anthropic, OpenAI, Gemini), SQLite storage (schema v37, 40+ tables), FTS5 search, EventBus, agent registry
 2. **CLI** — `pixl` binary for projects, workflows, sessions, artifacts, knowledge, sandboxes, cost analytics, and crew setup
-3. **Crew** — Claude Code plugin with 14 specialized agents, 75 skills, event hooks, and studio templates
-4. **Sandbox** — Cloudflare Workers containers for isolated AI execution with full pixl stack
+3. **API** — FastAPI service wrapping the CLI (144 endpoints, JWT auth, SSE streaming, WebSocket events, workspaces, API keys)
+4. **Console** — React SPA with session DAG visualization, feature management, real-time event streaming, and project dashboards (321 TS/TSX files)
+5. **Crew** — Claude Code plugin with 14 specialized agents, 75 skills, event hooks, and studio templates
+6. **Sandbox** — Cloudflare Workers containers for isolated AI execution with full pixl stack
 
 ```
+Browser → Console (React SPA, :5173) → API (FastAPI, :8420) → CLI → Engine
+                                                              ↑ WebSocket events
 User → pixl CLI → Engine (DAG, LLM, Storage, EventBus) → Claude Agent SDK
                 → Crew Plugin (Agents, Skills, Hooks) → Claude Code
                 → Sandbox (Cloudflare Workers) → Isolated containers
@@ -180,26 +184,28 @@ Error classification → contract repair → patch & test → replan.
 
 ```bash
 make setup          # Full setup: install + register crew
-make test           # Run all tests
-make test-engine    # Engine tests only
-make test-cli       # CLI tests only
+make test           # Run all tests (engine + cli + api)
+make test-api       # API tests only (123 tests)
+make dev-platform   # Start API (:8420) + Console (:5173)
 make check          # Lint check
 make format         # Auto-format
-make release        # Bump patch version, tag, push
+make release        # Bump version, tag, push
 ```
 
 ### Project Layout
 
 ```
 pixl/
-├── packages/engine/    # pixl-engine — Python orchestration engine
+├── packages/engine/    # pixl-engine — Python orchestration engine (~200 modules)
 ├── packages/cli/       # pixl-cli — Click CLI (bundles crew in wheel)
-├── packages/crew/      # pixl-crew — Claude Code plugin
+├── packages/api/       # pixl-api — FastAPI service (144 endpoints, JWT, SSE, WebSocket)
+├── packages/console/   # pixl-console — React SPA (TanStack Router, shadcn/ui, Zustand)
+├── packages/crew/      # pixl-crew — Claude Code plugin (14 agents, 75 skills)
 ├── packages/sandbox/   # pixl-sandbox — Cloudflare Workers sandbox runtime
 └── scripts/            # Release tooling
 ```
 
-The uv workspace manages `engine` and `cli`. The `crew` package is plain files (not Python) — bundled into the CLI wheel via hatch `force-include`.
+The uv workspace manages `engine`, `cli`, and `api`. The `crew` package is plain files (not Python) — bundled into the CLI wheel via hatch `force-include`. The `console` is a pnpm-managed React app.
 
 ## License
 

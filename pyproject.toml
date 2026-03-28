@@ -1,11 +1,11 @@
 [project]
 name = "pixl"
-version = "10.1.0"
+version = "10.2.0"
 description = "AI dev platform: orchestration engine + Claude Code crew plugin"
 requires-python = ">=3.12"
 readme = "README.md"
 license = "MIT"
-dependencies = ["pixl-engine", "pixl-cli"]
+dependencies = ["pixl-engine", "pixl-cli", "pixl-api"]
 
 [project.optional-dependencies]
 dev = ["pytest>=8.0", "pytest-asyncio>=0.24", "ruff>=0.9", "pyright>=1.1", "pytest-cov>=5.0", "pre-commit>=4.0"]
@@ -14,15 +14,16 @@ dev = ["pytest>=8.0", "pytest-asyncio>=0.24", "ruff>=0.9", "pyright>=1.1", "pyte
 package = false
 
 [tool.uv.workspace]
-members = ["packages/engine", "packages/cli"]
+members = ["packages/engine", "packages/cli", "packages/api"]
 
 [tool.uv.sources]
 pixl-engine = { workspace = true }
 pixl-cli = { workspace = true }
+pixl-api = { workspace = true }
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
-testpaths = ["packages/engine/tests", "packages/cli/tests"]
+testpaths = ["packages/engine/tests", "packages/cli/tests", "packages/api/tests"]
 markers = [
     "slow: marks tests as slow (ThreadPool, workflow execution)",
     "comprehensive: marks comprehensive test suites with artifact generation",
@@ -33,7 +34,7 @@ markers = [
 [tool.pyright]
 pythonVersion = "3.12"
 typeCheckingMode = "standard"
-include = ["packages/engine/pixl", "packages/cli/pixl_cli"]
+include = ["packages/engine/pixl", "packages/cli/pixl_cli", "packages/api/pixl_api"]
 reportMissingTypeStubs = false
 reportMissingImports = "warning"
 reportIncompatibleVariableOverride = false
