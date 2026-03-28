@@ -77,6 +77,11 @@ def create_app() -> FastAPI:
     for router in get_api_routers():
         app.include_router(router, prefix="/api")
 
+    # WebSocket (mounted at root — path includes /api prefix)
+    from pixl_api.ws import router as ws_router
+
+    app.include_router(ws_router)
+
     # Health check
     @app.get("/api/health")
     async def health() -> dict[str, str]:

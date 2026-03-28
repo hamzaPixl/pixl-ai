@@ -15,12 +15,25 @@ router = APIRouter(prefix="/projects", tags=["projects"])
 
 
 def _to_response(info: dict[str, Any]) -> dict[str, Any]:
-    """Map engine project info dict to API response shape."""
+    """Map engine project info dict to API response shape.
+
+    Returns both engine-native keys (project_id, project_name) and
+    short aliases (id, name) so the Console can use either.
+    """
+    pid = info.get("project_id", "")
+    pname = info.get("project_name", "")
     return {
-        "id": info.get("project_id", ""),
-        "name": info.get("project_name", ""),
+        "id": pid,
+        "project_id": pid,
+        "name": pname,
+        "project_name": pname,
         "description": info.get("description", ""),
+        "project_root": info.get("project_root") or info.get("storage_dir", ""),
         "path": info.get("project_root") or info.get("storage_dir", ""),
+        "storage_dir": info.get("storage_dir", ""),
+        "db_path": info.get("db_path"),
+        "storage_mode": info.get("storage_mode"),
+        "last_used_at": info.get("last_used_at"),
         "created_at": info.get("created_at"),
     }
 

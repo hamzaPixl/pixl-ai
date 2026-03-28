@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 from typing import Any
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Query
 
 from pixl_api.deps import ProjectDB
 from pixl_api.schemas.recovery import BlockedNodeResponse, RecoveryActionResponse
@@ -18,6 +18,30 @@ def _get_projection_store(db: ProjectDB):  # noqa: ANN202
     from pixl.storage.db.projections import ProjectionStore
 
     return ProjectionStore(db)
+
+
+@router.get("/{session_id}/explain")
+async def recovery_explain(db: ProjectDB, session_id: str) -> dict[str, Any]:
+    """Get recovery context for a session: blocked nodes, failure info."""
+    store = _get_projection_store(db)
+    inbox = await asyncio.to_thread(store.recovery_inbox)
+    session_items = [item for item in inbox if item.get("session_id") == session_id]
+    return {
+        "session_id": session_id,
+        "blocked_nodes": session_items,
+        "count": len(session_items),
+    }
+
+
+@router.get("/incidents")
+async def list_incidents(
+    db: ProjectDB,
+    limit: int = Query(50, ge=1, le=200, description="Max results"),
+    offset: int = Query(0, ge=0, description="Offset"),
+) -> list[dict[str, Any]]:
+    """List recovery incidents."""
+    records = await asyncio.to_thread(db.incidents.list_recent, limit=limit, offset=offset)
+    return [r.to_dict() if hasattr(r, "to_dict") else r for r in records]
 
 
 @router.get("/inbox", response_model=list[BlockedNodeResponse])

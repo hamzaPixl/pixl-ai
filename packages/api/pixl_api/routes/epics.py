@@ -10,13 +10,15 @@ from fastapi import APIRouter, Query
 from pixl_api.deps import ProjectDB
 from pixl_api.errors import EntityNotFoundError, InvalidTransitionError
 from pixl_api.helpers import get_or_404
-from pixl_api.schemas.epics import CreateEpicRequest, EpicResponse, UpdateEpicRequest
-from pixl_api.schemas.features import FeatureResponse, TransitionRequest, TransitionResponse
+from pixl_api.schemas.epics import CreateEpicRequest, UpdateEpicRequest
+from pixl_api.schemas.features import TransitionRequest
 
 router = APIRouter(prefix="/projects/{project_id}/epics", tags=["epics"])
 
 
-@router.get("", response_model=list[EpicResponse])
+@router.get(
+    "",
+)
 async def list_epics(
     db: ProjectDB,
     status: str | None = Query(None, description="Filter by status"),
@@ -30,7 +32,7 @@ async def list_epics(
     )
 
 
-@router.post("", response_model=EpicResponse, status_code=201)
+@router.post("", status_code=201)
 async def create_epic(
     db: ProjectDB,
     body: CreateEpicRequest,
@@ -48,7 +50,9 @@ async def create_epic(
     )
 
 
-@router.get("/{epic_id}", response_model=EpicResponse)
+@router.get(
+    "/{epic_id}",
+)
 async def get_epic(
     db: ProjectDB,
     epic_id: str,
@@ -58,7 +62,12 @@ async def get_epic(
     return get_or_404(epic, "epic", epic_id)
 
 
-@router.put("/{epic_id}", response_model=EpicResponse)
+@router.put(
+    "/{epic_id}",
+)
+@router.patch(
+    "/{epic_id}",
+)
 async def update_epic(
     db: ProjectDB,
     epic_id: str,
@@ -76,7 +85,21 @@ async def update_epic(
     return get_or_404(updated, "epic", epic_id)
 
 
-@router.post("/{epic_id}/transition", response_model=TransitionResponse)
+@router.delete("/{epic_id}")
+async def delete_epic(
+    db: ProjectDB,
+    epic_id: str,
+) -> dict[str, bool]:
+    """Delete an epic."""
+    epic = await asyncio.to_thread(db.backlog.get_epic, epic_id)
+    get_or_404(epic, "epic", epic_id)
+    await asyncio.to_thread(db.backlog.remove_epic, epic_id)
+    return {"deleted": True}
+
+
+@router.post(
+    "/{epic_id}/transition",
+)
 async def transition_epic(
     db: ProjectDB,
     epic_id: str,
@@ -110,7 +133,9 @@ async def transition_epic(
         return {"old_status": old_status, "new_status": body.to_status}
 
 
-@router.get("/{epic_id}/features", response_model=list[FeatureResponse])
+@router.get(
+    "/{epic_id}/features",
+)
 async def list_epic_features(
     db: ProjectDB,
     epic_id: str,
@@ -123,3 +148,21 @@ async def list_epic_features(
         db.backlog.list_features,
         epic_id=epic_id,
     )
+
+
+@router.get("/{epic_id}/history")
+async def epic_history(
+    db: ProjectDB,
+    epic_id: str,
+) -> list[dict[str, Any]]:
+    """Get state transition history for an epic."""
+    return await asyncio.to_thread(db.events.get_entity_history, epic_id)
+
+
+@router.get("/{epic_id}/transitions")
+async def epic_transitions(
+    db: ProjectDB,
+    epic_id: str,
+) -> list[dict[str, Any]]:
+    """Get state transitions for an epic."""
+    return await asyncio.to_thread(db.events.get_history, "epic", epic_id)

@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from fastapi import APIRouter, Request, Response
+from pydantic import BaseModel
 
 from pixl_api.auth import service as auth_service
 from pixl_api.auth.dependencies import CurrentUser
@@ -15,6 +16,23 @@ from pixl_api.foundation.auth.core import (
     set_auth_cookie,
 )
 from pixl_api.schemas.auth import AuthResponse, LoginRequest, SignupRequest, TokenResponse
+
+
+class UpdateProfileRequest(BaseModel):
+    first_name: str | None = None
+    last_name: str | None = None
+    theme: str | None = None
+    avatar: str | None = None
+
+
+class ChangePasswordRequest(BaseModel):
+    current_password: str
+    new_password: str
+
+
+class DeleteAccountRequest(BaseModel):
+    password: str
+
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -58,4 +76,36 @@ def refresh(request: Request, response: Response) -> dict[str, Any]:
 
     result = auth_service.refresh_token(token)
     set_auth_cookie(response, result["token"])
+    return result
+
+
+@router.patch("/me")
+def update_profile(user: CurrentUser, body: UpdateProfileRequest) -> dict[str, Any]:
+    """Update current user profile."""
+    return auth_service.update_profile(
+        user["id"],
+        **body.model_dump(exclude_none=True),
+    )
+
+
+@router.post("/me/onboarding-complete")
+def complete_onboarding(user: CurrentUser) -> dict[str, str]:
+    """Mark onboarding as complete."""
+    auth_service.mark_onboarding_complete(user["id"])
+    return {"message": "Onboarding complete"}
+
+
+@router.post("/me/password")
+def change_password(user: CurrentUser, body: ChangePasswordRequest) -> dict[str, str]:
+    """Change current user's password."""
+    return auth_service.change_password(user["id"], body.current_password, body.new_password)
+
+
+@router.post("/me/delete")
+def delete_account(
+    user: CurrentUser, body: DeleteAccountRequest, response: Response
+) -> dict[str, str]:
+    """Delete current user's account."""
+    result = auth_service.delete_account(user["id"], body.password)
+    clear_auth_cookie(response)
     return result

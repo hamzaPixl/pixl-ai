@@ -5,10 +5,16 @@ from __future__ import annotations
 from typing import Any
 
 from pixl_api.db import (
+    complete_onboarding as db_complete_onboarding,
+)
+from pixl_api.db import (
     create_user,
+    delete_user,
     ensure_workspace,
     get_user_by_email,
     get_user_by_id,
+    update_password,
+    update_user,
 )
 from pixl_api.errors import AuthenticationError, ConflictError, ValidationError
 from pixl_api.foundation.auth.core import (
@@ -95,3 +101,48 @@ def get_current_user_data(token: str) -> dict[str, Any]:
 
     workspace = ensure_workspace(user["id"])
     return {"user": _safe_user(user), "workspace_id": workspace["id"]}
+
+
+def mark_onboarding_complete(user_id: str) -> None:
+    """Mark onboarding as complete for a user."""
+    db_complete_onboarding(user_id)
+
+
+def update_profile(user_id: str, **fields: str) -> dict[str, Any]:
+    """Update user profile fields."""
+    allowed = {"first_name", "last_name", "theme", "avatar"}
+    filtered = {k: v for k, v in fields.items() if k in allowed and v is not None}
+    updated = update_user(user_id, **filtered)
+    if not updated:
+        raise AuthenticationError("User not found")
+    return {"user": updated}
+
+
+def change_password(user_id: str, current_password: str, new_password: str) -> dict[str, str]:
+    """Change user password after verifying the current one."""
+    user = get_user_by_id(user_id)
+    if not user:
+        raise AuthenticationError("User not found")
+
+    if not verify_password(current_password, user["password_hash"]):
+        raise AuthenticationError("Current password is incorrect")
+
+    if len(new_password) < 8:
+        raise ValidationError("New password must be at least 8 characters")
+
+    new_hash = hash_password(new_password)
+    update_password(user_id, new_hash)
+    return {"message": "Password changed successfully"}
+
+
+def delete_account(user_id: str, password: str) -> dict[str, str]:
+    """Delete user account after verifying password."""
+    user = get_user_by_id(user_id)
+    if not user:
+        raise AuthenticationError("User not found")
+
+    if not verify_password(password, user["password_hash"]):
+        raise AuthenticationError("Password is incorrect")
+
+    delete_user(user_id)
+    return {"message": "Account deleted"}

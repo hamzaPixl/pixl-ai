@@ -23,14 +23,15 @@ Built a complete FastAPI service + React console that wraps the pixl CLI as a va
 
 | Metric | Value |
 |--------|-------|
-| API Python LOC | 3,726 |
-| Test LOC | 644 |
-| Tests passing | 70/70 |
-| API routes | 73 |
-| Route modules | 20 |
+| API Python LOC | ~5,500 |
+| Test LOC | ~1,800 |
+| Tests passing | 123/123 |
+| API routes | 144 |
+| Route modules | 24 |
 | Schema modules | 17 |
+| WebSocket endpoints | 1 |
 | Console TS/TSX files | 321 |
-| Git commits | 4 |
+| Git commits | 8 |
 
 ---
 

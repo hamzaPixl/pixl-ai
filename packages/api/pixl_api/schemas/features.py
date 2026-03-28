@@ -28,6 +28,8 @@ class UpdateFeatureRequest(BaseModel):
 class FeatureResponse(BaseModel):
     """Feature detail response."""
 
+    model_config = {"extra": "allow"}
+
     id: str
     title: str
     description: str = ""
@@ -36,6 +38,9 @@ class FeatureResponse(BaseModel):
     type: str = "feature"
     epic_id: str | None = None
     roadmap_id: str | None = None
+    total_cost_usd: float = 0.0
+    total_tokens: int = 0
+    session_count: int = 0
     created_at: str | None = None
     updated_at: str | None = None
 

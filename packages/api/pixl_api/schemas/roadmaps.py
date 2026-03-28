@@ -23,6 +23,8 @@ class UpdateRoadmapRequest(BaseModel):
 class RoadmapResponse(BaseModel):
     """Roadmap detail response."""
 
+    model_config = {"extra": "allow"}
+
     id: str
     title: str
     status: str = "drafting"

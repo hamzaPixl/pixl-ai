@@ -12,7 +12,6 @@ from pixl_api.errors import EntityNotFoundError, InvalidTransitionError
 from pixl_api.helpers import get_or_404
 from pixl_api.schemas.features import (
     CreateFeatureRequest,
-    FeatureResponse,
     TransitionRequest,
     TransitionResponse,
     UpdateFeatureRequest,
@@ -21,7 +20,9 @@ from pixl_api.schemas.features import (
 router = APIRouter(prefix="/projects/{project_id}/features", tags=["features"])
 
 
-@router.get("", response_model=list[FeatureResponse])
+@router.get(
+    "",
+)
 async def list_features(
     db: ProjectDB,
     status: str | None = Query(None, description="Filter by status"),
@@ -42,7 +43,7 @@ async def list_features(
     return results[offset : offset + limit]
 
 
-@router.post("", response_model=FeatureResponse, status_code=201)
+@router.post("", status_code=201)
 async def create_feature(
     db: ProjectDB,
     body: CreateFeatureRequest,
@@ -59,7 +60,9 @@ async def create_feature(
     )
 
 
-@router.get("/{feature_id}", response_model=FeatureResponse)
+@router.get(
+    "/{feature_id}",
+)
 async def get_feature(
     db: ProjectDB,
     feature_id: str,
@@ -69,7 +72,12 @@ async def get_feature(
     return get_or_404(feature, "feature", feature_id)
 
 
-@router.put("/{feature_id}", response_model=FeatureResponse)
+@router.put(
+    "/{feature_id}",
+)
+@router.patch(
+    "/{feature_id}",
+)
 async def update_feature(
     db: ProjectDB,
     feature_id: str,
@@ -87,15 +95,16 @@ async def update_feature(
     return get_or_404(updated, "feature", feature_id)
 
 
-@router.delete("/{feature_id}", status_code=204)
+@router.delete("/{feature_id}")
 async def delete_feature(
     db: ProjectDB,
     feature_id: str,
-) -> None:
+) -> dict[str, bool]:
     """Delete a feature."""
     feature = await asyncio.to_thread(db.backlog.get_feature, feature_id)
     get_or_404(feature, "feature", feature_id)
     await asyncio.to_thread(db.backlog.remove_feature, feature_id)
+    return {"deleted": True}
 
 
 @router.post("/{feature_id}/transition", response_model=TransitionResponse)
@@ -132,3 +141,36 @@ async def transition_feature(
         if updated is None:
             raise EntityNotFoundError("feature", feature_id)
         return {"old_status": old_status, "new_status": body.to_status}
+
+
+@router.get("/{feature_id}/history")
+async def feature_history(
+    db: ProjectDB,
+    feature_id: str,
+) -> list[dict[str, Any]]:
+    """Get state transition history for a feature."""
+    return await asyncio.to_thread(db.events.get_entity_history, feature_id)
+
+
+@router.get("/{feature_id}/transitions")
+async def feature_transitions(
+    db: ProjectDB,
+    feature_id: str,
+) -> list[dict[str, Any]]:
+    """Get state transitions for a feature."""
+    return await asyncio.to_thread(db.events.get_history, "feature", feature_id)
+
+
+@router.post("/{feature_id}/notes")
+async def add_feature_note(
+    db: ProjectDB,
+    feature_id: str,
+    body: dict[str, Any],
+) -> dict[str, Any]:
+    """Add a note to a feature."""
+    feature = await asyncio.to_thread(db.backlog.get_feature, feature_id)
+    get_or_404(feature, "feature", feature_id)
+    note = body.get("note", "")
+    await asyncio.to_thread(db.backlog.add_note, "feature", feature_id, note)
+    updated = await asyncio.to_thread(db.backlog.get_feature, feature_id)
+    return get_or_404(updated, "feature", feature_id)

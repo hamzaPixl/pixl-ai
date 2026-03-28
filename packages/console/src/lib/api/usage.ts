@@ -8,7 +8,7 @@ import { get, post, put, projectPath } from "./core";
 
 export const usage = {
   summary: async (): Promise<ProjectUsageResponse> => {
-    const res = await get<any>(projectPath("/usage/summary"));
+    const res = await get<any>(projectPath("/cost/summary"));
     const mapEntry = (key: string, val: any, nameField: string) => ({
       [nameField]: key,
       ...val,

@@ -31,6 +31,8 @@ class UpdateEpicRequest(BaseModel):
 class EpicResponse(BaseModel):
     """Epic detail response."""
 
+    model_config = {"extra": "allow"}
+
     id: str
     title: str
     status: str = "drafting"

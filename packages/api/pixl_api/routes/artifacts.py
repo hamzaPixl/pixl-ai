@@ -10,15 +10,15 @@ from fastapi import APIRouter, Query
 from pixl_api.deps import ProjectDB
 from pixl_api.helpers import get_or_404
 from pixl_api.schemas.artifacts import (
-    ArtifactContentResponse,
-    ArtifactResponse,
     CreateArtifactRequest,
 )
 
 router = APIRouter(prefix="/projects/{project_id}/artifacts", tags=["artifacts"])
 
 
-@router.get("", response_model=list[ArtifactResponse])
+@router.get(
+    "",
+)
 async def list_artifacts(
     db: ProjectDB,
     session_id: str | None = Query(None, description="Filter by session ID"),
@@ -34,7 +34,9 @@ async def list_artifacts(
     )
 
 
-@router.get("/search", response_model=list[ArtifactResponse])
+@router.get(
+    "/search",
+)
 async def search_artifacts(
     db: ProjectDB,
     q: str = Query(..., min_length=1, description="Search query"),
@@ -45,7 +47,7 @@ async def search_artifacts(
     return await asyncio.to_thread(db.artifacts.search, q, limit=limit, artifact_type=type)
 
 
-@router.post("", response_model=ArtifactContentResponse, status_code=201)
+@router.post("", status_code=201)
 async def create_artifact(
     db: ProjectDB,
     body: CreateArtifactRequest,
@@ -61,7 +63,9 @@ async def create_artifact(
     )
 
 
-@router.get("/{artifact_id}", response_model=ArtifactContentResponse)
+@router.get(
+    "/{artifact_id}",
+)
 async def get_artifact(
     db: ProjectDB,
     artifact_id: str,
@@ -71,7 +75,44 @@ async def get_artifact(
     return get_or_404(artifact, "artifact", artifact_id)
 
 
-@router.get("/{artifact_id}/versions", response_model=list[ArtifactResponse])
+@router.get("/{artifact_id}/content")
+async def get_artifact_content(
+    db: ProjectDB,
+    artifact_id: str,
+) -> dict[str, Any]:
+    """Get artifact content only."""
+    artifact = await asyncio.to_thread(db.artifacts.get, artifact_id)
+    data = get_or_404(artifact, "artifact", artifact_id)
+    return {
+        "id": data.get("id"),
+        "content": data.get("content"),
+        "content_hash": data.get("content_hash"),
+        "storage_mode": data.get("storage_mode"),
+        "chunk_count": data.get("chunk_count"),
+        "size_bytes": data.get("size_bytes"),
+        "uncompressed_size_bytes": data.get("uncompressed_size_bytes"),
+        "compressed_size_bytes": data.get("compressed_size_bytes"),
+    }
+
+
+@router.get("/by-path/versions")
+async def artifact_versions_by_path(
+    db: ProjectDB,
+    path: str = Query(..., description="Artifact logical path"),
+    session_id: str | None = Query(None, description="Filter by session ID"),
+) -> list[dict[str, Any]]:
+    """List versions of an artifact by its logical path."""
+    try:
+        return await asyncio.to_thread(
+            db.artifacts.get_versions_by_path, path, session_id=session_id
+        )
+    except (AttributeError, TypeError):
+        # Fallback: search by path name
+        results = await asyncio.to_thread(db.artifacts.search, path, limit=20)
+        return [r for r in results if r.get("path") == path or r.get("name") == path]
+
+
+@router.get("/{artifact_id}/versions")
 async def list_artifact_versions(
     db: ProjectDB,
     artifact_id: str,

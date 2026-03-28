@@ -28,22 +28,22 @@ export const control = {
     featureId: string,
     mode: "assist" | "autopilot",
   ): Promise<AutonomyResponse> =>
-    put(projectPath(`/control/features/${featureId}/autonomy`), { mode }),
+    put(projectPath(`/features/${featureId}/autonomy`), { mode }),
 
   rerun: (sessionId: string, nodeId: string): Promise<RerunResponse> =>
     post(
-      projectPath(`/control/sessions/${sessionId}/rerun-from/${nodeId}`),
+      projectPath(`/sessions/${sessionId}/rerun-from/${nodeId}`),
       {},
     ),
 
   rerunNode: (sessionId: string, nodeId: string): Promise<RerunResponse> =>
     post(
-      projectPath(`/control/sessions/${sessionId}/nodes/${nodeId}/rerun`),
+      projectPath(`/sessions/${sessionId}/nodes/${nodeId}/rerun`),
       {},
     ),
 
   rollback: (sessionId: string, nodeId: string): Promise<RollbackResponse> =>
-    post(projectPath(`/control/sessions/${sessionId}/rollback`), {
+    post(projectPath(`/sessions/${sessionId}/rollback`), {
       node_id: nodeId,
     }),
 
@@ -51,38 +51,38 @@ export const control = {
     sessionId: string,
     reason?: string,
   ): Promise<{ status: string; session_id: string }> =>
-    post(projectPath(`/control/sessions/${sessionId}/pause`), { reason }),
+    post(projectPath(`/sessions/${sessionId}/pause`), { reason }),
 
   resume: (
     sessionId: string,
   ): Promise<{ status: string; session_id: string }> =>
-    post(projectPath(`/control/sessions/${sessionId}/resume`), {}),
+    post(projectPath(`/sessions/${sessionId}/resume`), {}),
 
   forceResume: (
     sessionId: string,
   ): Promise<{ status: string; session_id: string }> =>
-    post(projectPath(`/control/sessions/${sessionId}/resume?force=true`), {}),
+    post(projectPath(`/sessions/${sessionId}/resume?force=true`), {}),
 
   getEpicWaves: (epicId: string): Promise<EpicWavesResponse> =>
-    get(projectPath(`/control/epics/${epicId}/waves`)),
+    get(projectPath(`/epics/${epicId}/waves`)),
 
   getEpicExecution: (epicId: string): Promise<EpicExecutionProgressResponse> =>
-    get(projectPath(`/control/epics/${epicId}/execution`)),
+    get(projectPath(`/epics/${epicId}/execution`)),
 
   runEpic: (epicId: string, data?: EpicRunRequest): Promise<EpicRunResponse> =>
-    post(projectPath(`/control/epics/${epicId}/run`), data || {}),
+    post(projectPath(`/epics/${epicId}/run`), data || {}),
 
   cancelEpicExecution: (epicId: string): Promise<EpicCancelResponse> =>
-    post(projectPath(`/control/epics/${epicId}/cancel`), {}),
+    post(projectPath(`/epics/${epicId}/cancel`), {}),
 
   getChainSignals: (
     chainId: string,
     params?: { signal_type?: string; limit?: number },
   ): Promise<ChainSignalListResponse> =>
-    get(projectPath(`/control/chains/${chainId}/signals`), params),
+    get(projectPath(`/chains/${chainId}/signals`), params),
 
   getChainQuality: (chainId: string): Promise<QualityLatestResponse> =>
-    get(projectPath(`/control/chains/${chainId}/quality`)),
+    get(projectPath(`/chains/${chainId}/quality`)),
 
   getQualityTrends: (params: {
     scope_type: string;
@@ -90,34 +90,34 @@ export const control = {
     metric: string;
     limit?: number;
   }): Promise<QualityScoresResponse> =>
-    get(projectPath("/control/quality/trends"), params),
+    get(projectPath("/quality/trends"), params),
 
   startChain: (chainId: string): Promise<ChainStartResponse> =>
-    post(projectPath(`/control/chains/${chainId}/start`), {}),
+    post(projectPath(`/chains/${chainId}/start`), {}),
 
   pauseChain: (chainId: string): Promise<ChainControlResponse> =>
-    post(projectPath(`/control/chains/${chainId}/pause`), {}),
+    post(projectPath(`/chains/${chainId}/pause`), {}),
 
   resumeChain: (chainId: string): Promise<ChainControlResponse> =>
-    post(projectPath(`/control/chains/${chainId}/resume`), {}),
+    post(projectPath(`/chains/${chainId}/resume`), {}),
 
   cancelChain: (chainId: string): Promise<ChainControlResponse> =>
-    post(projectPath(`/control/chains/${chainId}/cancel`), {}),
+    post(projectPath(`/chains/${chainId}/cancel`), {}),
 
   resetChain: (chainId: string): Promise<ChainControlResponse> =>
-    post(projectPath(`/control/chains/${chainId}/reset`), {}),
+    post(projectPath(`/chains/${chainId}/reset`), {}),
 };
 
 export const chains = {
   list: async (): Promise<ExecutionChainSummary[]> => {
     const res = await get<
       { chains: ExecutionChainSummary[] } | ExecutionChainSummary[]
-    >(projectPath("/control/chains"));
+    >(projectPath("/chains"));
     return Array.isArray(res) ? res : (res.chains ?? []);
   },
 
   get: (id: string): Promise<ExecutionChainSummary> =>
-    get(projectPath(`/control/chains/${id}`)),
+    get(projectPath(`/chains/${id}`)),
 };
 
 export const gates = {

@@ -19,11 +19,23 @@ NEW="$MAJOR.$MINOR.$PATCH"
 echo "Bumping $CURRENT → $NEW"
 
 # Update version in all pyproject.toml files
-for f in pyproject.toml packages/engine/pyproject.toml packages/cli/pyproject.toml; do
+for f in pyproject.toml packages/engine/pyproject.toml packages/cli/pyproject.toml packages/api/pyproject.toml; do
   if [ -f "$f" ]; then
     sed -i '' "s/^version = \"$CURRENT\"/version = \"$NEW\"/" "$f"
   fi
 done
+
+# Update console package.json version
+CONSOLE_PKG="packages/console/package.json"
+if [ -f "$CONSOLE_PKG" ]; then
+  python3 -c "
+import json
+with open('$CONSOLE_PKG') as f: d = json.load(f)
+d['version'] = '$NEW'
+with open('$CONSOLE_PKG', 'w') as f: json.dump(d, f, indent=2)
+print(f'  Updated $CONSOLE_PKG → $NEW')
+"
+fi
 
 # Update crew plugin.json version
 PLUGIN_JSON="packages/crew/.claude-plugin/plugin.json"

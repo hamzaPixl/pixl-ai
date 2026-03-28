@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from typing import Any
 
@@ -143,3 +144,67 @@ async def list_agents(db: ProjectDB) -> list[dict[str, Any]]:
 async def list_models(db: ProjectDB) -> list[dict[str, Any]]:
     """List available LLM models."""
     return _KNOWN_MODELS
+
+
+# Agent model configuration endpoints
+
+
+@router.get("/classification-model")
+async def get_classification_model(db: ProjectDB) -> dict[str, Any]:
+    """Get the current classification model config."""
+    try:
+        val = await asyncio.to_thread(db.config.get, "classification_model")
+    except Exception:
+        val = None
+    return {"model": val or "sonnet", "provider": "anthropic"}
+
+
+@router.put("/classification-model")
+async def update_classification_model(db: ProjectDB, body: dict[str, Any]) -> dict[str, Any]:
+    """Update the classification model."""
+    model = body.get("model", "sonnet")
+    try:
+        await asyncio.to_thread(db.config.set, "classification_model", model)
+    except Exception:
+        pass
+    return {"model": model, "provider": "anthropic"}
+
+
+@router.get("/session-report-model")
+async def get_session_report_model(db: ProjectDB) -> dict[str, Any]:
+    """Get the current session report model config."""
+    try:
+        val = await asyncio.to_thread(db.config.get, "session_report_model")
+    except Exception:
+        val = None
+    return {"model": val or "sonnet", "provider": "anthropic"}
+
+
+@router.put("/session-report-model")
+async def update_session_report_model(db: ProjectDB, body: dict[str, Any]) -> dict[str, Any]:
+    """Update the session report model."""
+    model = body.get("model", "sonnet")
+    try:
+        await asyncio.to_thread(db.config.set, "session_report_model", model)
+    except Exception:
+        pass
+    return {"model": model, "provider": "anthropic"}
+
+
+@router.put("/{agent_name}/model")
+async def update_agent_model(
+    db: ProjectDB, agent_name: str, body: dict[str, Any]
+) -> dict[str, Any]:
+    """Update the model for a specific agent."""
+    model = body.get("model")
+    try:
+        await asyncio.to_thread(db.config.set, f"agent_model:{agent_name}", model)
+    except Exception:
+        pass
+    # Find the agent and return updated info
+    for agent in _KNOWN_AGENTS:
+        if agent["name"] == agent_name:
+            return {**agent, "model": model}
+    from pixl_api.errors import EntityNotFoundError
+
+    raise EntityNotFoundError("agent", agent_name)

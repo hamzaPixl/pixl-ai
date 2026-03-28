@@ -247,6 +247,12 @@ class BacklogDB(BaseStore):
 
         return [self.get_roadmap(r["id"]) for r in rows]  # type: ignore
 
+    def remove_roadmap(self, roadmap_id: str) -> bool:
+        """Remove a roadmap."""
+        cursor = self._conn.execute("DELETE FROM roadmaps WHERE id = ?", (roadmap_id,))
+        self._conn.commit()
+        return cursor.rowcount > 0
+
     def add_milestone(
         self,
         roadmap_id: str,
@@ -380,6 +386,12 @@ class BacklogDB(BaseStore):
         ).fetchall()
 
         return [self.get_epic(r["id"]) for r in rows]  # type: ignore
+
+    def remove_epic(self, epic_id: str) -> bool:
+        """Remove an epic."""
+        cursor = self._conn.execute("DELETE FROM epics WHERE id = ?", (epic_id,))
+        self._conn.commit()
+        return cursor.rowcount > 0
 
     def _compute_epic_progress(self, epic_id: str) -> dict[str, Any]:
         """Compute progress summary for an epic from its features."""

@@ -45,3 +45,34 @@ async def event_counts(
         since=since,
     )
     return EventCountsResponse(counts=counts)
+
+
+@router.get("/recent", response_model=list[EventResponse])
+async def recent_events(
+    db: ProjectDB,
+    limit: int = Query(50, ge=1, le=200, description="Max results"),
+) -> list[dict[str, Any]]:
+    """Get the most recent events across all sessions."""
+    return await asyncio.to_thread(db.events.get_events, limit=limit)
+
+
+@router.get("/history/{entity_id}")
+async def entity_history(
+    db: ProjectDB,
+    entity_id: str,
+) -> list[dict[str, Any]]:
+    """Get state transition history for an entity."""
+    return await asyncio.to_thread(db.events.get_entity_history, entity_id)
+
+
+@router.get("/transitions")
+async def transitions(
+    db: ProjectDB,
+    session_id: str | None = Query(None, description="Filter by session ID"),
+    since: str | None = Query(None, description="ISO timestamp to filter from"),
+) -> list[dict[str, Any]]:
+    """Get state transitions, optionally filtered by session or time."""
+    if since:
+        return await asyncio.to_thread(db.events.get_transitions_since, since)
+    # Without a since parameter, return recent transitions
+    return await asyncio.to_thread(db.events.get_transitions_since, "2000-01-01T00:00:00")

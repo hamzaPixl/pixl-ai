@@ -10,13 +10,15 @@ from fastapi import APIRouter, Query
 from pixl_api.deps import ProjectDB
 from pixl_api.errors import EntityNotFoundError, InvalidTransitionError
 from pixl_api.helpers import get_or_404
-from pixl_api.schemas.features import TransitionRequest, TransitionResponse
-from pixl_api.schemas.roadmaps import CreateRoadmapRequest, RoadmapResponse, UpdateRoadmapRequest
+from pixl_api.schemas.features import TransitionRequest
+from pixl_api.schemas.roadmaps import CreateRoadmapRequest, UpdateRoadmapRequest
 
 router = APIRouter(prefix="/projects/{project_id}/roadmaps", tags=["roadmaps"])
 
 
-@router.get("", response_model=list[RoadmapResponse])
+@router.get(
+    "",
+)
 async def list_roadmaps(
     db: ProjectDB,
     status: str | None = Query(None, description="Filter by status"),
@@ -28,7 +30,7 @@ async def list_roadmaps(
     )
 
 
-@router.post("", response_model=RoadmapResponse, status_code=201)
+@router.post("", status_code=201)
 async def create_roadmap(
     db: ProjectDB,
     body: CreateRoadmapRequest,
@@ -42,7 +44,9 @@ async def create_roadmap(
     )
 
 
-@router.get("/{roadmap_id}", response_model=RoadmapResponse)
+@router.get(
+    "/{roadmap_id}",
+)
 async def get_roadmap(
     db: ProjectDB,
     roadmap_id: str,
@@ -52,7 +56,12 @@ async def get_roadmap(
     return get_or_404(roadmap, "roadmap", roadmap_id)
 
 
-@router.put("/{roadmap_id}", response_model=RoadmapResponse)
+@router.put(
+    "/{roadmap_id}",
+)
+@router.patch(
+    "/{roadmap_id}",
+)
 async def update_roadmap(
     db: ProjectDB,
     roadmap_id: str,
@@ -70,7 +79,21 @@ async def update_roadmap(
     return get_or_404(updated, "roadmap", roadmap_id)
 
 
-@router.post("/{roadmap_id}/transition", response_model=TransitionResponse)
+@router.delete("/{roadmap_id}")
+async def delete_roadmap(
+    db: ProjectDB,
+    roadmap_id: str,
+) -> dict[str, bool]:
+    """Delete a roadmap."""
+    roadmap = await asyncio.to_thread(db.backlog.get_roadmap, roadmap_id)
+    get_or_404(roadmap, "roadmap", roadmap_id)
+    await asyncio.to_thread(db.backlog.remove_roadmap, roadmap_id)
+    return {"deleted": True}
+
+
+@router.post(
+    "/{roadmap_id}/transition",
+)
 async def transition_roadmap(
     db: ProjectDB,
     roadmap_id: str,
@@ -104,3 +127,30 @@ async def transition_roadmap(
         if updated is None:
             raise EntityNotFoundError("roadmap", roadmap_id)
         return {"old_status": old_status, "new_status": body.to_status}
+
+
+@router.get("/{roadmap_id}/epics")
+async def roadmap_epics(
+    db: ProjectDB,
+    roadmap_id: str,
+) -> list[dict[str, Any]]:
+    """List epics belonging to a roadmap."""
+    return await asyncio.to_thread(db.backlog.list_epics, roadmap_id=roadmap_id)
+
+
+@router.get("/{roadmap_id}/history")
+async def roadmap_history(
+    db: ProjectDB,
+    roadmap_id: str,
+) -> list[dict[str, Any]]:
+    """Get state transition history for a roadmap."""
+    return await asyncio.to_thread(db.events.get_entity_history, roadmap_id)
+
+
+@router.get("/{roadmap_id}/transitions")
+async def roadmap_transitions(
+    db: ProjectDB,
+    roadmap_id: str,
+) -> list[dict[str, Any]]:
+    """Get state transitions for a roadmap."""
+    return await asyncio.to_thread(db.events.get_history, "roadmap", roadmap_id)

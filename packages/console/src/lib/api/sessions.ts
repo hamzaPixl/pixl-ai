@@ -39,10 +39,10 @@ export const sessions = {
     id: string,
     reason?: string,
   ): Promise<{ status: string; session_id: string }> =>
-    post(projectPath(`/control/sessions/${id}/pause`), { reason }),
+    post(projectPath(`/sessions/${id}/pause`), { reason }),
 
   resume: (id: string): Promise<{ status: string; session_id: string }> =>
-    post(projectPath(`/control/sessions/${id}/resume`), {}),
+    post(projectPath(`/sessions/${id}/resume`), {}),
 
   draftReport: (id: string, requestedBy = "ui"): Promise<SessionReportJob> =>
     post(projectPath(`/sessions/${id}/report-draft`), {

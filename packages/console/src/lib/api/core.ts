@@ -57,6 +57,9 @@ async function handleResponse<T>(
   response: Response,
   requestPath: string,
 ): Promise<T> {
+  if (response.status === 204) {
+    return {} as T;
+  }
   if (!response.ok) {
     if (
       response.status === 401 &&

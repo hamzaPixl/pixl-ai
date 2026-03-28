@@ -39,18 +39,23 @@ async def pause_session(db: ProjectDB, session_id: str) -> ControlResponse:
     return ControlResponse(session_id=session_id, status="paused", message="Session paused")
 
 
-@router.post("/{session_id}/resume", response_model=ControlResponse, status_code=501)
+@router.post("/{session_id}/resume", response_model=ControlResponse)
 async def resume_session(db: ProjectDB, session_id: str) -> ControlResponse:
-    """Resume a paused session from its checkpoint.
+    """Resume a paused session by setting status back to running.
 
-    TODO: Wire to GraphExecutor for full DAG resumption. Currently returns 501.
+    Note: This performs a state change only. Full DAG resumption from
+    checkpoint requires GraphExecutor integration (deferred).
     """
-    await _get_session_or_404(db, session_id)
-    return ControlResponse(
-        session_id=session_id,
-        status="not_implemented",
-        message="Resume requires GraphExecutor integration (not yet wired)",
-    )
+    session = await _get_session_or_404(db, session_id)
+    current_status = session.get("status", "")
+
+    if current_status != "paused":
+        raise InvalidTransitionError(
+            "session", session_id, f"Cannot resume from status '{current_status}'"
+        )
+
+    await asyncio.to_thread(db.sessions.update_session, session_id, status="running")
+    return ControlResponse(session_id=session_id, status="running", message="Session resumed")
 
 
 @router.post("/{session_id}/cancel", response_model=ControlResponse)
