@@ -3,10 +3,11 @@
 # Idempotent: installs what's missing, updates what's present.
 #
 # Usage:
-#   make setup                     # full setup (plugins + LSP + security)
+#   make setup                     # full setup (plugins + LSP + security + RTK)
 #   make setup SKIP_PLUGINS=1      # skip plugin sync
 #   make setup SKIP_LSP=1          # skip LSP plugins
 #   make setup SKIP_SECURITY=1     # skip Trail of Bits security plugins
+#   make setup SKIP_RTK=1          # skip RTK token optimizer
 
 set -euo pipefail
 
@@ -83,6 +84,35 @@ sync_security() {
   done
 }
 
+# ─── RTK (Rust Token Killer) ─────────────────────────────────────────────
+
+setup_rtk() {
+  echo -e "  ${D}RTK token optimizer${R}"
+
+  if command -v rtk &>/dev/null; then
+    echo -e "  ${G}✓${R} rtk ($(rtk --version 2>/dev/null | head -1))"
+  else
+    echo -e "  ${Y}!${R} rtk not installed — install for 60-90% Bash token savings:"
+    if [[ "$(uname)" == "Darwin" ]]; then
+      echo -e "      ${D}brew install rtk${R}"
+    else
+      echo -e "      ${D}curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh${R}"
+    fi
+    return 0
+  fi
+
+  # Install hook globally (--hook-only avoids conflicting with crew CLAUDE.md, --auto-patch for non-interactive)
+  if [[ ! -f "$HOME/.claude/hooks/rtk-rewrite.sh" ]]; then
+    if rtk init -g --hook-only --auto-patch > /dev/null 2>&1; then
+      echo -e "  ${G}✓${R} rtk hook installed"
+    else
+      echo -e "  ${Y}✗${R} rtk hook install failed — run manually: rtk init -g"
+    fi
+  else
+    echo -e "  ${G}✓${R} rtk hook (already installed)"
+  fi
+}
+
 # ─── Post-install fixups ──────────────────────────────────────────────────
 
 fix_hook_permissions() {
@@ -102,6 +132,7 @@ echo ""
 [[ "${SKIP_PLUGINS:-}" != "1" ]] && sync_plugins
 [[ "${SKIP_LSP:-}" != "1" ]] && sync_lsp
 [[ "${SKIP_SECURITY:-}" != "1" ]] && sync_security
+[[ "${SKIP_RTK:-}" != "1" ]] && setup_rtk
 fix_hook_permissions
 
 echo ""

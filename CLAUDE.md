@@ -77,6 +77,9 @@ cd packages/crew && make setup
 
 # Start API + Console (web UI)
 make dev-platform               # API at :8420 + Console at :5173
+
+# Optional: install RTK for 60-90% Bash token savings
+brew install rtk && rtk init -g --hook-only
 ```
 
 ## Engine Architecture
@@ -191,7 +194,7 @@ When the CLI is installed, hooks use `.pixl/pixl.db` (SQLite) as primary storage
 | `make test` | Run all tests (engine + cli + api) |
 | `make test-engine` | Engine tests only |
 | `make test-cli` | CLI tests only |
-| `make test-api` | API tests only (123 tests) |
+| `make test-api` | API tests only (157 tests) |
 | `make test-cov` | Run tests with coverage report |
 | `make check` | Lint + type check |
 | `make typecheck` | Type check only (pyright) |
@@ -220,6 +223,13 @@ Installed by `pixl setup`:
 | `property-based-testing` | trailofbits | QuickCheck-style property tests |
 | `static-analysis` | trailofbits | Semgrep + CodeQL orchestration |
 | `semgrep-rule-creator` | trailofbits | Test-driven Semgrep rule authoring |
+| `frontend-design` | claude-plugins-official | Anti-AI-slop aesthetics |
+
+### Optional
+
+| Tool | Source | What it adds |
+|------|--------|-------------|
+| [RTK](https://github.com/rtk-ai/rtk) | brew/cargo | Bash output compression (60-90% token savings) via PreToolUse hook |
 
 ## Studio Stacks
 
@@ -236,10 +246,10 @@ Installed by `pixl setup`:
 | `testing.md` | TDD workflow, 80% coverage, test types |
 | `security.md` | Input validation, auth, secrets, OWASP |
 | `git-workflow.md` | Conventional commits, PR hygiene, branch naming |
-| `patterns.md` | Search-first, read-before-write, grep-before-edit |
+| `patterns.md` | Search-first, read-before-write, grep-before-edit, tool awareness |
 | `workflow.md` | Background tasks, parallel execution, frequent commits |
 | `permissions.md` | Permission wildcards — scoped over blanket |
-| `context-management.md` | Context budgets, compaction, subagent delegation |
+| `context-management.md` | Context budgets, compaction, subagent delegation, token budget |
 | `performance.md` | Measure before optimizing, DB, frontend, API patterns |
 
 ## Operational Rules

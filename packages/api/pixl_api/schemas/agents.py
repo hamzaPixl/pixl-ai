@@ -10,7 +10,10 @@ class AgentResponse(BaseModel):
 
     name: str
     description: str
-    model: str | None = None
+    effective_model: str = "sonnet"
+    default_model: str = "sonnet"
+    has_override: bool = False
+    override_model: str | None = None
     tools: list[str] = []
     max_turns: int = 50
 

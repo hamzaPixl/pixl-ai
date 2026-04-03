@@ -41,30 +41,70 @@ async def classify_prompt(
     user: CurrentUser,
 ) -> dict[str, Any]:
     """Classify a user prompt and return the suggested workflow."""
-    result = await asyncio.to_thread(_classify_sync, body.prompt, project_root)
-    return result
+    # Try LLM-powered classification first, fall back to keyword-based
+    try:
+        return await _classify_llm(body.prompt, project_root, body.model)
+    except Exception:
+        logger.debug("LLM classification failed, falling back to keyword classifier", exc_info=True)
+        return await asyncio.to_thread(_classify_keyword_fallback, body.prompt, project_root)
 
 
-def _classify_sync(prompt: str, project_root: Path) -> dict[str, Any]:
-    """Synchronous classification — runs in a worker thread."""
+async def _classify_llm(prompt: str, project_root: Path, model: str | None) -> dict[str, Any]:
+    """LLM-powered classification via PromptClassifier."""
+    from pixl.routing.classifier import PromptClassifier
+
+    classifier = PromptClassifier(project_root, model=model)
+    router_result = await classifier.classify(prompt)
+
+    return {
+        "kind": router_result.kind.value,
+        "confidence": router_result.confidence,
+        "title": router_result.title,
+        "suggested_workflow": router_result.suggested_workflow,
+        "estimated_features": router_result.estimated_features,
+        "why": router_result.why,
+        "risk_flags": router_result.risk_flags,
+        "suggested_sub_workflows": router_result.suggested_sub_workflows,
+    }
+
+
+def _classify_keyword_fallback(prompt: str, project_root: Path) -> dict[str, Any]:
+    """Keyword-based fallback that returns the full response shape."""
     from pixl.config.workflow_loader import WorkflowLoader
     from pixl.routing.classifier import classify_prompt_fast
 
     workflow_id = classify_prompt_fast(prompt)
 
-    # Load the workflow to get its display name.
+    title = prompt.strip().split("\n")[0][:120]
+
+    kind = "feature"
+    if workflow_id in ("roadmap",):
+        kind = "roadmap"
+    elif workflow_id in ("decompose",):
+        kind = "epic"
+    elif workflow_id in ("debug",):
+        kind = "bug"
+
+    # Verify the workflow exists
     loader = WorkflowLoader(project_root)
     workflows = loader.list_workflows()
-    name = workflow_id
+    suggested = workflow_id
     for w in workflows:
         if w["id"] == workflow_id:
-            name = w.get("name", workflow_id)
             break
+    else:
+        if workflows:
+            suggested = workflows[0]["id"]
 
     return {
-        "workflow_id": workflow_id,
-        "workflow_name": name,
-        "confidence": None,  # keyword classifier has no confidence score
+        "kind": kind,
+        "confidence": None,
+        "title": title,
+        "suggested_workflow": suggested,
+        "estimated_features": 1,
+        "why": ["Classified via keyword matching (no LLM provider configured)"],
+        "risk_flags": [],
+        "suggested_sub_workflows": [],
     }
 
 
@@ -103,6 +143,9 @@ async def run_confirm(
         db,
         event_queue,
         done_event,
+        None,  # existing_feature_id
+        body.kind,
+        body.title,
     )
 
     return create_sse_response(workflow_event_generator(event_queue, done_event))
@@ -148,6 +191,8 @@ async def run_feature(
         event_queue,
         done_event,
         feature_id,
+        "feature",
+        "",
     )
 
     return create_sse_response(workflow_event_generator(event_queue, done_event))
@@ -175,6 +220,8 @@ def _run_workflow_thread(
     event_queue: asyncio.Queue[dict],
     done_event: asyncio.Event,
     existing_feature_id: str | None = None,
+    kind: str = "feature",
+    title: str = "",
 ) -> None:
     """Execute the full workflow synchronously.
 
@@ -190,6 +237,8 @@ def _run_workflow_thread(
             db,
             event_queue,
             existing_feature_id,
+            kind,
+            title,
         )
     except ImportError as exc:
         _put_event(
@@ -220,6 +269,8 @@ def _run_workflow_inner(
     db: Any,
     event_queue: asyncio.Queue[dict],
     existing_feature_id: str | None = None,
+    kind: str = "feature",
+    title: str = "",
 ) -> None:
     """Core workflow logic — separated for clarity."""
     from pixl.config.workflow_loader import WorkflowLoader
@@ -229,22 +280,60 @@ def _run_workflow_inner(
     from pixl.paths import get_sessions_dir
     from pixl.storage import SessionManager, WorkflowSessionStore
 
-    # 1. Create or reuse feature
+    entity_title = title or prompt[:120]
+
+    # 1. Create or reuse entity based on kind
     if existing_feature_id:
         feature_id = existing_feature_id
-    else:
+        entity_kind = "feature"
+        entity_id = feature_id
+    elif kind == "roadmap":
+        roadmap = db.backlog.add_roadmap(
+            title=entity_title,
+            original_prompt=prompt,
+        )
+        entity_id = roadmap["id"]
+        entity_kind = "roadmap"
+        # Workflows bind to features — create one for execution
         feature = db.backlog.add_feature(
-            title=prompt[:120],
+            title=entity_title,
             description=prompt,
             feature_type="feature",
         )
         feature_id = feature["id"]
+    elif kind == "epic":
+        epic = db.backlog.add_epic(
+            title=entity_title,
+            original_prompt=prompt,
+        )
+        entity_id = epic["id"]
+        entity_kind = "epic"
+        feature = db.backlog.add_feature(
+            title=entity_title,
+            description=prompt,
+            feature_type="feature",
+            epic_id=entity_id,
+        )
+        feature_id = feature["id"]
+    else:
+        feature = db.backlog.add_feature(
+            title=entity_title,
+            description=prompt,
+            feature_type="feature",
+        )
+        feature_id = feature["id"]
+        entity_id = feature_id
+        entity_kind = "feature"
 
     _put_event(
         event_queue,
         {
-            "type": "feature_created",
-            "data": {"feature_id": feature_id},
+            "type": "entity_created",
+            "data": {
+                "entity_id": entity_id,
+                "entity_kind": entity_kind,
+                "feature_id": feature_id,
+            },
         },
     )
 
@@ -283,7 +372,12 @@ def _run_workflow_inner(
         event_queue,
         {
             "type": "session_created",
-            "data": {"session_id": session_id, "feature_id": feature_id},
+            "data": {
+                "session_id": session_id,
+                "entity_id": entity_id,
+                "entity_kind": entity_kind,
+                "feature_id": feature_id,
+            },
         },
     )
 
@@ -384,6 +478,8 @@ def _run_workflow_inner(
             "type": "workflow_complete",
             "data": {
                 "session_id": session_id,
+                "entity_id": entity_id,
+                "entity_kind": entity_kind,
                 "feature_id": feature_id,
                 "workflow_id": config.id,
                 "status": final_status,

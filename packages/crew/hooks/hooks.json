@@ -109,6 +109,11 @@
             "type": "command",
             "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/run-with-flags.sh typecheck advisory ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/post-edit-typecheck.sh",
             "timeout": 15
+          },
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/run-with-flags.sh pyright advisory ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/post-edit-pyright.sh",
+            "timeout": 15
           }
         ]
       },
@@ -128,6 +133,16 @@
           {
             "type": "command",
             "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/run-with-flags.sh observe-patterns advisory ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/observe-patterns.sh",
+            "timeout": 3
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit|Bash|Agent|Skill",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/run-with-flags.sh suggest-compact advisory ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/suggest-compact.sh",
             "timeout": 3
           }
         ]

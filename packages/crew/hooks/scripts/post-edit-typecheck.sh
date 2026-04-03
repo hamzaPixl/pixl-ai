@@ -63,6 +63,11 @@ if [[ -n "$ERRORS" && "$ERRORS" != *"error TS"*"Cannot find"* ]]; then
   if [[ "$REAL_ERRORS" -gt 0 ]]; then
     echo "TypeScript errors in $(basename "$FILE_PATH"):" >&2
     echo "$ERRORS" | grep "error TS" | head -5 >&2
+
+    # Blocking mode: exit non-zero if PIXL_STRICT_TYPECHECK is set
+    if [[ "${PIXL_STRICT_TYPECHECK:-}" == "1" ]]; then
+      exit 1
+    fi
   fi
 fi
 

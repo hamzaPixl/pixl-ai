@@ -56,7 +56,7 @@ class ParameterConfig(BaseModel):
     """
 
     id: str = Field(description="Parameter identifier (used in {{id}} substitution)")
-    type: Literal["string", "text", "confirm", "choice", "checklist"] = Field(
+    type: Literal["string", "text", "number", "confirm", "choice", "checklist"] = Field(
         default="string",
         description="Parameter type determines the prompt style",
     )
@@ -65,7 +65,7 @@ class ParameterConfig(BaseModel):
         default=None,
         description="Help text shown below the prompt",
     )
-    default: str | bool | None = Field(
+    default: str | int | bool | None = Field(
         default=None,
         description="Default value (can use {{variable}} substitution)",
     )
@@ -452,7 +452,9 @@ class LoopConfig(BaseModel):
         default="failure",
         description="Which edge trigger activates this loop",
     )
-    max_iterations: int = Field(default=3, description="Maximum loop iterations")
+    max_iterations: int | str = Field(
+        default=3, description="Maximum loop iterations (int or {{variable}} template)"
+    )
     condition: str | None = Field(
         default=None,
         description="Optional PixlExpr condition for loop entry",
@@ -460,8 +462,11 @@ class LoopConfig(BaseModel):
 
     @field_validator("max_iterations")
     @classmethod
-    def validate_max_iterations(cls, v: int) -> int:
-        """Validate max iterations is positive."""
+    def validate_max_iterations(cls, v: int | str) -> int | str:
+        """Validate max iterations is positive, or accept template strings."""
+        if isinstance(v, str):
+            # Template variable like "{{max_iterations}}" — resolve at runtime
+            return v
         if v < 1:
             raise ValueError("max_iterations must be at least 1")
         if v > 100:

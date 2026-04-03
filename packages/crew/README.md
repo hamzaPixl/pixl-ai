@@ -41,6 +41,7 @@ make setup
 make setup SKIP_PLUGINS=1    # skip companion plugin sync
 make setup SKIP_LSP=1        # skip LSP language servers
 make setup SKIP_SECURITY=1   # skip Trail of Bits security plugins
+make setup SKIP_RTK=1        # skip RTK token optimizer
 make scaffold STACK=nextjs   # interactive project scaffold
 make release                 # bump patch, tag, push
 make release BUMP=minor      # bump minor version
@@ -148,6 +149,14 @@ Installed by `make setup` alongside pixl-crew.
 | `commit-commands` | `/amend`, `/fixup`, `/squash` commit manipulation |
 | `playground` | Interactive HTML playgrounds for design exploration |
 
+### Token Optimization
+
+| Plugin | What it does |
+| :--- | :--- |
+| [RTK](https://github.com/rtk-ai/rtk) | Compresses Bash tool outputs by 60-90% via PreToolUse hook rewrite |
+
+Installed by `make setup`. Reduces context pressure and cost. Built-in tools (Read, Grep, Glob) are unaffected.
+
 ### Optional: Prompt Injection Defense
 
 [Lasso claude-hooks](https://github.com/lasso-security/claude-hooks) — PostToolUse scanner for prompt injection in tool outputs.
@@ -193,7 +202,7 @@ Production-grade TypeScript microservice infrastructure with DDD, multi-tenancy,
 | :--- | :--- |
 | **minimal** | Critical only: destructive command blocking |
 | **standard** | Critical + quality: formatting, TDD, skill enforcement |
-| **strict** | All: TypeScript type checking, console.log audit |
+| **strict** | All: TypeScript + Python type checking, console.log audit |
 
 ```bash
 PIXL_HOOK_PROFILE=minimal claude       # fast exploratory session

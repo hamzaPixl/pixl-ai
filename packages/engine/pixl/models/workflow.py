@@ -227,7 +227,9 @@ class LoopConstraint(BaseModel):
     id: str = Field(description="Loop constraint identifier")
     from_node: str = Field(description="Source node ID (where loop exits)")
     to_node: str = Field(description="Target node ID (where loop re-enters)")
-    max_iterations: int = Field(default=3, description="Maximum loop iterations")
+    max_iterations: int | str = Field(
+        default=3, description="Maximum loop iterations (int or {{variable}} template)"
+    )
     edge_trigger: EdgeTrigger = Field(
         default=EdgeTrigger.FAILURE,
         description="Which edge trigger activates this loop",

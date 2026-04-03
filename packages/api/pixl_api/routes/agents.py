@@ -184,7 +184,29 @@ _KNOWN_MODELS: list[dict[str, Any]] = [
 @router.get("", response_model=list[AgentResponse])
 async def list_agents(db: ProjectDB) -> list[dict[str, Any]]:
     """List configured agents for a project."""
-    return _get_agents()
+    agents = _get_agents()
+    result: list[dict[str, Any]] = []
+    for agent in agents:
+        default_model = agent.get("model") or "sonnet"
+        # Check for per-agent model override in project config
+        override_model: str | None = None
+        try:
+            val = db.config.get(f"agent_model:{agent['name']}")  # type: ignore[attr-defined]
+            if val:
+                override_model = val
+        except Exception:
+            pass
+        effective_model = override_model or default_model
+        result.append(
+            {
+                **agent,
+                "effective_model": effective_model,
+                "default_model": default_model,
+                "has_override": override_model is not None,
+                "override_model": override_model,
+            }
+        )
+    return result
 
 
 @router.get("/models", response_model=list[ModelResponse])

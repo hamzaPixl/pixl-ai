@@ -181,6 +181,14 @@ Installed by `make setup` alongside pixl-crew:
 | `semgrep-rule-creator` | trailofbits | Test-driven Semgrep rule authoring |
 | `frontend-design` | claude-plugins-official | Anti-AI-slop aesthetics: bold typography, distinctive colors, motion |
 
+### Optional Token Optimization
+
+[RTK (Rust Token Killer)](https://github.com/rtk-ai/rtk) — compresses Bash tool outputs by 60-90% via PreToolUse hook rewrite. Reduces context pressure and cost. Built-in tools (Read, Grep, Glob) are unaffected — only Bash commands are compressed.
+
+```bash
+brew install rtk && rtk init -g --hook-only   # or: make setup (includes RTK)
+```
+
 ### Optional Security Hardening
 
 [Lasso claude-hooks](https://github.com/lasso-security/claude-hooks) — prompt injection defense for tool outputs:

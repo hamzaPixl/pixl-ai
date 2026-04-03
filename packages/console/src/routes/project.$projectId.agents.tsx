@@ -359,11 +359,14 @@ function AgentInlineDetail({
               </SelectValue>
             </SelectTrigger>
             <SelectContent>
-              {allowedModels.map((m) => (
-                <SelectItem key={m} value={m}>
-                  {m}
-                </SelectItem>
-              ))}
+              {allowedModels.map((m: string | { id: string }) => {
+                const id = typeof m === "string" ? m : m.id;
+                return (
+                  <SelectItem key={id} value={id}>
+                    {id}
+                  </SelectItem>
+                );
+              })}
             </SelectContent>
           </Select>
           {isPending && (

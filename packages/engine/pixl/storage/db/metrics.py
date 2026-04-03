@@ -42,6 +42,52 @@ class MetricsStore(BaseStore):
         self._conn.commit()
         return str(cursor.lastrowid)
 
+    def get_all_agent_performance(
+        self, timeframe_hours: int | None = None
+    ) -> dict[str, dict[str, Any]]:
+        """Get performance snapshot for all agents."""
+        where_clause = ""
+        if timeframe_hours:
+            where_clause = (
+                f"WHERE datetime(started_at) > datetime('now', '-{timeframe_hours} hours')"
+            )
+
+        cursor = self._conn.execute(
+            f"""
+            SELECT
+                agent_name,
+                COUNT(*) as total_executions,
+                AVG(CASE WHEN success = 1 THEN 1.0 ELSE 0.0 END) as success_rate,
+                AVG(total_cost_usd) as avg_cost,
+                SUM(total_cost_usd) as total_cost,
+                AVG(total_tokens) as avg_tokens,
+                AVG(
+                    CASE
+                        WHEN completed_at IS NOT NULL
+                        THEN (julianday(completed_at) - julianday(started_at)) * 86400
+                        ELSE NULL
+                    END
+                ) as avg_duration_seconds
+            FROM agent_metrics
+            {where_clause}
+            GROUP BY agent_name
+            ORDER BY agent_name
+            """,
+        )
+
+        agents: dict[str, dict[str, Any]] = {}
+        for row in cursor.fetchall():
+            agents[row[0]] = {
+                "agent_name": row[0],
+                "total_executions": row[1] or 0,
+                "success_rate": row[2] or 0.0,
+                "avg_cost_usd": row[3] or 0.0,
+                "total_cost_usd": row[4] or 0.0,
+                "avg_tokens": row[5] or 0,
+                "avg_duration_seconds": row[6] or 0.0,
+            }
+        return agents
+
     def get_agent_performance(
         self, agent_name: str, timeframe_hours: int | None = None
     ) -> dict[str, Any]:

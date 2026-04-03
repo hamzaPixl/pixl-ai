@@ -12,13 +12,24 @@ from pixl_api.deps import ProjectDB
 router = APIRouter(prefix="/projects/{project_id}/metrics", tags=["metrics"])
 
 
+@router.get("/agents")
+async def all_agent_metrics(
+    db: ProjectDB,
+    timeframe_hours: int | None = None,
+) -> dict[str, Any]:
+    """Get performance metrics for all agents."""
+    agents = await asyncio.to_thread(db.metrics.get_all_agent_performance, timeframe_hours)
+    return {"agents": agents, "timeframe_hours": timeframe_hours}
+
+
 @router.get("/agents/{agent_name}")
 async def agent_performance(
     db: ProjectDB,
     agent_name: str,
+    timeframe_hours: int | None = None,
 ) -> dict[str, Any]:
     """Get performance metrics for a specific agent."""
-    return await asyncio.to_thread(db.metrics.get_agent_performance, agent_name)
+    return await asyncio.to_thread(db.metrics.get_agent_performance, agent_name, timeframe_hours)
 
 
 @router.get("/sessions/{session_id}")

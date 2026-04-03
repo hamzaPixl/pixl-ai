@@ -102,6 +102,9 @@ fi
 
 echo "- **CLAUDE.md**: $HAS_CLAUDE_MD"
 
+# Ensure memory directories exist (needed by cost-tracker, suggest-compact, decisions, stop-summary)
+mkdir -p "$PROJECT_DIR/.claude/memory/sessions" 2>/dev/null || true
+
 # Reset session-scoped counter (prevent leak across sessions)
 rm -f "$PROJECT_DIR/.claude/memory/.session-tool-count" 2>/dev/null || true
 
@@ -186,6 +189,17 @@ if [[ -d "$SPEC_DIR" && -f "$SPEC_DIR/requirements.json" ]]; then
     echo "- Run \`/spec-review rescan\` to update."
   fi
 fi
+
+# ─── Part 4.7: Decision Logging Instruction ────────────────────────────────
+
+if $_PIXL_AVAILABLE; then
+  _DECISION_CMD='`pixl artifact put --name decision-<topic> --type decision --content '"'"'{"date":"YYYY-MM-DD","category":"architecture|convention|dependency","what":"...","why":"..."}'"'"'`'
+else
+  _DECISION_CMD="append a JSON line to \`.claude/memory/decisions.jsonl\` with format: \`{\"date\":\"YYYY-MM-DD\",\"category\":\"architecture|convention|dependency\",\"what\":\"...\",\"why\":\"...\"}\`"
+fi
+echo ""
+echo "### Decision Logging"
+echo "When making architectural choices, convention decisions, or dependency selections: $_DECISION_CMD"
 
 # ─── Part 5: Synq Knowledge Index ───────────────────────────────────────────
 

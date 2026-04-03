@@ -23,3 +23,10 @@
 - Skill descriptions (~100 words each × 75 skills) consume ~7.5K tokens at session start
 - Shorter descriptions free routing context for actual work
 - Move detailed trigger lists into SKILL.md body, keep description to 1-2 sentences
+
+## Token Budget
+
+- Before large refactors (>5 files), clean dead imports/exports/props first — commit separately to reduce token waste
+- Keep refactor phases under 5 files to minimize compaction risk
+- When RTK is installed, Bash outputs are compressed 60-90% automatically — prefer Bash commands over raw tool output for large results
+- For long sessions: use `/strategic-compact` proactively rather than waiting for auto-compaction

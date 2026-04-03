@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Stop hook: append per-session cost estimate to .claude/memory/costs.jsonl
-# Reads CLAUDE_SESSION_TOKENS_* env vars if available, otherwise estimates from session duration.
+# Parses the most recently modified session JSONL to extract actual token usage.
 
 source "$(dirname "$0")/_common.sh"
 
@@ -14,39 +14,55 @@ fi
 
 COSTS_FILE="$MEMORY_DIR/costs.jsonl"
 TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-SESSION_ID="${CLAUDE_SESSION_ID:-$(date +%s)}"
 
-# Try to get token counts from environment (set by Claude Code if available)
-INPUT_TOKENS="${CLAUDE_SESSION_INPUT_TOKENS:-0}"
-OUTPUT_TOKENS="${CLAUDE_SESSION_OUTPUT_TOKENS:-0}"
-CACHE_READ_TOKENS="${CLAUDE_SESSION_CACHE_READ_TOKENS:-0}"
-CACHE_WRITE_TOKENS="${CLAUDE_SESSION_CACHE_WRITE_TOKENS:-0}"
+# Resolve the Claude projects directory for this project
+# Claude Code stores sessions at ~/.claude/projects/<encoded-path>/*.jsonl
+PROJECTS_BASE="$HOME/.claude/projects"
+ENCODED_PATH=$(echo "$PROJECT_DIR" | sed 's|/|-|g')
+SESSION_DIR="$PROJECTS_BASE/$ENCODED_PATH"
 
-# Cost rates (per 1M tokens, USD) — Claude Opus 4
-INPUT_RATE="15.00"
-OUTPUT_RATE="75.00"
-CACHE_READ_RATE="1.50"
-CACHE_WRITE_RATE="18.75"
+if [[ ! -d "$SESSION_DIR" ]]; then
+  exit 0
+fi
 
-# Calculate cost estimate (using awk for floating point)
-COST=$(awk "BEGIN {
-  input_cost = $INPUT_TOKENS / 1000000 * $INPUT_RATE
-  output_cost = $OUTPUT_TOKENS / 1000000 * $OUTPUT_RATE
-  cache_read_cost = $CACHE_READ_TOKENS / 1000000 * $CACHE_READ_RATE
-  cache_write_cost = $CACHE_WRITE_TOKENS / 1000000 * $CACHE_WRITE_RATE
-  total = input_cost + output_cost + cache_read_cost + cache_write_cost
-  printf \"%.4f\", total
-}")
+# Find the most recently modified JSONL (= current session)
+LATEST_JSONL=$(ls -t "$SESSION_DIR"/*.jsonl 2>/dev/null | head -1)
+if [[ -z "$LATEST_JSONL" ]]; then
+  exit 0
+fi
 
-# Only log if we have actual token data
-if [[ "$INPUT_TOKENS" != "0" || "$OUTPUT_TOKENS" != "0" ]]; then
-  COST_ENTRY="{\"timestamp\":\"$TIMESTAMP\",\"session\":\"$SESSION_ID\",\"input_tokens\":$INPUT_TOKENS,\"output_tokens\":$OUTPUT_TOKENS,\"cache_read_tokens\":$CACHE_READ_TOKENS,\"cache_write_tokens\":$CACHE_WRITE_TOKENS,\"estimated_cost_usd\":$COST}"
+SESSION_ID=$(basename "$LATEST_JSONL" .jsonl)
 
-  if $PIXL_AVAILABLE; then
-    pixl_put "cost-$SESSION_ID" "cost_log" "$COST_ENTRY"
-  else
-    echo "$COST_ENTRY" >> "$COSTS_FILE"
-  fi
+# Parse token usage from assistant messages (fast python one-liner)
+# No `timeout` on macOS — the parent hook has a 30s timeout guard
+USAGE=$(python3 -c "
+import json, sys
+ti = to = cr = cc = 0
+with open('$LATEST_JSONL') as f:
+    for line in f:
+        try:
+            d = json.loads(line)
+            if d.get('type') == 'assistant':
+                u = d.get('message', {}).get('usage', {})
+                ti += u.get('input_tokens', 0)
+                to += u.get('output_tokens', 0)
+                cr += u.get('cache_read_input_tokens', 0)
+                cc += u.get('cache_creation_input_tokens', 0)
+        except: pass
+if to > 0:
+    cost = ti/1e6*15 + to/1e6*75 + cr/1e6*1.5 + cc/1e6*18.75
+    print(json.dumps({'timestamp':'$TIMESTAMP','session':'$SESSION_ID','input_tokens':ti,'output_tokens':to,'cache_read_tokens':cr,'cache_write_tokens':cc,'estimated_cost_usd':round(cost,4)}))
+" 2>/dev/null)
+
+if [[ -z "$USAGE" ]]; then
+  exit 0
+fi
+
+# Write to pixl DB (primary) or file (fallback) — not both
+if $PIXL_AVAILABLE; then
+  pixl_put "cost-$SESSION_ID" "cost_log" "$USAGE"
+else
+  echo "$USAGE" >> "$COSTS_FILE"
 fi
 
 exit 0

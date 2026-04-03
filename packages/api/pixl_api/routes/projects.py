@@ -98,12 +98,10 @@ async def init_project(
         raise EntityNotFoundError("project", project_id)
 
     project_root = info.get("project_root")
-    if not project_root:
-        raise EntityNotFoundError("project", project_id)
+    if project_root:
+        await asyncio.to_thread(ensure_project_config, Path(project_root))
 
-    await asyncio.to_thread(ensure_project_config, Path(project_root))
-
-    # Re-read after init
+    # Re-read after init (standalone projects are already set up by create)
     updated = await asyncio.to_thread(_get_project, project_id)
     if updated is None:
         raise EntityNotFoundError("project", project_id)

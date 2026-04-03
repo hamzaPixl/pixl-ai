@@ -30,24 +30,49 @@ class TestClassifyRequest:
             ClassifyRequest(prompt="")
 
     def test_max_length_prompt(self) -> None:
-        long = "a" * 2000
+        long = "a" * 50000
         req = ClassifyRequest(prompt=long)
-        assert len(req.prompt) == 2000
+        assert len(req.prompt) == 50000
 
     def test_too_long_prompt_rejected(self) -> None:
         with pytest.raises(Exception):
-            ClassifyRequest(prompt="a" * 2001)
+            ClassifyRequest(prompt="a" * 50001)
+
+    def test_optional_model(self) -> None:
+        req = ClassifyRequest(prompt="Build a thing", model="claude-sonnet-4-5-20250514")
+        assert req.model == "claude-sonnet-4-5-20250514"
+
+    def test_model_defaults_none(self) -> None:
+        req = ClassifyRequest(prompt="Build a thing")
+        assert req.model is None
 
 
 class TestClassifyResponse:
     def test_minimal(self) -> None:
-        resp = ClassifyResponse(workflow_id="simple", workflow_name="Simple")
-        assert resp.workflow_id == "simple"
+        resp = ClassifyResponse(
+            kind="feature",
+            title="Build a landing page",
+            suggested_workflow="simple",
+        )
+        assert resp.kind == "feature"
         assert resp.confidence is None
+        assert resp.estimated_features == 1
 
-    def test_with_confidence(self) -> None:
-        resp = ClassifyResponse(workflow_id="tdd", workflow_name="TDD", confidence=0.95)
+    def test_full_response(self) -> None:
+        resp = ClassifyResponse(
+            kind="epic",
+            confidence=0.95,
+            title="Multi-tenant auth",
+            suggested_workflow="decompose",
+            estimated_features=5,
+            why=["Complex scope"],
+            risk_flags=["auth complexity"],
+            suggested_sub_workflows=["tdd"],
+        )
         assert resp.confidence == 0.95
+        assert resp.estimated_features == 5
+        assert len(resp.why) == 1
+        assert len(resp.risk_flags) == 1
 
 
 class TestRunConfirmRequest:
@@ -55,11 +80,18 @@ class TestRunConfirmRequest:
         req = RunConfirmRequest(prompt="Add auth")
         assert req.workflow_id is None
         assert req.skip_approval is True
+        assert req.kind == "feature"
+        assert req.title == ""
 
     def test_explicit_workflow(self) -> None:
         req = RunConfirmRequest(prompt="Fix bug", workflow_id="debug", skip_approval=False)
         assert req.workflow_id == "debug"
         assert req.skip_approval is False
+
+    def test_kind_and_title(self) -> None:
+        req = RunConfirmRequest(prompt="Build auth system", kind="epic", title="Auth Epic")
+        assert req.kind == "epic"
+        assert req.title == "Auth Epic"
 
 
 class TestRunFeatureRequest:

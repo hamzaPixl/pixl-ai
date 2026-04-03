@@ -30,7 +30,9 @@ export function SandboxStatus() {
   const { data: sandboxList = [] } = useQuery<SandboxInfo[]>({
     queryKey: ["sandboxes"],
     queryFn: () => sandboxes.list(),
-    refetchInterval: 10_000,
+    refetchInterval: (query) =>
+      query.state.error ? false : 10_000,
+    retry: false,
   });
 
   const destroyMutation = useMutation({
