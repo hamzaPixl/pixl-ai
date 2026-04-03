@@ -157,6 +157,10 @@ Installed by `make setup` alongside pixl-crew.
 
 Installed by `make setup`. Reduces context pressure and cost. Built-in tools (Read, Grep, Glob) are unaffected.
 
+### Optional: Session Observability
+
+[claude-devtools](https://github.com/matt1398/claude-devtools) — zero-config desktop app showing context fill, compaction events, token attribution, and subagent trees from Claude Code session logs.
+
 ### Optional: Prompt Injection Defense
 
 [Lasso claude-hooks](https://github.com/lasso-security/claude-hooks) — PostToolUse scanner for prompt injection in tool outputs.

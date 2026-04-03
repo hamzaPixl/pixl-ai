@@ -50,6 +50,18 @@
         ]
       }
     ],
+    "UserPromptSubmit": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/run-with-flags.sh prompt-context-primer advisory ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/prompt-context-primer.sh",
+            "timeout": 3
+          }
+        ]
+      }
+    ],
     "PreToolUse": [
       {
         "matcher": "Bash",
@@ -74,6 +86,11 @@
       {
         "matcher": "Write|Edit",
         "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/run-with-flags.sh detect-secrets critical ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/detect-secrets.sh",
+            "timeout": 5
+          },
           {
             "type": "command",
             "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/run-with-flags.sh tdd-check quality ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/tdd-check.sh",
@@ -143,6 +160,11 @@
           {
             "type": "command",
             "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/run-with-flags.sh suggest-compact advisory ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/suggest-compact.sh",
+            "timeout": 3
+          },
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/run-with-flags.sh goal-check advisory ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/suggest-goal-check.sh",
             "timeout": 3
           }
         ]

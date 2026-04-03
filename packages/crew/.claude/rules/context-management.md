@@ -30,3 +30,10 @@
 - Keep refactor phases under 5 files to minimize compaction risk
 - When RTK is installed, Bash outputs are compressed 60-90% automatically — prefer Bash commands over raw tool output for large results
 - For long sessions: use `/strategic-compact` proactively rather than waiting for auto-compaction
+
+## CLAUDE.md Sizing
+
+- Project CLAUDE.md should be concise — aim for under 60 lines of actionable instructions
+- Move detailed methodology, patterns, and trigger lists into skills or references
+- Hand-craft CLAUDE.md content — LLM-generated instructions can hurt agent performance (ETH Zurich study)
+- Use `/claude-md` skill for structured generation, but always review and trim the output

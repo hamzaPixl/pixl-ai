@@ -189,6 +189,10 @@ Installed by `make setup` alongside pixl-crew:
 brew install rtk && rtk init -g --hook-only   # or: make setup (includes RTK)
 ```
 
+### Optional Session Observability
+
+[claude-devtools](https://github.com/matt1398/claude-devtools) — zero-config desktop app for Claude Code session analysis. Shows context fill/compaction visualization, token attribution per turn, subagent execution trees, and tool call patterns. Complements pixl console metrics (engine = workflow-level, devtools = session-level).
+
 ### Optional Security Hardening
 
 [Lasso claude-hooks](https://github.com/lasso-security/claude-hooks) — prompt injection defense for tool outputs:

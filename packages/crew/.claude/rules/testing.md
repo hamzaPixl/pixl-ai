@@ -45,6 +45,16 @@ Follow Arrange-Act-Assert:
 // Assert — verify the result
 ```
 
+## Test Output Management
+
+Minimize test output in context — show failures only:
+
+- **pytest**: use `--quiet --tb=short` by default. Use `-v` only when debugging a specific failure
+- **vitest/jest**: use `--reporter=default` (not verbose). Use `--reporter=verbose` only for debugging
+- **make test**: preferred over raw test commands — RTK compresses output automatically
+- After a test run: only report failing test names + error messages. Don't paste passing results
+- Run full suites in background (`run_in_background: true`) or before commit — not mid-edit
+
 ## Anti-Patterns
 
 - Don't test implementation details (private methods, internal state)

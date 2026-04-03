@@ -31,3 +31,13 @@ Commit early and often — don't accumulate large changesets:
 - Commit before running risky operations (large refactors, dependency updates)
 - Use conventional commit messages: `feat:`, `fix:`, `refactor:`, `chore:`, `docs:`
 - Each commit should be atomic — one logical change, passes tests on its own
+
+## Back-Pressure: Silent Success, Verbose Failure
+
+Verification output should only surface errors — never flood context with success:
+
+- **Tests**: use `--quiet` / `--tb=short` by default. Only show failing test names + error messages
+- **Linters/typecheckers**: hooks already emit to stderr on failure and stay silent on success
+- **Build output**: suppress success banners. Only show errors and warnings
+- **Full test suites**: run in background or via `make test` (RTK-compressed). Subset tests during development; full suite before commit
+- Never pipe 200 lines of "PASSED" into context — it costs tokens and causes drift
