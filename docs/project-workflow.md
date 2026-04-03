@@ -33,7 +33,7 @@ my-app/
 │   ├── sessions/               # per-session working dirs
 │   └── workflows/              # project-specific workflow overrides
 ├── .claude/
-│   ├── rules/                  # crew-workflow.md, crew-delegation.md, crew-enforcement.md
+│   ├── rules/                  # crew-workflow.md, crew-delegation.md, crew-enforcement.md, crew-context.md
 │   ├── settings.local.json     # scoped permissions (22 Bash patterns)
 │   └── memory/
 │       ├── sessions/           # session summaries (auto-bridged from engine)
@@ -269,7 +269,7 @@ pixl --project /path <command>       # target a specific project
 │   ├── sessions/<id>/             # per-session artifacts + summaries
 │   └── workflows/                 # project workflow overrides
 └── .claude/
-    ├── rules/                     # crew rules (auto-updated by pixl project init)
+    ├── rules/                     # crew rules: workflow, delegation, enforcement, context (auto-updated by pixl project init)
     ├── settings.local.json        # scoped permissions
     └── memory/                    # cross-session memory (bridged from engine)
         ├── sessions/              # session summaries

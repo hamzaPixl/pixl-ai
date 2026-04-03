@@ -1,5 +1,41 @@
 # Changelog
 
+## v10.3.1 — Deduplication & Hook Hardening
+
+- **docs**: Deduplicate root CLAUDE.md — agents/skills/plugins/studio/rules tables moved to crew reference. Added Environment section and Gotchas section
+- **feat**: New package CLAUDE.md files for engine, api, and console — scoped documentation for each component
+- **security**: Wire detect-secrets.sh into hooks.json as PreToolUse(Write|Edit) at critical level
+- **chore**: Clean debug entries from .claude/settings.local.json
+- **feat**: Enhanced crew-init template with pixl CLI section, cross-session memory, and hook profiles
+- **feat**: New crew-context.md rule template for context management best practices
+- **feat**: `pixl project init` now installs crew-context.md alongside existing rule files
+- **chore**: Update .gitignore with Claude Code artifact entries
+
+## v10.3.0 — RTK Token Optimization & Tool Awareness
+
+- **feat(crew)**: RTK integration — 60-90% Bash output compression via PreToolUse hook
+- **feat(crew)**: Python typecheck PostToolUse hook (pyright/ruff) alongside TypeScript typecheck
+- **feat(crew)**: Tool-awareness rules: large file warnings, search truncation, LSP over Grep for refactoring
+- **feat(engine)**: Metrics storage module for agent/workflow performance tracking
+- **docs**: Setup script with optional RTK, LSP, and security plugin installation
+
+## v10.2.0 — API + Console Full Integration
+
+> Major release: complete web UI for pixl.
+
+- **feat(api)**: 24 route modules, 144 endpoints — full REST API over pixl-engine
+- **feat(api)**: JWT auth (HS256, 24h expiry) with bcrypt, WebSocket event stream, LRU connection pool
+- **feat(api)**: CRUD factory generating 9 endpoints per entity, workspace system, API key management
+- **feat(console)**: React SPA with TanStack Router (40+ pages), real-time WebSocket SSE, shadcn/ui
+- **feat(console)**: Zustand stores (auth, project, UI), Recharts visualization, command palette
+- **test**: 123 API tests covering foundation, DB, routes, auth, workspaces
+
+## v10.1.0
+
+- **docs**: Update project workflow guide, add PRD-to-code scenario
+- **fix**: Handle str crew_path in `_build_crew_system_prompt`
+- **feat**: Heartbeat, memory bridge, crew skill prompt, and doc sync
+
 ## v10.0.1 — SDK Output Migration
 
 - **refactor**: Migrate from `pixl_output` envelope to SDK native structured output
