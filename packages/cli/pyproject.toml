@@ -1,6 +1,6 @@
 [project]
 name = "pixl-cli"
-version = "10.3.0"
+version = "10.3.1"
 description = "Pixl CLI — local bridge to the pixl-engine"
 requires-python = ">=3.12"
 dependencies = ["pixl-engine", "click>=8.1"]

@@ -1,6 +1,6 @@
 [project]
 name = "pixl-api"
-version = "10.3.0"
+version = "10.3.1"
 description = "pixl HTTP API — thin FastAPI layer over pixl-cli"
 requires-python = ">=3.12"
 license = "MIT"

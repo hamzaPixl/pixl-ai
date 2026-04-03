@@ -12,7 +12,12 @@ import click
 from pixl_cli._output import emit_detail, emit_error, emit_json, emit_table
 from pixl_cli.main import get_ctx
 
-_CREW_RULE_FILES = ["crew-workflow.md", "crew-delegation.md", "crew-enforcement.md"]
+_CREW_RULE_FILES = [
+    "crew-workflow.md",
+    "crew-delegation.md",
+    "crew-enforcement.md",
+    "crew-context.md",
+]
 
 
 def _init_project(

@@ -1,10 +1,10 @@
 # {{PROJECT_NAME}}
 
-<!-- Fill in a brief description of your project -->
+<!-- Fill in: brief description, tech stack, key commands (build/test/dev) -->
 
 ## Crew Available
 
-This project uses the **pixl-crew** plugin. Claude has access to specialized agents and skills — prefer delegating to them over ad-hoc prompting.
+This project uses **pixl-crew** (14 agents, 75 skills, 2 studio stacks). Prefer delegating to specialized agents and skills over ad-hoc prompting.
 
 ### Agents
 
@@ -40,7 +40,7 @@ This project uses the **pixl-crew** plugin. Claude has access to specialized age
 **Intelligence**: `/intel`, `/strategic-intel`, `/vision-advisory`
 **Database/Payments**: `/supabase-postgres-best-practices`, `/stripe-best-practices`
 **Utilities**: `/file-parser`
-**Plugin dev**: `/agent-development`, `/command-development`, `/hook-development`, `/plugin-settings`, `/plugin-structure`
+**Plugin dev**: `/agent-development`, `/command-development`, `/hook-development`, `/plugin-settings`, `/plugin-structure`, `/skill-factory`
 
 ### Studio Stacks (Scaffolding)
 
@@ -53,6 +53,46 @@ Pre-built project templates — **never build from scratch** what a stack alread
 
 Run `/studio-guide` for full details on tokens, features, and the scaffold pipeline.
 
+## pixl CLI
+
+When `pixl` CLI is installed, agents get persistent storage, AST-indexed search, and cost tracking.
+
+| Command | What it does |
+|---------|-------------|
+| `pixl knowledge build --code` | Build AST-indexed code search (auto-runs on session start) |
+| `pixl knowledge search <query>` | FTS5 semantic search across codebase |
+| `pixl artifact list` | List build artifacts |
+| `pixl cost summary` | Cost analytics: total, by-model, by-session |
+| `pixl session list` | List past workflow sessions |
+| `pixl workflow run` | Execute a workflow template |
+
+Use `/intel` skill for ranked semantic search via the CLI. All features degrade gracefully to Glob/Grep when CLI is absent.
+
+## Cross-Session Memory
+
+```
+.claude/memory/
+├── decisions.jsonl      # Append-only decision log (injected on SessionStart)
+├── instincts.jsonl      # Learned patterns from /continuous-learning
+├── costs.jsonl          # Per-session token costs
+└── sessions/            # Per-session summaries (last 3 loaded on start)
+```
+
+- **SessionStart hook** injects last 3 session summaries + last 10 decisions
+- **Stop hook** captures git diff stats, modified files, task state
+- Use `/session-wrap` at end of sessions to preserve decisions
+- Use `/task-persist` to carry task state across sessions
+
+## Hook Profiles
+
+Control hook strictness via environment variable:
+
+```bash
+PIXL_HOOK_PROFILE=minimal claude    # fast exploratory (destructive blocking only)
+PIXL_HOOK_PROFILE=standard claude   # default (+ formatting, TDD, skill checks)
+PIXL_HOOK_PROFILE=strict claude     # all hooks (+ typecheck, console.log audit)
+```
+
 ## Operational Rules
 
 - **Explore → Plan → Implement → Commit** — use plan mode for multi-file changes
@@ -60,5 +100,6 @@ Run `/studio-guide` for full details on tokens, features, and the scaffold pipel
 - **Frequent commits** — commit after each logical unit of work
 - **Delegate to specialists** — use the agent routing table above to pick the right agent
 - **Never build from scratch** — check studio stacks first; use `/saas-microservice` or `/website`
+- **Use `/compact` proactively** — compact before starting unrelated tasks
 
 > Full reference: pixl-crew plugin (`agents/`, `skills/`, `studio/`, `references/`)

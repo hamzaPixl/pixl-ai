@@ -31,9 +31,12 @@ packages/cli/pixl_cli/_crew/
 # Lock
 uv.lock
 
-# Claude memory (session-local)
+# Claude Code artifacts (session-local)
 .claude/memory/
 .claude/plans/
+.claude/worktrees/
+.claude/.skill-invoked
+.claude/.session-tool-count
 
 # Coverage artifacts
 .coverage

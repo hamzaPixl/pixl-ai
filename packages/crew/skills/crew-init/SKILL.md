@@ -14,10 +14,11 @@ Drops lightweight pixl-crew awareness assets into any project so Claude knows ab
 
 | File | Purpose |
 |------|---------|
-| `CLAUDE.md` | Project identity + crew agents/skills reference + operational rules |
+| `CLAUDE.md` | Project identity + crew agents/skills reference + pixl CLI + operational rules |
 | `.claude/rules/crew-workflow.md` | Explore → Plan → Implement → Commit, frequent commits, parallel execution |
 | `.claude/rules/crew-delegation.md` | Agent routing table, when to use orchestrator, skill-first rules |
 | `.claude/rules/crew-enforcement.md` | Mandatory skill usage and agent delegation enforcement |
+| `.claude/rules/crew-context.md` | When to compact, subagent delegation, token budget, CLAUDE.md sizing |
 | `.claude/settings.local.json` | Scoped permission wildcards (only if file doesn't exist) |
 
 ## Step 0: Initialize pixl storage + crew
@@ -57,6 +58,7 @@ Skip silently if pixl is not installed — continue with manual file creation be
 1. Create `<target>/.claude/rules/` if it doesn't exist
 2. Copy `${CLAUDE_PLUGIN_ROOT}/templates/crew-init/crew-workflow.md` → `<target>/.claude/rules/crew-workflow.md`
 3. Copy `${CLAUDE_PLUGIN_ROOT}/templates/crew-init/crew-delegation.md` → `<target>/.claude/rules/crew-delegation.md`
+4. Copy `${CLAUDE_PLUGIN_ROOT}/templates/crew-init/crew-context.md` → `<target>/.claude/rules/crew-context.md`
 
 ## Step 4: Copy enforcement rules
 
@@ -83,12 +85,13 @@ Print a summary:
 ✓ Crew initialized for <project-name>
 
   Created:
-    CLAUDE.md              — project identity + crew reference (14 agents, 75 skills)
-    .claude/rules/         — crew-workflow.md, crew-delegation.md, crew-enforcement.md
+    CLAUDE.md              — project identity + crew reference (14 agents, 75 skills) + pixl CLI
+    .claude/rules/         — crew-workflow.md, crew-delegation.md, crew-enforcement.md, crew-context.md
     .claude/settings.local.json — scoped permissions
 
   Next steps:
-    1. Fill in the project description in CLAUDE.md
+    1. Fill in the project description and tech stack in CLAUDE.md
     2. Start a new Claude session to pick up the new rules
     3. Run /session-wrap at end of sessions to preserve decisions
+    4. (Optional) Install pixl CLI for persistent storage: uv tool install pixl && pixl setup
 ```
