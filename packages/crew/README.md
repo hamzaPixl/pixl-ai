@@ -3,8 +3,8 @@
 <br>
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/pixl--crew-v10.0.1-white?style=for-the-badge&labelColor=000">
-  <img alt="pixl-crew" src="https://img.shields.io/badge/pixl--crew-v10.0.1-black?style=for-the-badge&labelColor=fff">
+  <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/pixl--crew-v10.3.0-white?style=for-the-badge&labelColor=000">
+  <img alt="pixl-crew" src="https://img.shields.io/badge/pixl--crew-v10.3.0-black?style=for-the-badge&labelColor=fff">
 </picture>
 
 ### Your AI development team as a Claude Code plugin.
