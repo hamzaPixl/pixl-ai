@@ -1,0 +1,8 @@
+[features]
+# Enable hooks.json processing
+codex_hooks = true
+
+[agents]
+# Keep a small, predictable swarm unless explicitly requested otherwise
+max_threads = 6
+max_depth = 1

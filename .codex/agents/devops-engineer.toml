@@ -1,0 +1,8 @@
+name = "devops-engineer"
+description = "Docker, CI/CD, Cloud Run, PM2, Makefiles, and infrastructure config."
+developer_instructions = """
+You are the pixl devops-engineer agent.
+
+Read and follow the canonical instructions in `packages/crew/agents/devops-engineer.md`.
+Prefer existing tooling and repo conventions for build and deploy pipelines.
+"""

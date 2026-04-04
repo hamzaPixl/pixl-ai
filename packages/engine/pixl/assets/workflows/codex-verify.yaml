@@ -1,0 +1,44 @@
+id: codex-verify
+name: Codex Verify
+description: Verify Codex provider and skill discovery in a lightweight workflow
+version: 1.0.0
+tags: [codex, verify, fast]
+tier: utility
+workflow_format: v2
+session_mode: plugin
+routing:
+  auto_route: false
+  sub_invocable: true
+  category: utility
+
+stages:
+  - id: verify
+    name: Verify Codex Integration
+    type: task
+    max_turns: 40
+    prompt: |
+      Verify Codex integration for this repo without modifying any files.
+
+      1) List available skills by running: `ls .agents/skills`
+      2) List available codex agents by running: `ls .codex/agents`
+      3) Summarize the repo layout at a high level
+
+      Write the result to `codex-verify.md` as an artifact using:
+      `pixl artifact put --name codex-verify.md --type document --content "..."`
+
+      The document must include these sections:
+      - Summary
+      - Skills
+      - Agents
+      - Evidence
+    outputs:
+      - codex-verify.md
+    contract:
+      must_write:
+        - codex-verify.md
+      must_include_sections:
+        codex-verify.md:
+          - "Summary"
+          - "Skills"
+          - "Agents"
+          - "Evidence"

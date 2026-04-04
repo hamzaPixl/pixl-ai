@@ -1,5 +1,17 @@
 # Changelog
 
+## v11.0.0 — Codex Integration & Verification
+
+> Major release: first-class Codex scaffolding, agents/skills support, and engine verification flow.
+
+- **feat(codex)**: Add AGENTS.md + `.codex/` scaffolding (config, hooks, rules, agents) and `.agents/skills` symlinks
+- **feat(cli)**: New `pixl codex setup` and `pixl codex verify` commands
+- **feat(engine)**: New `codex-verify` workflow for lightweight Codex + Pixl engine validation
+- **feat(engine)**: Loader now prefers `AGENTS.md` (Codex) before `CLAUDE.md`
+- **feat(rules)**: Codex rules allowlist for common read-only and test commands
+- **feat(docs)**: Updated README + USAGE with Codex setup, default provider notes, and verification steps
+- **chore**: Added `scripts/verify-codex.sh` for automated verification
+
 ## v10.3.1 — Deduplication & Hook Hardening
 
 - **docs**: Deduplicate root CLAUDE.md — agents/skills/plugins/studio/rules tables moved to crew reference. Added Environment section and Gotchas section

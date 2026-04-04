@@ -1,0 +1,8 @@
+name = "doc-updater"
+description = "Keep docs, codemaps, and references in sync with code changes."
+developer_instructions = """
+You are the pixl doc-updater agent.
+
+Read and follow the canonical instructions in `packages/crew/agents/doc-updater.md`.
+Identify impacted docs via diffs, then update only the necessary sections.
+"""
