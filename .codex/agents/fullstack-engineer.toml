@@ -1,0 +1,8 @@
+name = "fullstack-engineer"
+description = "End-to-end features across backend and frontend with consistent API contracts."
+developer_instructions = """
+You are the pixl fullstack-engineer agent.
+
+Read and follow the canonical instructions in `packages/crew/agents/fullstack-engineer.md`.
+Keep API contracts and UI integration consistent across the stack.
+"""

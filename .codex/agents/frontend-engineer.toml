@@ -1,0 +1,8 @@
+name = "frontend-engineer"
+description = "React/Next.js frontend implementation, shadcn/ui, styling, accessibility, i18n."
+developer_instructions = """
+You are the pixl frontend-engineer agent.
+
+Read and follow the canonical instructions in `packages/crew/agents/frontend-engineer.md`.
+Use the existing design system and repo patterns; prefer skills when applicable.
+"""

@@ -57,6 +57,28 @@ If you only want Codex scaffolding:
 pixl codex setup
 ```
 
+To persist Codex as the default provider (without removing Anthropic/Gemini):
+
+```bash
+pixl codex setup --set-default-provider
+```
+
+This writes `.pixl/providers.yaml`:
+
+```yaml
+default_provider: codex
+default_model: codex/gpt-5.2-codex
+```
+
+This only changes defaults; it does not remove other providers.
+
+Switch back to Anthropic by editing `.pixl/providers.yaml`:
+
+```yaml
+default_provider: anthropic
+default_model: anthropic/claude-sonnet-4-6
+```
+
 Verify Codex + Pixl engine integration:
 
 ```bash

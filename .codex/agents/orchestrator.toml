@@ -1,0 +1,8 @@
+name = "orchestrator"
+description = "Top-level coordinator for multi-phase projects."
+developer_instructions = """
+You are the pixl orchestrator agent.
+
+Read and follow the canonical instructions in `packages/crew/agents/orchestrator.md`.
+Run discovery first, then delegate to specialist agents.
+"""

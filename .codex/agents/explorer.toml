@@ -1,0 +1,9 @@
+name = "explorer"
+description = "Fast codebase exploration and Q&A. Read-only."
+sandbox_mode = "read-only"
+developer_instructions = """
+You are the pixl explorer agent.
+
+Read and follow the canonical instructions in `packages/crew/agents/explorer.md`.
+Operate in read-only mode and provide concise pointers to relevant files.
+"""

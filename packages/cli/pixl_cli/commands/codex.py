@@ -2,9 +2,13 @@
 
 from __future__ import annotations
 
+import json
+import re
 import shutil
+from pathlib import Path
 
 import click
+import yaml
 
 from pixl_cli._output import emit_json
 from pixl_cli.commands.project import _install_codex_scaffold
@@ -19,8 +23,13 @@ def codex() -> None:
 
 @codex.command("setup")
 @click.option("--name", default=None, help="Project name (default: directory name).")
+@click.option(
+    "--set-default-provider/--no-set-default-provider",
+    default=False,
+    help="Persist Codex as default provider in .pixl/providers.yaml.",
+)
 @click.pass_context
-def codex_setup(ctx: click.Context, name: str | None) -> None:
+def codex_setup(ctx: click.Context, name: str | None, set_default_provider: bool) -> None:
     """Install Codex scaffolding in the current project.
 
     Creates:
@@ -56,6 +65,9 @@ def codex_setup(ctx: click.Context, name: str | None) -> None:
         click.echo("  AGENTS.md created")
     else:
         click.echo("  AGENTS.md already exists — skipped")
+    if set_default_provider:
+        _persist_codex_provider_defaults(project_path)
+        click.echo("  Default provider set to codex (see .pixl/providers.yaml)")
 
 
 @codex.command("verify")
@@ -69,7 +81,6 @@ def codex_verify(ctx: click.Context, run_engine: bool, prompt: str | None) -> No
       1) codex exec (read-only) to list skills and summarize repo
       2) optional pixl workflow using Codex provider
     """
-    import json
     import subprocess
 
     cli = get_ctx(ctx)
@@ -106,37 +117,106 @@ def codex_verify(ctx: click.Context, run_engine: bool, prompt: str | None) -> No
     click.echo("Skill check: " + ("task-plan found" if found_task_plan else "task-plan NOT found"))
 
     if run_engine:
-        subprocess.run(
-            ["pixl", "config", "set", "default_model", "codex/gpt-5.2-codex"],
-            check=True,
-            cwd=str(root),
-        )
-        subprocess.run(
-            [
-                "pixl",
-                "workflow",
-                "run",
-                "--workflow",
-                "codex-verify",
-                "--yes",
-                "--prompt",
-                "Verify Codex integration for this repo. Do not modify files.",
-            ],
-            check=True,
-            cwd=str(root),
-        )
-        # Optional: print recent cost summary lines for codex
+        providers_path = _set_codex_provider_defaults(root)
         try:
             result = subprocess.run(
-                ["pixl", "cost", "summary", "--json"],
+                [
+                    "pixl",
+                    "--json",
+                    "workflow",
+                    "run",
+                    "--workflow",
+                    "codex-verify",
+                    "--yes",
+                    "--prompt",
+                    "Verify Codex integration for this repo. Do not modify files.",
+                ],
                 check=True,
                 cwd=str(root),
                 capture_output=True,
                 text=True,
             )
-            data = json.loads(result.stdout)
-            by_model = data.get("by_model", {})
-            codex_models = {k: v for k, v in by_model.items() if "codex" in k or "gpt-5" in k}
-            click.echo(f"Codex model usage: {codex_models}")
+            session_id = ""
+            try:
+                payload = json.loads(result.stdout)
+                session_id = payload.get("session_id") or ""
+            except json.JSONDecodeError:
+                match = re.search(r'"session_id"\s*:\s*"([^"]+)"', result.stdout)
+                if match:
+                    session_id = match.group(1)
+            if session_id:
+                sess = subprocess.run(
+                    ["pixl", "--json", "session", "get", session_id],
+                    check=True,
+                    cwd=str(root),
+                    capture_output=True,
+                    text=True,
+                )
+                session_data = json.loads(sess.stdout)
+                model_names = {
+                    inst.get("model_name")
+                    for inst in session_data.get("node_instances", {}).values()
+                    if inst.get("model_name")
+                }
+                codex_models = [m for m in model_names if "codex" in m or "gpt-5" in m]
+                click.echo(f"Session models (session {session_id}): {sorted(model_names)}")
+                if codex_models:
+                    click.echo(f"Codex models detected: {codex_models}")
+                else:
+                    click.echo("Warning: No Codex models detected in session.")
+            else:
+                click.echo("Warning: could not parse session_id from workflow output.")
+        finally:
+            _restore_providers_yaml(providers_path)
+
+
+def _set_codex_provider_defaults(project_root: Path) -> Path:
+    """Temporarily set default provider/model to Codex in .pixl/providers.yaml."""
+    pixl_dir = project_root / ".pixl"
+    pixl_dir.mkdir(parents=True, exist_ok=True)
+    providers_path = pixl_dir / "providers.yaml"
+    backup_path = pixl_dir / "providers.yaml.bak"
+
+    if providers_path.exists():
+        backup_path.write_text(providers_path.read_text())
+
+    data = {}
+    if providers_path.exists():
+        try:
+            data = yaml.safe_load(providers_path.read_text()) or {}
         except Exception:
-            click.echo("Warning: could not read codex usage from cost summary.")
+            data = {}
+    data["default_provider"] = "codex"
+    data["default_model"] = "codex/gpt-5.2-codex"
+    providers_path.write_text(yaml.safe_dump(data, sort_keys=False))
+    return providers_path
+
+
+def _persist_codex_provider_defaults(project_root: Path) -> None:
+    """Persist Codex as the default provider in .pixl/providers.yaml."""
+    pixl_dir = project_root / ".pixl"
+    pixl_dir.mkdir(parents=True, exist_ok=True)
+    providers_path = pixl_dir / "providers.yaml"
+
+    data = {}
+    if providers_path.exists():
+        try:
+            data = yaml.safe_load(providers_path.read_text()) or {}
+        except Exception:
+            data = {}
+    data["default_provider"] = "codex"
+    data["default_model"] = "codex/gpt-5.2-codex"
+    providers_path.write_text(yaml.safe_dump(data, sort_keys=False))
+
+
+def _restore_providers_yaml(providers_path: Path) -> None:
+    """Restore .pixl/providers.yaml if a backup exists; otherwise remove it."""
+    backup_path = providers_path.parent / "providers.yaml.bak"
+    if backup_path.exists():
+        providers_path.write_text(backup_path.read_text())
+        backup_path.unlink()
+        return
+    try:
+        providers_path.unlink()
+    except OSError:
+        pass

@@ -1,6 +1,6 @@
 [project]
 name = "pixl"
-version = "10.3.1"
+version = "11.0.0"
 description = "AI dev platform: orchestration engine + Claude Code crew plugin"
 requires-python = ">=3.12"
 readme = "README.md"

@@ -1,0 +1,9 @@
+name = "onboarding-agent"
+description = "Onboard new codebases, generate CLAUDE.md/context, and catalog stacks. Read-only."
+sandbox_mode = "read-only"
+developer_instructions = """
+You are the pixl onboarding-agent.
+
+Read and follow the canonical instructions in `packages/crew/agents/onboarding-agent.md`.
+Stay read-only and produce structured onboarding outputs.
+"""

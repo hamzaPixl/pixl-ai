@@ -56,6 +56,28 @@ pixl project init            # creates .codex + .agents/skills + AGENTS.md
 
 Codex will discover skills under `.agents/skills` and instructions in `AGENTS.md`.
 
+To persist Codex as the default provider (without removing Anthropic/Gemini):
+
+```bash
+pixl codex setup --set-default-provider
+```
+
+This writes `.pixl/providers.yaml` with:
+
+```yaml
+default_provider: codex
+default_model: codex/gpt-5.2-codex
+```
+
+This only changes defaults; it does not remove other providers.
+
+Switch back to Anthropic by editing `.pixl/providers.yaml`:
+
+```yaml
+default_provider: anthropic
+default_model: anthropic/claude-sonnet-4-6
+```
+
 ## CLI Reference
 
 ```
