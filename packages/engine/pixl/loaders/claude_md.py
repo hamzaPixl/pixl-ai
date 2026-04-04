@@ -1,4 +1,4 @@
-"""CLAUDE.md loader."""
+"""Project instructions loader (CLAUDE.md + AGENTS.md)."""
 
 from __future__ import annotations
 
@@ -9,9 +9,10 @@ from pixl.loaders.types import LoadedClaudeMd
 
 
 class ClaudeMdLoader:
-    """Loader for CLAUDE.md files."""
+    """Loader for project instruction files (AGENTS.md preferred, then CLAUDE.md)."""
 
     CLAUDE_MD_NAMES = ["CLAUDE.md", "claude.md", "CLAUDE.MD"]
+    AGENTS_MD_NAMES = ["AGENTS.md", "agents.md", "AGENTS.MD"]
 
     def __init__(self, project_path: Path):
         """Initialize loader.
@@ -22,20 +23,33 @@ class ClaudeMdLoader:
         self.project_path = project_path
 
     def find_claude_md(self) -> Path | None:
-        """Find CLAUDE.md in project.
+        """Find AGENTS.md or CLAUDE.md in project.
 
-        Checks for CLAUDE.md in:
+        Checks for AGENTS.md or CLAUDE.md in:
         1. Project root
-        2. .claude directory
+        2. .codex directory (AGENTS.md)
+        3. .claude directory (CLAUDE.md)
 
         Returns:
             Path to CLAUDE.md or None
         """
-        # Check project root
+        # Check project root (AGENTS.md first)
+        for name in self.AGENTS_MD_NAMES:
+            path = self.project_path / name
+            if path.exists():
+                return path
         for name in self.CLAUDE_MD_NAMES:
             path = self.project_path / name
             if path.exists():
                 return path
+
+        # Check .codex directory
+        codex_dir = self.project_path / ".codex"
+        if codex_dir.exists():
+            for name in self.AGENTS_MD_NAMES:
+                path = codex_dir / name
+                if path.exists():
+                    return path
 
         # Check .claude directory
         claude_dir = self.project_path / ".claude"
@@ -48,7 +62,7 @@ class ClaudeMdLoader:
         return None
 
     def load(self) -> LoadedClaudeMd:
-        """Load CLAUDE.md content.
+        """Load project instruction content.
 
         Returns:
             LoadedClaudeMd with parsed content

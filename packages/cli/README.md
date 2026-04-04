@@ -44,6 +44,22 @@ pixl project init
 pixl setup
 ```
 
+### Codex Scaffolding
+
+`pixl project init` also installs Codex scaffolding by default:
+
+- `AGENTS.md`
+- `.codex/` (config, hooks, rules)
+- `.agents/skills` (symlinks to crew skills)
+
+Disable with `--no-codex`.
+
+You can also run Codex setup directly:
+
+```bash
+pixl codex setup
+```
+
 ### Run a Workflow
 
 ```bash

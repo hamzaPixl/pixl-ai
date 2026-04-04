@@ -1,0 +1,148 @@
+# Allow common read-only commands and prompt for risky ones.
+
+prefix_rule(
+    pattern = ["rg"],
+    decision = "allow",
+    justification = "Ripgrep is read-only.",
+    match = ["rg --files", "rg -n \"TODO\" src"],
+)
+
+prefix_rule(
+    pattern = ["ls"],
+    decision = "allow",
+    justification = "Listing files is read-only.",
+    match = ["ls -la", "ls src"],
+)
+
+prefix_rule(
+    pattern = ["cat"],
+    decision = "allow",
+    justification = "Reading files is read-only.",
+    match = ["cat README.md"],
+)
+
+prefix_rule(
+    pattern = ["sed"],
+    decision = "allow",
+    justification = "Reading file slices is read-only.",
+    match = ["sed -n 1,120p README.md"],
+)
+
+prefix_rule(
+    pattern = ["git", ["status", "diff", "log", "show"]],
+    decision = "allow",
+    justification = "Git read-only commands are allowed.",
+    match = ["git status", "git diff", "git log --oneline", "git show HEAD"],
+)
+
+prefix_rule(
+    pattern = ["npm", "run"],
+    decision = "allow",
+    justification = "Running npm scripts is common in dev workflows.",
+    match = ["npm run test", "npm run lint"],
+)
+
+prefix_rule(
+    pattern = ["pnpm", "run"],
+    decision = "allow",
+    justification = "Running pnpm scripts is common in dev workflows.",
+    match = ["pnpm run test", "pnpm run lint"],
+)
+
+prefix_rule(
+    pattern = ["yarn", "run"],
+    decision = "allow",
+    justification = "Running yarn scripts is common in dev workflows.",
+    match = ["yarn run test", "yarn run lint"],
+)
+
+prefix_rule(
+    pattern = ["bun", "run"],
+    decision = "allow",
+    justification = "Running bun scripts is common in dev workflows.",
+    match = ["bun run test", "bun run lint"],
+)
+
+prefix_rule(
+    pattern = ["pytest"],
+    decision = "allow",
+    justification = "Running tests is allowed.",
+    match = ["pytest -q", "pytest tests"],
+)
+
+prefix_rule(
+    pattern = ["python", "-m", "pytest"],
+    decision = "allow",
+    justification = "Running tests is allowed.",
+    match = ["python -m pytest -q", "python -m pytest tests"],
+)
+
+prefix_rule(
+    pattern = ["uv", "run"],
+    decision = "allow",
+    justification = "Running uv scripts is common in dev workflows.",
+    match = ["uv run pytest", "uv run python -m pytest"],
+)
+
+prefix_rule(
+    pattern = ["npm", ["install", "i"]],
+    decision = "prompt",
+    justification = "Installing dependencies can modify lockfiles; require approval.",
+    match = ["npm install", "npm i"],
+)
+
+prefix_rule(
+    pattern = ["pnpm", ["install", "add"]],
+    decision = "prompt",
+    justification = "Installing dependencies can modify lockfiles; require approval.",
+    match = ["pnpm install", "pnpm add zod"],
+)
+
+prefix_rule(
+    pattern = ["yarn", ["add", "install"]],
+    decision = "prompt",
+    justification = "Installing dependencies can modify lockfiles; require approval.",
+    match = ["yarn add zod", "yarn install"],
+)
+
+prefix_rule(
+    pattern = ["bun", "add"],
+    decision = "prompt",
+    justification = "Installing dependencies can modify lockfiles; require approval.",
+    match = ["bun add zod"],
+)
+
+prefix_rule(
+    pattern = ["pwd"],
+    decision = "allow",
+    justification = "Read-only command.",
+    match = ["pwd"],
+)
+
+prefix_rule(
+    pattern = ["whoami"],
+    decision = "allow",
+    justification = "Read-only command.",
+    match = ["whoami"],
+)
+
+prefix_rule(
+    pattern = ["rm", "-rf", "."],
+    decision = "forbidden",
+    justification = "Destructive command blocked. Use a scoped path instead.",
+    match = ["rm -rf ."],
+)
+
+prefix_rule(
+    pattern = ["rm", "-rf", "/"],
+    decision = "forbidden",
+    justification = "Destructive command blocked. Use a scoped path instead.",
+    match = ["rm -rf /"],
+)
+
+prefix_rule(
+    pattern = ["git", "reset", "--hard"],
+    decision = "prompt",
+    justification = "Hard resets can destroy work; require explicit approval.",
+    match = ["git reset --hard HEAD~1"],
+)

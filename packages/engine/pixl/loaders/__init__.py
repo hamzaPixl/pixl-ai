@@ -1,7 +1,7 @@
-"""Claude Code project loaders.
+"""Project loaders (Claude Code + Codex).
 
-Loads project configuration from standard Claude Code locations:
-- CLAUDE.md - Project context and guidance
+Loads project configuration from standard locations:
+- AGENTS.md or CLAUDE.md - Project context and guidance
 - .claude/rules/*.md - Project rules
 - .claude/settings.json - Project settings
 """

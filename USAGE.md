@@ -42,6 +42,39 @@ pixl --json project list   # JSON output (global --json flag works on any comman
 
 ---
 
+## 2.1 Codex Setup (Optional)
+
+Codex uses `AGENTS.md` for project instructions and discovers skills under
+`.agents/skills`. Pixl scaffolds these by default:
+
+```bash
+pixl project init
+```
+
+If you only want Codex scaffolding:
+
+```bash
+pixl codex setup
+```
+
+Verify Codex + Pixl engine integration:
+
+```bash
+pixl codex verify
+```
+
+This runs a lightweight `codex-verify` workflow that writes `codex-verify.md`.
+
+Verify Codex can see skills and agents:
+
+```bash
+codex
+# then type /skills or '$' to list skills
+# ask: "Spawn the orchestrator subagent and summarize repo layout"
+```
+
+---
+
 ## 3. Available Workflows
 
 ```bash

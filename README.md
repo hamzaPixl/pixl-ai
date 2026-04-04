@@ -46,6 +46,16 @@ git clone https://github.com/hamzaPixl/pixl-ai.git && cd pixl
 make setup                   # uv sync + pixl setup
 ```
 
+### Codex Support
+
+Pixl includes Codex-compatible agents and skills. Run project init to scaffold:
+
+```bash
+pixl project init            # creates .codex + .agents/skills + AGENTS.md
+```
+
+Codex will discover skills under `.agents/skills` and instructions in `AGENTS.md`.
+
 ## CLI Reference
 
 ```
@@ -69,6 +79,8 @@ pixl [--json] [--project PATH] COMMAND
 | `pixl sandbox workflow` | Run workflow in sandbox (`--stream` for SSE) |
 | `pixl sandbox sync` | Sync sandbox data to local DB |
 | `pixl setup` | Register crew plugin with Claude Code |
+| `pixl codex setup` | Install Codex scaffolding (AGENTS.md, .codex, .agents/skills) |
+| `pixl codex verify` | Verify Codex CLI + Pixl engine integration |
 
 ## Agents
 

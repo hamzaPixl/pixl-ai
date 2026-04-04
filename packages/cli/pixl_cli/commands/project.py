@@ -19,12 +19,24 @@ _CREW_RULE_FILES = [
     "crew-context.md",
 ]
 
+_CODEX_INIT_FILES = [
+    "config.toml",
+    "hooks.json",
+    "rules/default.rules",
+    "hooks/_env.sh",
+    "hooks/session-start.sh",
+    "hooks/user-prompt-submit.sh",
+    "hooks/pre-tool-use.sh",
+    "hooks/stop.sh",
+]
+
 
 def _init_project(
     project_path: Path,
     *,
     project_name: str | None = None,
     install_crew: bool = True,
+    install_codex: bool = True,
 ) -> dict[str, Any]:
     """Shared helper — creates .pixl/ infrastructure and optionally installs crew templates.
 
@@ -54,48 +66,154 @@ def _init_project(
         "context_dir": str(context_dir),
         "crew_installed": False,
         "claude_md_created": False,
+        "codex_installed": False,
+        "agents_md_created": False,
     }
 
-    if not install_crew:
-        return result
+    crew_root = None
+    if install_crew or install_codex:
+        # --- Crew templates ---
+        from pixl_cli.crew import get_crew_root
 
-    # --- Crew templates ---
-    from pixl_cli.crew import get_crew_root
+        try:
+            crew_root = get_crew_root()
+        except FileNotFoundError:
+            click.echo("Crew plugin not found — skipping crew/codex init")
+            return result
 
-    try:
-        crew_root = get_crew_root()
+    if install_crew:
+        assert crew_root is not None  # guaranteed: either set above or we returned early
         templates_dir = Path(crew_root) / "templates" / "crew-init"
         if not templates_dir.is_dir():
             click.echo("Crew templates not found — skipping crew init")
-            return result
-    except FileNotFoundError:
-        click.echo("Crew plugin not found — skipping crew init")
-        return result
+        else:
+            # CLAUDE.md — skip if exists (idempotent, non-interactive)
+            claude_md = project_path / "CLAUDE.md"
+            tmpl = templates_dir / "CLAUDE.md.tmpl"
+            if tmpl.is_file() and not claude_md.exists():
+                content = tmpl.read_text().replace("{{PROJECT_NAME}}", name)
+                claude_md.write_text(content)
+                result["claude_md_created"] = True
 
-    # CLAUDE.md — skip if exists (idempotent, non-interactive)
-    claude_md = project_path / "CLAUDE.md"
-    tmpl = templates_dir / "CLAUDE.md.tmpl"
-    if tmpl.is_file() and not claude_md.exists():
-        content = tmpl.read_text().replace("{{PROJECT_NAME}}", name)
-        claude_md.write_text(content)
-        result["claude_md_created"] = True
+            # .claude/rules/ — always overwrite (crew-managed infrastructure)
+            rules_dir = project_path / ".claude" / "rules"
+            rules_dir.mkdir(parents=True, exist_ok=True)
+            for rule_file in _CREW_RULE_FILES:
+                src = templates_dir / rule_file
+                if src.is_file():
+                    shutil.copy2(str(src), str(rules_dir / rule_file))
 
-    # .claude/rules/ — always overwrite (crew-managed infrastructure)
-    rules_dir = project_path / ".claude" / "rules"
-    rules_dir.mkdir(parents=True, exist_ok=True)
-    for rule_file in _CREW_RULE_FILES:
-        src = templates_dir / rule_file
-        if src.is_file():
-            shutil.copy2(str(src), str(rules_dir / rule_file))
+            # .claude/settings.local.json — skip if exists
+            settings_src = templates_dir / "settings.local.json"
+            settings_dst = project_path / ".claude" / "settings.local.json"
+            if settings_src.is_file() and not settings_dst.exists():
+                shutil.copy2(str(settings_src), str(settings_dst))
 
-    # .claude/settings.local.json — skip if exists
-    settings_src = templates_dir / "settings.local.json"
-    settings_dst = project_path / ".claude" / "settings.local.json"
-    if settings_src.is_file() and not settings_dst.exists():
-        shutil.copy2(str(settings_src), str(settings_dst))
+            result["crew_installed"] = True
 
-    result["crew_installed"] = True
+    if install_codex and crew_root:
+        _install_codex_scaffold(project_path, crew_root, name, result)
     return result
+
+
+def _install_codex_scaffold(
+    project_path: Path,
+    crew_root: Path,
+    project_name: str,
+    result: dict[str, Any],
+) -> None:
+    """Install Codex scaffolding (.codex, AGENTS.md, .agents/skills)."""
+    templates_dir = crew_root / "templates" / "codex-init"
+    if not templates_dir.is_dir():
+        click.echo("Codex templates not found — skipping codex init")
+        return
+
+    # AGENTS.md — skip if exists
+    agents_md = project_path / "AGENTS.md"
+    tmpl = templates_dir / "AGENTS.md.tmpl"
+    if tmpl.is_file() and not agents_md.exists():
+        content = tmpl.read_text().replace("{{PROJECT_NAME}}", project_name)
+        agents_md.write_text(content)
+        result["agents_md_created"] = True
+
+    # .codex/ — create if missing, copy templates without overwriting existing files
+    codex_dir = project_path / ".codex"
+    codex_dir.mkdir(parents=True, exist_ok=True)
+    for rel in _CODEX_INIT_FILES:
+        src = templates_dir / ".codex" / rel
+        dst = codex_dir / rel
+        if src.is_file() and not dst.exists():
+            dst.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(str(src), str(dst))
+            if dst.suffix == ".sh":
+                try:
+                    dst.chmod(0o755)
+                except OSError:
+                    pass
+
+    # .codex/agents — generate from crew agents if missing
+    agents_dir = codex_dir / "agents"
+    agents_dir.mkdir(parents=True, exist_ok=True)
+    for agent_file in (crew_root / "agents").glob("*.md"):
+        name = agent_file.stem
+        dst = agents_dir / f"{name}.toml"
+        if not dst.exists():
+            _write_codex_agent_toml(agent_file, dst)
+
+    # .agents/skills — symlink crew skills
+    skills_dir = project_path / ".agents" / "skills"
+    skills_dir.mkdir(parents=True, exist_ok=True)
+    for item in (crew_root / "skills").iterdir():
+        target = skills_dir / item.name
+        if target.exists() or target.is_symlink():
+            continue
+        try:
+            target.symlink_to(item)
+        except OSError:
+            click.echo(f"  Note: symlink unavailable for {item.name}, copying instead")
+            if item.is_file():
+                shutil.copy2(str(item), str(target))
+            else:
+                shutil.copytree(str(item), str(target))
+
+    result["codex_installed"] = True
+
+
+def _write_codex_agent_toml(agent_md: Path, dst: Path) -> None:
+    """Generate a Codex agent TOML file from a crew agent markdown file."""
+    text = agent_md.read_text()
+    frontmatter = {}
+    body = text
+    if text.startswith("---"):
+        _, fm, rest = text.split("---", 2)
+        body = rest.strip()
+        try:
+            import yaml
+
+            try:
+                frontmatter = yaml.safe_load(fm) or {}
+            except yaml.YAMLError:
+                frontmatter = {}
+        except ImportError:
+            frontmatter = {}
+
+    name = frontmatter.get("name", agent_md.stem)
+    description = (frontmatter.get("description") or "").strip().replace("\n", " ")
+    tools = (frontmatter.get("tools") or "").lower()
+    read_only = "write" not in tools and "edit" not in tools
+
+    instructions = body.replace('"""', '\\"""')
+
+    lines = [
+        f'name = "{name}"',
+        f'description = "{description}"' if description else f'description = "{name} agent"',
+    ]
+    if read_only:
+        lines.append('sandbox_mode = "read-only"')
+    lines.append('developer_instructions = """')
+    lines.append(instructions)
+    lines.append('"""')
+    dst.write_text("\n".join(lines))
 
 
 @click.group()
@@ -170,9 +288,12 @@ def project_create(
 @project.command("init")
 @click.option("--name", default=None, help="Project name (default: directory name).")
 @click.option("--no-crew", is_flag=True, default=False, help="Skip crew template installation.")
+@click.option("--no-codex", is_flag=True, default=False, help="Skip Codex scaffolding.")
 @click.option("--setup/--no-setup", default=False, help="Run project-setup workflow after init.")
 @click.pass_context
-def project_init(ctx: click.Context, name: str | None, no_crew: bool, setup: bool) -> None:
+def project_init(
+    ctx: click.Context, name: str | None, no_crew: bool, no_codex: bool, setup: bool
+) -> None:
     """Initialize pixl for the current project directory.
 
     Creates local .pixl/ context dir, registers in global workspace,
@@ -190,6 +311,7 @@ def project_init(ctx: click.Context, name: str | None, no_crew: bool, setup: boo
         cli.project_path,
         project_name=name,
         install_crew=not no_crew,
+        install_codex=not no_codex,
     )
 
     if cli.is_json:
@@ -200,6 +322,8 @@ def project_init(ctx: click.Context, name: str | None, no_crew: bool, setup: boo
                 "context_dir": result["context_dir"],
                 "crew_installed": result["crew_installed"],
                 "claude_md_created": result["claude_md_created"],
+                "codex_installed": result["codex_installed"],
+                "agents_md_created": result["agents_md_created"],
                 "status": "initialized",
             }
         )
@@ -214,6 +338,13 @@ def project_init(ctx: click.Context, name: str | None, no_crew: bool, setup: boo
             )
             if not result["claude_md_created"]:
                 click.echo("  Note: CLAUDE.md already exists — skipped")
+        if result["codex_installed"]:
+            click.echo(
+                "  Codex: .codex, .agents/skills"
+                + (", AGENTS.md" if result["agents_md_created"] else "")
+            )
+            if not result["agents_md_created"]:
+                click.echo("  Note: AGENTS.md already exists — skipped")
 
     # Optional workflow execution
     if setup:
@@ -251,6 +382,7 @@ def project_init(ctx: click.Context, name: str | None, no_crew: bool, setup: boo
 )
 @click.option("--description", default="", help="Project description.")
 @click.option("--setup/--no-setup", default=True, help="Run project-setup workflow after creation.")
+@click.option("--no-codex", is_flag=True, default=False, help="Skip Codex scaffolding.")
 @click.pass_context
 def project_new(
     ctx: click.Context,
@@ -258,6 +390,7 @@ def project_new(
     parent_dir: str | None,
     description: str,
     setup: bool,
+    no_codex: bool,
 ) -> None:
     """Create a new project from scratch — directory, git, pixl, and setup workflow.
 
@@ -295,10 +428,17 @@ def project_new(
     click.echo("Initialized git repository")
 
     # 3. Pixl + crew init (shared helper)
-    result = _init_project(project_dir, project_name=name, install_crew=True)
+    result = _init_project(
+        project_dir,
+        project_name=name,
+        install_crew=True,
+        install_codex=not no_codex,
+    )
     click.echo("Registered pixl project")
     if result["crew_installed"]:
         click.echo("Initialized crew (CLAUDE.md, rules, permissions)")
+    if result["codex_installed"]:
+        click.echo("Initialized Codex (.codex, .agents/skills)")
 
     # 4. Initial git commit
     subprocess.run(["git", "add", "-A"], cwd=str(project_dir), check=True, capture_output=True)

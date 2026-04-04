@@ -12,6 +12,7 @@ from pixl_cli.context import CLIContext
 
 COMMAND_MODULES = {
     "artifact": "pixl_cli.commands.artifact",
+    "codex": "pixl_cli.commands.codex",
     "config": "pixl_cli.commands.config",
     "cost": "pixl_cli.commands.cost",
     "event-stats": "pixl_cli.commands.events",
