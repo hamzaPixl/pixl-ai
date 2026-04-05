@@ -86,6 +86,7 @@ stages:
       After building/fixing, start the dev server and verify it runs.
     contract:
       detect_stubs: true
+      detect_hacks: true
 
   # Phase 3: Evaluate — score the running app with Playwright
   - id: evaluate

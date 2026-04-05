@@ -7,6 +7,35 @@ prompt: |
 
   ---
 
+  ## INTEGRITY RULES (apply to ALL modes)
+
+  These rules are non-negotiable. Violating them is worse than failing the iteration.
+
+  ### No Hacking
+  - NEVER ship a workaround to claim "done" — hardcoded values, `!important` overrides,
+    empty catch blocks, disabled validation, or commented-out code are all hacks.
+  - Fix the ROOT CAUSE, not the symptom. If you find yourself "avoiding" the problem
+    instead of solving it, stop.
+  - If you tried 2 different approaches to fix the same issue and both failed: STOP.
+    Report what you tried, why it failed, and propose alternatives. Do NOT try a 3rd
+    approach without escalating via the baton.
+
+  ### Zero Assumption — Evidence-Based Only
+  - Before fixing any bug: read the error, reproduce it, find the exact failure point.
+  - When the cause is unclear: ADD LOGS FIRST. Read the output. Then diagnose.
+    Never guess at root causes — instrument, observe, then fix.
+  - Every fix must include evidence: what broke (exact error), root cause (backed by
+    logs/tests), what you changed, and how you verified it works.
+  - Remove all debug instrumentation after the fix is verified.
+
+  ### Escalation
+  - If you are stuck after 2 attempts: update the baton with a structured escalation
+    (what you tried, evidence gathered, proposed options) instead of continuing.
+  - If you don't know why something is broken, say so. "I need to investigate" is
+    always better than a confident guess that wastes an iteration.
+
+  ---
+
   ## Determine Mode
 
   Check the baton for `stage_hints["generate"]`. If it contains evaluator critique,
@@ -72,13 +101,39 @@ prompt: |
   3. Main pages render correctly
   4. Core user flows work (navigate, interact, submit)
 
-  Update the baton:
+  Update the baton (evidence_log is MANDATORY for fix iterations):
   <pixl_output>
   {
     "baton_patch": {
       "current_state": ["Built/fixed application features: ..."],
       "work_scope": ["list of files created or modified"],
-      "decision_log": ["Implementation decisions made"]
+      "decision_log": ["Implementation decisions made"],
+      "quality_signals": {
+        "evidence_log": [
+          "Fixed [issue]: root cause was [X] (evidence: [log output/test result]). Verified by [how].",
+          "..."
+        ],
+        "stuck_issues": [
+          "(optional) Tried 2 approaches for [issue], both failed. See escalation below.",
+          "..."
+        ],
+        "escalation": "(optional) Structured escalation: what was tried, evidence, proposed options"
+      }
+    }
+  }
+  </pixl_output>
+
+  ### If Stuck (after 2 failed attempts on same issue)
+
+  Do NOT try a 3rd approach. Instead, update the baton with an escalation:
+  <pixl_output>
+  {
+    "baton_patch": {
+      "current_state": ["STUCK on [issue] after 2 attempts"],
+      "quality_signals": {
+        "escalation": "## Stuck: [issue]\n### Tried\n1. [approach 1]: [result]\n2. [approach 2]: [result]\n### Evidence\n[logs/errors]\n### Options\nA. [option]\nB. [option]",
+        "stuck_issues": ["[issue description]"]
+      }
     }
   }
   </pixl_output>

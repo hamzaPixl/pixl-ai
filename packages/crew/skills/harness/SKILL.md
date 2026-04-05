@@ -11,9 +11,10 @@ GAN-inspired generate-evaluate-iterate loop. A generator agent builds the applic
 
 ## Required References
 
-Before evaluating, read:
+Before starting, read ALL of these:
 - `references/grading-rubric.md` -- 4-axis scoring criteria (design quality, originality, craft, functionality)
 - `references/anti-rationalization.md` -- rules for honest evaluation, common rationalization traps
+- `references/integrity-protocol.md` -- no-hack rules, zero-assumption debugging, consensus validation, escalation protocol
 
 ## Step 1: Input & Configuration
 
@@ -63,28 +64,60 @@ Spawn a **fullstack-engineer** agent to build the application:
 - Output: working application code, committed to the repo
 - The generator should run the dev server and verify basic functionality before handing off
 
-### 3c: Evaluate
+**Integrity rules** (include these in the generator's prompt):
+- The generator MUST follow the integrity protocol (`references/integrity-protocol.md`)
+- On fix iterations: every fix must include evidence (error observed, root cause found via logs, fix applied, verification)
+- If the generator tries 2 approaches to the same issue and both fail: it MUST stop and report via a structured escalation instead of trying a 3rd approach
+- No hacks: hardcoded workarounds, `!important` overrides, empty catch blocks, disabled validation, or commented-out code are grounds for score reduction
+- Zero assumptions: when debugging, add logs first, read output, then fix. Never guess at root causes
 
-Spawn a **qa-engineer** agent with the evaluator prompt:
+### 3c: Evaluate (Consensus — Dual Evaluators)
 
-1. Read `references/grading-rubric.md` for the full scoring criteria
-2. Read `references/anti-rationalization.md` and apply all 7 rules
-3. Launch the application and test with Playwright (or manual browser inspection via agent-browser)
-4. Score each of the 4 axes independently (1-10):
-   - **Design Quality** -- visual hierarchy, spacing, typography, color
-   - **Originality** -- distinctiveness, avoidance of generic/template aesthetics
-   - **Craft** -- attention to detail, polish, micro-interactions, edge cases
-   - **Functionality** -- features work correctly, responsive, accessible
-5. Write a structured critique with specific, actionable feedback per axis
-6. DO NOT rationalize low scores upward -- see anti-rationalization rules
+Spawn **2 qa-engineer agents in parallel** with different evaluation focus:
 
-### 3d: Score Gate
+**Evaluator A** (Design + Craft focus):
+1. Read `references/grading-rubric.md` and `references/anti-rationalization.md`
+2. Launch the application and test with Playwright (or agent-browser)
+3. Score all 4 axes but deep-dive on Design Quality and Craft
+4. Write structured critique with specific evidence per axis
 
-Check the evaluator's scores:
+**Evaluator B** (Functionality + Originality focus):
+1. Read `references/grading-rubric.md` and `references/anti-rationalization.md`
+2. Launch the application and test with Playwright (or agent-browser)
+3. Score all 4 axes but deep-dive on Functionality and Originality
+4. Write structured critique with specific evidence per axis
+
+**Both evaluators must also:**
+- Audit the generator's evidence_log (on fix iterations): did the generator back each fix with proof?
+- Check for hacks: hardcoded values, `!important` spam, empty catch blocks, disabled tests
+- Apply all 7 anti-rationalization rules
+- DO NOT rationalize low scores upward
+
+**Consensus resolution:**
+- If both evaluators' scores converge (delta ≤ 2 per axis): average the scores
+- If any axis diverges by > 2: spawn a 3rd **tiebreaker evaluator** with both critiques, take the median
+- The consensus scores become the final scores for the score gate
+
+### 3d: Score Gate (with Stagnation + Escalation Detection)
+
+Check the consensus scores and generator state:
+
+**Escalation check** (first):
+- If the generator reported `stuck_issues` or an `escalation` in its baton update: **STOP immediately**. Do NOT loop again. Present the escalation to the user with the generator's proposed options.
+
+**Stagnation check** (second):
+- Track score history across iterations. If scores have not improved by ≥ 1 total point across the last 2 iterations: **STAGNATION detected**.
+- On stagnation: inform the generator it MUST change approach fundamentally or escalate. If stagnation persists for one more iteration after the warning: **STOP** and present the situation to the user.
+
+**Normal gate logic:**
 - If ALL four axes >= threshold: PASS. Proceed to Step 4.
 - If ANY axis < threshold: FAIL. Feed the critique back to the generator (Step 3b) for another iteration.
 - If max_iterations reached: STOP. Proceed to Step 4 with current scores.
 - If budget_cap exceeded (check via `pixl cost summary` or estimate from token counts): STOP.
+
+**Evidence audit:**
+- On fix iterations, check whether the evaluators flagged the generator's evidence_log as PASS or FAIL.
+- If the generator applied fixes without evidence: add this as a finding in the critique and flag it as a P0 issue for the next iteration.
 
 ## Step 4: Report Results
 

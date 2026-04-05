@@ -1,6 +1,7 @@
 """Quality gate hooks for iterative workflows.
 
 score-gate: Reads quality_signals scores against a configurable threshold.
+            Includes stagnation detection — early stop when scores plateau.
 findings-gate: Reads quality_signals open_findings count — passes when zero.
 
 Both hooks trigger LoopConstraint back-edges on failure.
@@ -8,17 +9,69 @@ Both hooks trigger LoopConstraint back-edges on failure.
 
 from __future__ import annotations
 
+import logging
 from typing import Any
 
 from pixl.execution.hooks import HookContext, HookResult, register_hook
 
+logger = logging.getLogger(__name__)
+
 _DEFAULT_THRESHOLD = 7
 _DEFAULT_CRITERIA = ["design_quality", "originality", "craft", "functionality"]
+_STAGNATION_WINDOW = 2  # consecutive iterations with no meaningful improvement
+_STAGNATION_MIN_DELTA = 1.0  # minimum total score improvement to not be stagnant
+
+
+def _detect_stagnation(
+    score_history: list[dict[str, Any]],
+    criteria: list[str],
+    window: int = _STAGNATION_WINDOW,
+    min_delta: float = _STAGNATION_MIN_DELTA,
+) -> tuple[bool, str]:
+    """Detect score stagnation across recent iterations.
+
+    Returns (is_stagnant, reason).
+    """
+    if len(score_history) < window + 1:
+        return False, ""
+
+    recent = score_history[-(window + 1) :]
+    baseline = recent[0]
+    baseline_total = sum(baseline.get(c, 0) for c in criteria)
+
+    for entry in recent[1:]:
+        entry_total = sum(entry.get(c, 0) for c in criteria)
+        delta = entry_total - baseline_total
+        if delta >= min_delta:
+            return False, ""
+
+    current_total = sum(recent[-1].get(c, 0) for c in criteria)
+    return True, (
+        f"Scores stagnant for {window} iterations "
+        f"(total={current_total}, delta<{min_delta}). "
+        f"Further iterations unlikely to improve without a different approach."
+    )
+
+
+def _detect_escalation(quality_signals: dict[str, Any]) -> tuple[bool, str]:
+    """Check if the generator reported being stuck."""
+    escalation = quality_signals.get("escalation")
+    stuck_issues = quality_signals.get("stuck_issues", [])
+
+    if escalation and isinstance(escalation, str) and escalation.strip():
+        return True, f"Generator escalated: {escalation[:200]}"
+    if stuck_issues and isinstance(stuck_issues, list) and len(stuck_issues) > 0:
+        issues = ", ".join(str(s) for s in stuck_issues[:3])
+        return True, f"Generator stuck on: {issues}"
+    return False, ""
 
 
 @register_hook("score-gate")
 def score_gate_hook(ctx: HookContext) -> HookResult:
-    """Evaluate quality signals against a threshold to gate workflow progress."""
+    """Evaluate quality signals against a threshold to gate workflow progress.
+
+    Includes stagnation detection and generator escalation handling.
+    """
     threshold: int = ctx.params.get("threshold", _DEFAULT_THRESHOLD)
     criteria: list[str] = ctx.params.get("criteria", _DEFAULT_CRITERIA)
 
@@ -48,14 +101,82 @@ def score_gate_hook(ctx: HookContext) -> HookResult:
     iteration: int = int(quality_signals.get("iteration", 0))
     critique_summary: str = str(quality_signals.get("critique_summary", ""))
 
-    # --- Gate decision ---
+    # --- Track score history ---
+    score_history: list[dict[str, Any]] = quality_signals.get("score_history", [])
+    if not isinstance(score_history, list):
+        score_history = []
+    current_snapshot = {c: scores.get(c, 0) for c in criteria}
+    current_snapshot["iteration"] = iteration
+    score_history.append(current_snapshot)
+    quality_signals["score_history"] = score_history
+
+    # --- Check for generator escalation (stuck issues) ---
+    is_escalated, escalation_reason = _detect_escalation(quality_signals)
+    if is_escalated:
+        logger.warning(
+            "Generator escalation detected at iteration %d: %s", iteration, escalation_reason
+        )
+        return HookResult(
+            success=False,
+            error=f"ESCALATION: {escalation_reason}",
+            data={
+                **scores,
+                "iteration": iteration,
+                "failed_criteria": failed_criteria,
+                "escalated": True,
+                "escalation_reason": escalation_reason,
+                "action": "pause_for_human",
+            },
+        )
+
+    # --- Gate decision: all pass ---
     if not failed_criteria:
         return HookResult(
             success=True,
-            data={**scores, "iteration": iteration, "passed": True},
+            data={
+                **scores,
+                "iteration": iteration,
+                "passed": True,
+                "score_history": score_history,
+            },
         )
 
-    # Failure path — forward critique to the generator via stage_hints
+    # --- Stagnation detection ---
+    is_stagnant, stagnation_reason = _detect_stagnation(score_history, criteria)
+    if is_stagnant:
+        logger.warning(
+            "Score stagnation detected at iteration %d: %s", iteration, stagnation_reason
+        )
+        # Inject stagnation diagnostic into stage_hints
+        stagnation_hint = (
+            f"STAGNATION DETECTED: {stagnation_reason}\n\n"
+            f"Do NOT continue with the same approach. You must either:\n"
+            f"1. Fundamentally change your approach to the failing criteria\n"
+            f"2. Escalate to the user with what you tried and why it's not working\n\n"
+            f"Score history: {score_history}"
+        )
+        stage_hints = baton.get("stage_hints")
+        if isinstance(stage_hints, dict):
+            stage_hints["generate"] = stagnation_hint
+        else:
+            baton["stage_hints"] = {"generate": stagnation_hint}
+
+        failed_details = ", ".join(f"{c}={scores[c]}" for c in failed_criteria)
+        return HookResult(
+            success=False,
+            error=f"STAGNATION: {stagnation_reason} Failing: {failed_details}",
+            data={
+                **scores,
+                "iteration": iteration,
+                "failed_criteria": failed_criteria,
+                "stagnant": True,
+                "stagnation_reason": stagnation_reason,
+                "score_history": score_history,
+                "action": "change_approach_or_escalate",
+            },
+        )
+
+    # --- Normal failure path — forward critique to generator ---
     if critique_summary:
         stage_hints = baton.get("stage_hints")
         if isinstance(stage_hints, dict):
@@ -67,7 +188,12 @@ def score_gate_hook(ctx: HookContext) -> HookResult:
     return HookResult(
         success=False,
         error=f"Scores below threshold ({threshold}): {failed_details}",
-        data={**scores, "iteration": iteration, "failed_criteria": failed_criteria},
+        data={
+            **scores,
+            "iteration": iteration,
+            "failed_criteria": failed_criteria,
+            "score_history": score_history,
+        },
     )
 
 

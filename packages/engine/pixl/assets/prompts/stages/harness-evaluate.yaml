@@ -64,6 +64,28 @@ prompt: |
      A 9/10 means "excellent, nearly flawless." Do not grade inflate.
   7. Compare against professional-quality applications, not other AI outputs.
 
+  ## Evidence Audit (Fix Iterations Only)
+
+  On fix iterations (iteration > 1), BEFORE scoring, audit the generator's work:
+
+  1. Check `quality_signals.evidence_log` — did the generator provide evidence for each fix?
+  2. Check `quality_signals.stuck_issues` — did the generator escalate any issues?
+  3. Check `quality_signals.escalation` — is there a structured escalation report?
+
+  If the generator claimed fixes without evidence (empty or missing evidence_log),
+  add a P0 finding: "Generator applied fixes without evidence — cannot verify root causes were addressed."
+
+  If the generator escalated, acknowledge it in the critique and do NOT penalize scores
+  for issues the generator explicitly flagged as stuck.
+
+  ## Stagnation Awareness
+
+  Check `quality_signals.score_history` for previous iteration scores.
+  If scores have not improved meaningfully (total delta < 1 point) for 2+ iterations:
+  - Note this as "STAGNATION DETECTED" in the critique
+  - Recommend a fundamentally different approach rather than incremental fixes
+  - Do NOT repeat the same critique from previous iterations — identify what's structurally wrong
+
   ## Output Format
 
   Update the baton with your scores and critique:
@@ -77,7 +99,8 @@ prompt: |
         "craft": <score>,
         "functionality": <score>,
         "iteration": <current iteration number>,
-        "critique_summary": "<2-3 sentence summary of main issues>"
+        "critique_summary": "<2-3 sentence summary of main issues>",
+        "evidence_audit": "<PASS if generator provided evidence for fixes, FAIL if not, N/A for first iteration>"
       },
       "stage_hints": {
         "generate": "<Detailed critique for the generator. List specific issues with file paths and fix directions. Prioritize by severity (P0 > P1 > P2). Format as numbered list.>"
@@ -91,4 +114,6 @@ prompt: |
   - Screenshots taken (reference by description)
   - Per-criterion breakdown with evidence
   - Numbered issues list with severity and fix direction
+  - Evidence audit result (did generator back its fixes with proof?)
+  - Score trend (improving / stagnant / regressing vs previous iterations)
   - Summary verdict: PASS (all >= threshold) or FAIL (list failing criteria)

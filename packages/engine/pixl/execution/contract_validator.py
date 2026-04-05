@@ -19,7 +19,7 @@ from collections.abc import Callable
 from pathlib import Path, PurePath, PurePosixPath
 from typing import TYPE_CHECKING
 
-from pixl.execution.contract_constants import STUB_PATTERNS
+from pixl.execution.contract_constants import HACK_PATTERNS, STUB_PATTERNS
 from pixl.execution.review_validator import normalize_review_payload
 from pixl.execution.validation.models import ContractValidationResult, ContractViolation
 
@@ -117,6 +117,14 @@ class ContractValidator:
             files_to_scan = list(dict.fromkeys(contract.must_write + contract.must_update_files))
             if files_to_scan:
                 self.detect_stubs(files_to_scan, result)
+
+        # Hack detection (optional — integrity protocol)
+        if getattr(contract, "detect_hacks", False):
+            files_to_scan = list(dict.fromkeys(contract.must_write + contract.must_update_files))
+            if not files_to_scan and changed_files:
+                files_to_scan = changed_files
+            if files_to_scan:
+                self.detect_hacks(files_to_scan, result)
 
         # Require regression test (optional)
         if contract.require_regression_test:
@@ -1013,6 +1021,60 @@ class ContractValidator:
             )
 
         return stubs
+
+    # Hack Detection (Integrity Protocol)
+
+    def detect_hacks(
+        self,
+        files: list[str],
+        result: ContractValidationResult,
+    ) -> list[dict[str, str]]:
+        """Scan files for hack/shortcut patterns indicating low-quality workarounds.
+
+        Detects patterns like empty catch blocks, !important overrides,
+        type suppressions, and skipped tests — indicators that the agent
+        took shortcuts instead of fixing root causes.
+
+        Args:
+            files: List of file paths to scan
+            result: ContractValidationResult to accumulate violations
+
+        Returns:
+            List of detected hacks with file, line number, and matched pattern
+        """
+        hacks: list[dict[str, str]] = []
+
+        for path in files:
+            resolved = self._resolve_workspace_path(path)
+            if not resolved.exists():
+                continue
+
+            try:
+                content = resolved.read_text(encoding="utf-8")
+            except (UnicodeDecodeError, OSError):
+                continue
+
+            for line_num, line in enumerate(content.splitlines(), 1):
+                for pattern in HACK_PATTERNS:
+                    if re.search(pattern, line, re.IGNORECASE):
+                        hacks.append(
+                            {
+                                "file": path,
+                                "line": str(line_num),
+                                "content": line.strip()[:120],
+                                "pattern": pattern,
+                            }
+                        )
+                        break  # One match per line is enough
+
+        if hacks:
+            result.warnings.append(
+                f"Found {len(hacks)} hack/shortcut pattern(s) — review for integrity: "
+                + "; ".join(f"{h['file']}:{h['line']}" for h in hacks[:5])
+                + ("..." if len(hacks) > 5 else "")
+            )
+
+        return hacks
 
     # Goal-Backward Verification (GAP-02)
 

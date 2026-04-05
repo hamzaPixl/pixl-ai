@@ -238,6 +238,13 @@ class StageContract(BaseModel):
             "Scan output files for stub/placeholder patterns (TODO, NotImplementedError, etc.)"
         ),
     )
+    detect_hacks: bool = Field(
+        default=False,
+        description=(
+            "Scan output files for hack/shortcut patterns "
+            "(hardcoded workarounds, !important spam, empty catch blocks, disabled validation)"
+        ),
+    )
     require_regression_test: bool = Field(
         default=False,
         description=(

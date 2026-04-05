@@ -1,5 +1,30 @@
 # Changelog
 
+## v11.1.0 — Harness Integrity Protocol
+
+> Quality-over-completion enforcement for the harness workflow: no hacking, zero assumptions, consensus evaluation.
+
+### Crew — Integrity Protocol
+- **feat(crew)**: New `integrity-protocol.md` reference — 4-part protocol: no-hack rules (5 rules), zero-assumption debug methodology (5 steps), consensus validation, escalation format
+- **feat(crew)**: Harness SKILL.md now requires integrity-protocol.md alongside anti-rationalization and grading rubric
+- **feat(crew)**: Dual evaluator consensus — 2 parallel QA agents score independently, convergence check (delta ≤ 2), tiebreaker on divergence
+- **feat(crew)**: Score gate with stagnation detection and escalation handling in fallback path
+
+### Engine — Stagnation Detection
+- **feat(engine)**: Score gate hook now tracks `score_history` across iterations and detects plateau (< 1 point total improvement over 2 consecutive iterations)
+- **feat(engine)**: Generator escalation detection — if agent reports `stuck_issues` or `escalation` in baton, score gate triggers pause instead of blind looping
+- **feat(engine)**: Stagnation hint injection — on plateau, generator receives "change approach or escalate" directive instead of the same critique
+
+### Engine — Hack Detection Contract
+- **feat(engine)**: New `detect_hacks` contract option — scans output files for shortcut patterns (!important, empty catch, @ts-ignore, .skip(), hardcoded UUIDs, eslint-disable, noqa)
+- **feat(engine)**: 12 hack detection regex patterns in `contract_constants.py` alongside existing stub patterns
+- **feat(engine)**: `detect_hacks: true` enabled on harness generate stage by default
+
+### Engine — Generator Prompt Integrity
+- **feat(engine)**: Generator prompt (`harness-generate.yaml`) now includes mandatory integrity rules: no hacking, evidence-based debugging, escalation after 2 failed attempts
+- **feat(engine)**: Generator baton output includes `evidence_log` (mandatory for fix iterations), `stuck_issues`, and `escalation` fields
+- **feat(engine)**: Evaluator prompt (`harness-evaluate.yaml`) audits generator evidence, tracks score trends, and flags fixes without proof as P0
+
 ## v11.0.0 — Codex Integration & Verification
 
 > Major release: first-class Codex scaffolding, agents/skills support, and engine verification flow.
