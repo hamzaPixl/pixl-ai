@@ -3,9 +3,7 @@
 from __future__ import annotations
 
 import pytest
-
 from pixl.utils.task_graph import (
-    ValidationResult,
     compute_critical_path,
     compute_execution_order,
     validate_task_graph,

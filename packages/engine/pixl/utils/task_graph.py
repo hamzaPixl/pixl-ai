@@ -6,7 +6,6 @@ import graphlib
 from dataclasses import dataclass, field
 from typing import Any
 
-
 # Size weights for critical path calculation.
 _SIZE_WEIGHT: dict[str, int] = {"S": 1, "M": 3, "L": 8}
 
