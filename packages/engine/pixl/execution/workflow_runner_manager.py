@@ -158,6 +158,25 @@ class WorkflowRunnerManager:
         return False
 
     @classmethod
+    def steer_session(cls, session_id: str, instruction: str) -> bool:
+        """Queue a steering instruction for a running session.
+
+        Unlike ``interrupt_session`` (hard stop), this injects a new user
+        instruction at the next tool boundary.  Returns True if the
+        orchestrator was found.
+        """
+        with cls._lock:
+            orchestrator = cls._orchestrators.get(session_id)
+
+        if orchestrator is not None:
+            orchestrator.steer(instruction)
+            logger.info("Steering instruction queued for session %s", session_id)
+            return True
+
+        logger.debug("No orchestrator found for session %s (cannot steer)", session_id)
+        return False
+
+    @classmethod
     def stop_session(cls, key: _RunnerKey) -> None:
         """Signal a runner thread to stop and wait for it."""
         with cls._lock:

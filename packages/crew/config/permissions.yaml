@@ -1,0 +1,103 @@
+# Permission tiers for pixl-crew PreToolUse hooks.
+# Three tiers: always_deny (blocked), always_allow (silent pass), ask_user (prompt).
+# Each rule: pattern (regex), reason (human-readable), optional tools filter.
+
+always_deny:
+  # Destructive filesystem commands
+  - pattern: 'rm\s+-rf\s+/'
+    reason: Recursive delete from root
+  - pattern: 'rm\s+-rf\s+\.'
+    reason: Recursive delete from current directory
+  - pattern: 'rm\s+-rf\s+\*'
+    reason: Recursive delete with wildcard
+  - pattern: '>\s*/dev/sda'
+    reason: Direct disk write
+
+  # Destructive git commands
+  - pattern: 'git\s+push\s+--force'
+    reason: Force push overwrites remote history
+  - pattern: 'git\s+push\s+-f'
+    reason: Force push (short flag)
+  - pattern: 'git\s+branch\s+-D\s+(main|master)'
+    reason: Delete main/master branch
+  - pattern: 'git\s+reset\s+--hard\s*$'
+    reason: Hard reset without target (discards all changes)
+  - pattern: 'git\s+clean\s+-fd'
+    reason: Force clean untracked files and directories
+
+  # Destructive SQL
+  - pattern: 'DROP\s+TABLE'
+    reason: Drop table
+    tools: [Bash]
+  - pattern: 'DROP\s+DATABASE'
+    reason: Drop database
+    tools: [Bash]
+  - pattern: 'TRUNCATE'
+    reason: Truncate table
+    tools: [Bash]
+
+  # Secrets in file content (Write/Edit only)
+  - pattern: 'sk_live_[a-zA-Z0-9]{24,}'
+    reason: Stripe live secret key detected
+    tools: [Write, Edit]
+  - pattern: 'sk_test_[a-zA-Z0-9]{24,}'
+    reason: Stripe test secret key detected
+    tools: [Write, Edit]
+  - pattern: 'AKIA[A-Z0-9]{16}'
+    reason: AWS access key ID detected
+    tools: [Write, Edit]
+  - pattern: 'ghp_[a-zA-Z0-9]{36}'
+    reason: GitHub personal access token detected
+    tools: [Write, Edit]
+  - pattern: 'gho_[a-zA-Z0-9]{36}'
+    reason: GitHub OAuth token detected
+    tools: [Write, Edit]
+  - pattern: 'xox[bpas]-[a-zA-Z0-9-]+'
+    reason: Slack token detected
+    tools: [Write, Edit]
+  - pattern: '-----BEGIN (RSA |EC |DSA )?PRIVATE KEY-----'
+    reason: Private key detected
+    tools: [Write, Edit]
+  - pattern: 'PRIVATE_KEY\s*=\s*"[^"]{20,}'
+    reason: Private key in env variable
+    tools: [Write, Edit]
+
+always_allow:
+  # Read-only git commands
+  - pattern: '^git\s+(status|log|diff|show|branch|tag|remote|stash\s+list)'
+    reason: Read-only git operation
+    tools: [Bash]
+  # Version checks
+  - pattern: '^(python|pip|node|npm|bun|uv|cargo|go)\S*\s+--version'
+    reason: Version check
+    tools: [Bash]
+  # Listing files
+  - pattern: '^ls(\s|$|-)'
+    reason: List directory contents
+    tools: [Bash]
+  # Test execution
+  - pattern: '^(pytest|python\s+-m\s+pytest|make\s+test|npm\s+test|bun\s+test)'
+    reason: Test execution
+    tools: [Bash]
+  # Linting/formatting
+  - pattern: '^(ruff|eslint|prettier|mypy|pyright|tsc)\s+'
+    reason: Lint or type check
+    tools: [Bash]
+
+ask_user:
+  # File deletion
+  - pattern: '^rm\s+'
+    reason: File deletion requires confirmation
+    tools: [Bash]
+  # Git write operations
+  - pattern: '^git\s+(push|merge|rebase|cherry-pick)'
+    reason: Git write operation requires confirmation
+    tools: [Bash]
+  # Package installation
+  - pattern: '^(pip|npm|bun|yarn|pnpm)\s+install'
+    reason: Package installation requires confirmation
+    tools: [Bash]
+  # Accessing env files
+  - pattern: '\.env'
+    reason: Accessing .env files requires confirmation
+    tools: [Write, Edit, Read]

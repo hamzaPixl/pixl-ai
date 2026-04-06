@@ -41,11 +41,30 @@ If argument is `load` (or `.context/task-state.json` exists):
 }
 ```
 
-4. If pixl is available, also persist task state to the DB:
+4. **Validate dependency graph** before saving:
+   ```bash
+   python3 -c "
+   import json, sys
+   try:
+       from pixl.utils.task_graph import validate_task_graph
+       tasks = json.load(open('.context/task-state.json'))['tasks']
+       result = validate_task_graph(tasks)
+       if not result.valid:
+           for err in result.errors:
+               print(f'WARNING: {err}', file=sys.stderr)
+           sys.exit(1)
+       print(f'Graph valid: {len(tasks)} tasks, no cycles or orphan refs.')
+   except ImportError:
+       print('pixl engine not installed — skipping graph validation.')
+   "
+   ```
+   - If cycles or orphan refs detected: warn the user with the specific errors and ask whether to save anyway
+   - If pixl engine not installed: skip validation gracefully
+5. If pixl is available, also persist task state to the DB:
    ```bash
    pixl artifact put --name task-state --type task_state --content "$(cat .context/task-state.json)"
    ```
-5. Report how many tasks were saved
+6. Report how many tasks were saved
 
 ## Step 3: Load Task State
 
