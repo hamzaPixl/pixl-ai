@@ -4,6 +4,7 @@ import asyncio
 import contextlib
 import logging
 import os
+import queue
 import threading
 from collections.abc import Callable
 from pathlib import Path
@@ -104,8 +105,11 @@ class OrchestratorCore:
         # Locked tool sets per (agent_name, model)
         self._locked_tools: dict[tuple[str, str], list[str] | None] = {}
 
-        # Interrupt signal
+        # Interrupt signal (hard stop — binary)
         self._interrupt_event = threading.Event()
+
+        # Steering queue (soft redirect — inject new instructions mid-task)
+        self._steering_queue: queue.Queue[str] = queue.Queue()
 
         # Agent registry — parse crew agents for SDK delegation (GAP-02)
         self.agent_registry = AgentRegistry()
@@ -164,6 +168,22 @@ class OrchestratorCore:
     def clear_interrupt(self) -> None:
         """Reset the interrupt signal."""
         self._interrupt_event.clear()
+
+    def steer(self, instruction: str) -> None:
+        """Queue a steering instruction for mid-task redirect.
+
+        Unlike ``request_interrupt`` (hard stop), this injects a new user
+        instruction at the next tool boundary.  The agent summarises
+        progress and continues with the new instruction.
+        """
+        self._steering_queue.put(instruction)
+
+    def _pop_steering_instruction(self) -> str | None:
+        """Return the next queued steering instruction, or *None*."""
+        try:
+            return self._steering_queue.get_nowait()
+        except queue.Empty:
+            return None
 
     def _get_provider_name(self, model: str) -> str:
         return get_provider_name(self.providers_config, model)
@@ -340,6 +360,26 @@ class OrchestratorCore:
                 "Query interrupted (session paused or stopped)",
                 True,
             )
+
+        # Steering queue: soft redirect with new instruction (persistent client only).
+        steering_instruction = self._pop_steering_instruction()
+        if steering_instruction is not None:
+            if on_interrupt:
+                logger.info("Steering redirect: injecting new instruction (stage=%s)", stage_id)
+                with contextlib.suppress(Exception):
+                    await on_interrupt()
+                return (
+                    api_error_count,
+                    result_text,
+                    f"__STEER__:{steering_instruction}",
+                    True,
+                )
+            else:
+                logger.warning(
+                    "Steering instruction received but no persistent client available "
+                    "(one-shot path). Instruction discarded: %s",
+                    steering_instruction[:80],
+                )
 
         if hasattr(message, "content"):
             for block in message.content:
@@ -600,7 +640,56 @@ class OrchestratorCore:
                                 break
                     sdk_result = sdk_result_ref[0]
 
-                if aborted and not is_json_mode():
+                # Handle steering redirect: re-query with new instruction.
+                if (
+                    aborted
+                    and error_message
+                    and error_message.startswith("__STEER__:")
+                    and use_persistent_client
+                ):
+                    steering_instruction = error_message[len("__STEER__:") :]
+                    logger.info(
+                        "Steering: re-connecting client for redirect (stage=%s)",
+                        stage_id,
+                    )
+                    # Re-connect and send the steering instruction as a follow-up.
+                    if client_key not in self._sdk_clients_connected:  # type: ignore[possibly-undefined]
+                        await client.connect()  # type: ignore[possibly-undefined]
+                        self._sdk_clients_connected.add(client_key)  # type: ignore[possibly-undefined]
+
+                    steering_prompt = (
+                        f"[REDIRECT] The user has sent a new instruction. "
+                        f"Summarise your progress so far, then follow the new instruction:\n\n"
+                        f"{steering_instruction}"
+                    )
+                    await client.query(steering_prompt)  # type: ignore[possibly-undefined]
+                    async with asyncio.timeout(_SDK_QUERY_TIMEOUT):
+                        async for message in client.receive_response():  # type: ignore[possibly-undefined]
+                            (
+                                api_error_count,
+                                result_text,
+                                error_message,
+                                aborted,
+                            ) = await self._process_streaming_message(
+                                message,
+                                sdk_result_ref=sdk_result_ref,
+                                stream_callback=stream_callback,
+                                api_error_count=0,
+                                result_text=result_text,
+                                stage_id=stage_id,
+                                agent_name=agent_name,
+                                on_interrupt=client.interrupt,  # type: ignore[possibly-undefined]
+                                on_circuit_breaker=_evict_client,  # type: ignore[possibly-undefined]
+                            )
+                            if aborted:
+                                break
+                    sdk_result = sdk_result_ref[0]
+
+                    with contextlib.suppress(Exception):
+                        await client.disconnect()  # type: ignore[possibly-undefined]
+                    self._sdk_clients_connected.discard(client_key)  # type: ignore[possibly-undefined]
+
+                elif aborted and not is_json_mode():
                     console.error(f"Query aborted: {error_message}")
 
         except Exception as e:

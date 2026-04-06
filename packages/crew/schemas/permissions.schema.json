@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema",
+  "title": "pixl-crew permissions",
+  "description": "Declarative tool-permission tiers for PreToolUse hooks.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "always_deny": {
+      "description": "Rules that always block execution (exit 2).",
+      "type": "array",
+      "items": { "$ref": "#/$defs/rule" }
+    },
+    "always_allow": {
+      "description": "Rules that always pass silently (exit 0).",
+      "type": "array",
+      "items": { "$ref": "#/$defs/rule" }
+    },
+    "ask_user": {
+      "description": "Rules that prompt the user for approval (interactive) or auto-deny (non-interactive).",
+      "type": "array",
+      "items": { "$ref": "#/$defs/rule" }
+    }
+  },
+  "$defs": {
+    "rule": {
+      "type": "object",
+      "required": ["pattern", "reason"],
+      "additionalProperties": false,
+      "properties": {
+        "pattern": {
+          "type": "string",
+          "description": "Regex pattern matched against tool input (command for Bash, content for Write/Edit, path for Read)."
+        },
+        "reason": {
+          "type": "string",
+          "description": "Human-readable reason shown when the rule triggers."
+        },
+        "tools": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["Bash", "Write", "Edit", "Read", "Glob", "Grep", "Agent", "Skill"]
+          },
+          "description": "Optional tool filter. If omitted, rule applies to all tools."
+        },
+        "case_insensitive": {
+          "type": "boolean",
+          "default": false,
+          "description": "If true, regex matching uses case-insensitive flag. Default is case-sensitive."
+        }
+      }
+    }
+  }
+}

@@ -68,7 +68,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/run-with-flags.sh block-destructive critical ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/block-destructive.sh",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/run-with-flags.sh permission-check critical ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/permission-check.sh",
             "timeout": 5
           }
         ]
@@ -88,7 +88,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/run-with-flags.sh detect-secrets critical ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/detect-secrets.sh",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/run-with-flags.sh permission-check critical ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/permission-check.sh",
             "timeout": 5
           },
           {

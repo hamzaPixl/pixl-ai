@@ -1,5 +1,45 @@
 # Changelog
 
+## v11.2.0 — Harness Engineering Improvements
+
+> Steering queue, task graph validation, and declarative permission tiers — closing the top 3 gaps from a Claude Code architecture audit.
+
+### Engine — Mid-Task Steering Queue
+- **feat(engine)**: `OrchestratorCore._steering_queue` — soft redirect at tool boundaries (vs binary interrupt)
+- **feat(engine)**: `steer()` + `_pop_steering_instruction()` — queue instruction, drain at next boundary
+- **feat(engine)**: `__STEER__` sentinel in `_process_streaming_message()` — interrupts current query, re-queries with REDIRECT prompt
+- **feat(engine)**: `WorkflowRunnerManager.steer_session(session_id, instruction)` — external entry point
+
+### Engine — Task Graph Validation
+- **feat(engine)**: New `pixl.utils.task_graph` module — `graphlib.TopologicalSorter`-based
+- **feat(engine)**: `validate_task_graph()` — detects cycles, orphan `blockedBy` refs, self-dependencies
+- **feat(engine)**: `compute_execution_order()` — topologically sorted task IDs
+- **feat(engine)**: `compute_critical_path()` — DP longest-path with size weights (S=1, M=3, L=8)
+
+### Crew — YAML Permission Tiers
+- **feat(crew)**: `config/permissions.yaml` — 22 deny + 5 allow + 4 ask_user rules
+- **feat(crew)**: `permission-check.sh` replaces `block-destructive.sh` + `detect-secrets.sh`
+- **feat(crew)**: Three-tier model: `always_deny` (exit 2), `always_allow` (exit 0), `ask_user` (profile-aware)
+- **feat(crew)**: Per-rule `case_insensitive` flag, `tools` filter (Bash/Write/Edit/Read/Agent/Skill)
+- **feat(crew)**: `hooks.json` updated — Bash and Write|Edit matchers use `permission-check.sh`
+- **feat(crew)**: JSON Schema at `schemas/permissions.schema.json`
+
+### Crew — Skill Integration
+- **feat(crew)**: `/task-persist` validates dependency graph before save (graceful fallback)
+- **feat(crew)**: `/task-plan` Step 4 computes algorithmic critical path (graceful fallback)
+
+### Tests
+- **test**: 29 new engine tests (steering queue + task graph) — 1856 total passing
+- **test**: 9 new permission tier tests
+
+### CTO Review Fixes
+- **fix(crew)**: Wire `permission-check.sh` into `hooks.json` (was dead code)
+- **fix(crew)**: Fix `ask_user` TTY detection — use `PIXL_HOOK_PROFILE` instead
+- **fix(crew)**: Add missing `password`/`secret` assignment patterns
+- **fix(crew)**: Fix shell injection — env vars instead of string interpolation
+- **fix(crew)**: Fix `git reset --hard` pattern (remove trailing `$` anchor)
+- **fix(crew)**: Narrow `.env` pattern, remove blanket `re.IGNORECASE`
+
 ## v11.1.0 — Harness Integrity Protocol
 
 > Quality-over-completion enforcement for the harness workflow: no hacking, zero assumptions, consensus evaluation.

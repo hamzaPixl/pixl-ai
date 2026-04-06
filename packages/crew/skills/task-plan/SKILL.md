@@ -87,6 +87,27 @@ Generate the final plan:
 
 - Structured task list with IDs, titles, descriptions, sizes, and acceptance criteria
 - Dependency graph showing blocks/blockedBy relationships
-- Critical path identification (longest sequential chain)
+- **Critical path** (algorithmically computed when pixl engine is available):
+  ```bash
+  python3 -c "
+  import json
+  try:
+      from pixl.utils.task_graph import validate_task_graph, compute_critical_path, compute_execution_order
+      tasks = json.load(open('.context/task-state.json'))['tasks']
+      result = validate_task_graph(tasks)
+      if not result.valid:
+          for err in result.errors: print(f'ERROR: {err}')
+      else:
+          path = compute_critical_path(tasks)
+          order = compute_execution_order(tasks)
+          print(f'Critical path: {\" -> \".join(path)}')
+          print(f'Execution order: {order}')
+  except ImportError:
+      print('pixl engine not installed — use LLM-inferred critical path.')
+  except (FileNotFoundError, KeyError):
+      print('task-state.json not found — use LLM-inferred critical path.')
+  "
+  ```
+  Fall back to LLM-inferred critical path if engine unavailable.
 - Suggested execution order optimized for parallelism
 - Summary statistics: total tasks, size distribution, estimated effort
