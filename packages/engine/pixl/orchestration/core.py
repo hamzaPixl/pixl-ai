@@ -178,7 +178,7 @@ class OrchestratorCore:
         """
         self._steering_queue.put(instruction)
 
-    def _drain_steering_queue(self) -> str | None:
+    def _pop_steering_instruction(self) -> str | None:
         """Return the next queued steering instruction, or *None*."""
         try:
             return self._steering_queue.get_nowait()
@@ -362,7 +362,7 @@ class OrchestratorCore:
             )
 
         # Steering queue: soft redirect with new instruction (persistent client only).
-        steering_instruction = self._drain_steering_queue()
+        steering_instruction = self._pop_steering_instruction()
         if steering_instruction is not None:
             if on_interrupt:
                 logger.info("Steering redirect: injecting new instruction (stage=%s)", stage_id)

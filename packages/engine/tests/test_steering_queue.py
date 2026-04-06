@@ -90,10 +90,10 @@ class TestSteeringInOrchestratorCore:
 
         assert callable(getattr(OrchestratorCore, "steer", None))
 
-    def test_drain_method_exists(self):
+    def test_pop_method_exists(self):
         from pixl.orchestration.core import OrchestratorCore
 
-        assert callable(getattr(OrchestratorCore, "_drain_steering_queue", None))
+        assert callable(getattr(OrchestratorCore, "_pop_steering_instruction", None))
 
     def test_steer_sentinel_in_streaming(self):
         """The __STEER__ sentinel must appear in _process_streaming_message."""

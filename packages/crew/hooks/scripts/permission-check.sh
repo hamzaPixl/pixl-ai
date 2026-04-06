@@ -45,12 +45,20 @@ if [ -z "$PERMISSIONS_FILE" ]; then
 fi
 
 # Use python3 to parse YAML and evaluate rules.
-RESULT=$(python3 -c "
-import yaml, re, sys, json
+# Pass tool name and config path via env vars (not string interpolation) to
+# avoid shell injection if tool names contain special characters.
+RESULT=$(PERM_TOOL="$TOOL_NAME" PERM_CONFIG="$PERMISSIONS_FILE" python3 -c "
+import os, re, sys, json
 
-tool = '$TOOL_NAME'
+try:
+    import yaml
+except ImportError:
+    print(json.dumps({'action': 'allow', 'reason': 'PyYAML not installed'}))
+    sys.exit(0)
+
+tool = os.environ['PERM_TOOL']
 check = sys.stdin.read()
-config_path = '$PERMISSIONS_FILE'
+config_path = os.environ['PERM_CONFIG']
 
 with open(config_path) as f:
     config = yaml.safe_load(f) or {}
@@ -61,7 +69,8 @@ def matches(rules, text, tool_name):
         if tools_filter and tool_name not in tools_filter:
             continue
         try:
-            if re.search(rule['pattern'], text, re.IGNORECASE):
+            flags = re.IGNORECASE if rule.get('case_insensitive', False) else 0
+            if re.search(rule['pattern'], text, flags):
                 return rule.get('reason', 'Rule matched')
         except re.error:
             pass
@@ -88,7 +97,7 @@ if reason:
 # No rule matched — allow by default.
 print(json.dumps({'action': 'allow', 'reason': 'no rule matched'}))
 " <<< "$CHECK_TEXT" 2>/dev/null) || {
-  # Python failed (missing yaml, etc.) — allow to avoid breaking sessions.
+  # Python failed — allow to avoid breaking sessions.
   exit 0
 }
 
@@ -101,15 +110,16 @@ case "$ACTION" in
     exit 2
     ;;
   ask)
-    # In non-interactive mode (no TTY), auto-deny.
-    if [ ! -t 0 ] && [ ! -t 1 ]; then
+    # In non-interactive contexts (CI, background agents, SDK bypassPermissions),
+    # auto-deny. Hooks run with piped stdin so TTY detection is unreliable —
+    # check PIXL_HOOK_PROFILE instead (minimal profile = non-interactive).
+    if [ "${PIXL_HOOK_PROFILE:-standard}" = "minimal" ] || [ -n "${CI:-}" ]; then
       echo "Permission required (non-interactive, auto-denied): $REASON" >&2
       exit 2
     fi
-    # Interactive — the hook system will handle prompting via exit code.
-    # Exit 0 to allow, as Claude Code's own permission system handles ask_user.
-    # We log the reason so the user knows why they're being prompted.
-    echo "Permission check: $REASON" >&2
+    # Standard/strict profile: log the reason and allow — Claude Code's own
+    # permission system will handle the actual user prompt for ask_user rules.
+    echo "Permission check ($REASON) — Claude Code will prompt for approval" >&2
     exit 0
     ;;
   *)

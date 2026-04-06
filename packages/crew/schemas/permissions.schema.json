@@ -39,9 +39,14 @@
           "type": "array",
           "items": {
             "type": "string",
-            "enum": ["Bash", "Write", "Edit", "Read", "Glob", "Grep"]
+            "enum": ["Bash", "Write", "Edit", "Read", "Glob", "Grep", "Agent", "Skill"]
           },
           "description": "Optional tool filter. If omitted, rule applies to all tools."
+        },
+        "case_insensitive": {
+          "type": "boolean",
+          "default": false,
+          "description": "If true, regex matching uses case-insensitive flag. Default is case-sensitive."
         }
       }
     }

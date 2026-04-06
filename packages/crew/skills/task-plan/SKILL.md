@@ -104,6 +104,8 @@ Generate the final plan:
           print(f'Execution order: {order}')
   except ImportError:
       print('pixl engine not installed — use LLM-inferred critical path.')
+  except (FileNotFoundError, KeyError):
+      print('task-state.json not found — use LLM-inferred critical path.')
   "
   ```
   Fall back to LLM-inferred critical path if engine unavailable.

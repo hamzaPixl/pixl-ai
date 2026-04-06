@@ -52,8 +52,9 @@ assert_exit "allow: echo hello" "0" \
 assert_exit "allow: empty" "0" \
   '{"tool_name":"Bash","tool_input":{"command":""}}'
 
-# ask_user: pip install (non-interactive = deny)
-assert_exit "ask/deny: pip install" "2" \
+# ask_user: pip install (standard profile = allow with log, minimal/CI = deny)
+# In test context, PIXL_HOOK_PROFILE defaults to "standard", so ask_user allows.
+assert_exit "ask/allow: pip install (standard)" "0" \
   '{"tool_name":"Bash","tool_input":{"command":"pip install requests"}}'
 
 echo ""

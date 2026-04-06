@@ -20,21 +20,24 @@ always_deny:
     reason: Force push (short flag)
   - pattern: 'git\s+branch\s+-D\s+(main|master)'
     reason: Delete main/master branch
-  - pattern: 'git\s+reset\s+--hard\s*$'
-    reason: Hard reset without target (discards all changes)
+  - pattern: 'git\s+reset\s+--hard'
+    reason: Hard reset (discards changes)
   - pattern: 'git\s+clean\s+-fd'
     reason: Force clean untracked files and directories
 
-  # Destructive SQL
+  # Destructive SQL (case-insensitive)
   - pattern: 'DROP\s+TABLE'
     reason: Drop table
     tools: [Bash]
+    case_insensitive: true
   - pattern: 'DROP\s+DATABASE'
     reason: Drop database
     tools: [Bash]
+    case_insensitive: true
   - pattern: 'TRUNCATE'
     reason: Truncate table
     tools: [Bash]
+    case_insensitive: true
 
   # Secrets in file content (Write/Edit only)
   - pattern: 'sk_live_[a-zA-Z0-9]{24,}'
@@ -60,6 +63,12 @@ always_deny:
     tools: [Write, Edit]
   - pattern: 'PRIVATE_KEY\s*=\s*"[^"]{20,}'
     reason: Private key in env variable
+    tools: [Write, Edit]
+  - pattern: 'password\s*[:=]\s*"[^"]{8,}'
+    reason: Plaintext password assignment detected
+    tools: [Write, Edit]
+  - pattern: 'secret\s*[:=]\s*"[^"]{8,}'
+    reason: Plaintext secret assignment detected
     tools: [Write, Edit]
 
 always_allow:
@@ -98,6 +107,6 @@ ask_user:
     reason: Package installation requires confirmation
     tools: [Bash]
   # Accessing env files
-  - pattern: '\.env'
+  - pattern: '(^|/)\.env(\.|$)'
     reason: Accessing .env files requires confirmation
-    tools: [Write, Edit, Read]
+    tools: [Write, Edit]
