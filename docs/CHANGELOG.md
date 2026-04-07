@@ -1,5 +1,16 @@
 # Changelog
 
+## v11.2.1 — Codex Agent TOML Fix
+
+> Fix invalid `.codex/agents/*.toml` generation during project auto-init so new sessions on fresh projects no longer emit malformed agent role warnings.
+
+### CLI
+- **fix(cli)**: Escape Codex agent `description` values when generating TOML from crew agent markdown
+- **fix(cli)**: Preserve quoted example prompts inside agent descriptions without breaking TOML parsing
+
+### Tests
+- **test(cli)**: Add regression coverage for quoted agent descriptions in generated Codex TOML files
+
 ## v11.2.0 — Harness Engineering Improvements
 
 > Steering queue, task graph validation, and declarative permission tiers — closing the top 3 gaps from a Claude Code architecture audit.

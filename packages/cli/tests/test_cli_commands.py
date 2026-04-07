@@ -9,12 +9,14 @@ exit code and key output fragments.
 from __future__ import annotations
 
 import json
+import tomllib
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
 from click.testing import CliRunner
 from pixl_cli.main import cli
+from pixl_cli.commands.project import _write_codex_agent_toml
 
 # ---------------------------------------------------------------------------
 # Shared fixtures
@@ -255,6 +257,37 @@ class TestTemplateDelete:
         with _db_patch(mock_db):
             result = runner.invoke(cli, ["--json", "template", "delete", "wft-1", "--yes"])
         assert result.exit_code == 0
+
+
+class TestCodexAgentGeneration:
+    def test_write_codex_agent_toml_escapes_description_quotes(self, tmp_path: Path) -> None:
+        agent_md = tmp_path / "architect.md"
+        agent_md.write_text(
+            """---
+name: architect
+description: >
+  Delegate to this agent.
+
+  <example>
+  user: "How should I structure the new billing service?"
+  assistant: "I'll use the architect agent."
+  </example>
+tools: Read, Glob, Grep, Bash
+---
+
+You are an architect.
+"""
+        )
+        dst = tmp_path / "architect.toml"
+
+        _write_codex_agent_toml(agent_md, dst)
+
+        data = tomllib.loads(dst.read_text())
+        assert data["name"] == "architect"
+        assert 'user: "How should I structure the new billing service?"' in data["description"]
+        assert 'assistant: "I\'ll use the architect agent."' in data["description"]
+        assert data["sandbox_mode"] == "read-only"
+        assert "You are an architect." in data["developer_instructions"]
 
 
 # ---------------------------------------------------------------------------

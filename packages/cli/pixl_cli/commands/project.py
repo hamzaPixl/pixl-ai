@@ -31,6 +31,11 @@ _CODEX_INIT_FILES = [
 ]
 
 
+def _toml_basic_string(value: str) -> str:
+    """Serialize a value as a TOML basic string."""
+    return json.dumps(value, ensure_ascii=False)
+
+
 def _init_project(
     project_path: Path,
     *,
@@ -206,7 +211,9 @@ def _write_codex_agent_toml(agent_md: Path, dst: Path) -> None:
 
     lines = [
         f'name = "{name}"',
-        f'description = "{description}"' if description else f'description = "{name} agent"',
+        f"description = {_toml_basic_string(description)}"
+        if description
+        else f'description = "{name} agent"',
     ]
     if read_only:
         lines.append('sandbox_mode = "read-only"')
