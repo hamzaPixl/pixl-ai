@@ -1,5 +1,16 @@
 # Changelog
 
+## v11.2.2 — Codex Hook Portability Fix
+
+> Fix Codex scaffold hook portability on macOS and align fresh project wrappers with the current permission-check flow.
+
+### Crew
+- **fix(crew)**: Make `session-start.sh` work without GNU `timeout` by falling back to `gtimeout` or a plain background build
+- **fix(codex)**: Update fresh project `PreToolUse` wrapper to call `permission-check.sh` instead of the legacy `block-destructive.sh`
+
+### Verification
+- **test(codex)**: Regenerated a fresh project scaffold and verified generated `SessionStart`, `UserPromptSubmit`, `PreToolUse`, and `Stop` wrappers all exit successfully
+
 ## v11.2.1 — Codex Agent TOML Fix
 
 > Fix invalid `.codex/agents/*.toml` generation during project auto-init so new sessions on fresh projects no longer emit malformed agent role warnings.

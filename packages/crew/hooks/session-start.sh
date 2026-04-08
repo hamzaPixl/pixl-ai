@@ -203,9 +203,16 @@ echo "When making architectural choices, convention decisions, or dependency sel
 
 # ─── Part 5: Synq Knowledge Index ───────────────────────────────────────────
 
-# If pixl is available, ensure knowledge index is fresh
+# If pixl is available, ensure knowledge index is fresh.
+# `timeout` is not available by default on macOS, so fall back gracefully.
 if $_PIXL_AVAILABLE; then
-  timeout 30 pixl knowledge build --code 2>/dev/null &  # Background, non-blocking, 30s max
+  if command -v timeout &>/dev/null; then
+    timeout 30 pixl knowledge build --code >/dev/null 2>&1 &
+  elif command -v gtimeout &>/dev/null; then
+    gtimeout 30 pixl knowledge build --code >/dev/null 2>&1 &
+  else
+    pixl knowledge build --code >/dev/null 2>&1 &
+  fi
 fi
 
 # ─── Part 6: Workflow Context ─────────────────────────────────────────
