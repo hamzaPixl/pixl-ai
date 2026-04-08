@@ -3,7 +3,17 @@ set -euo pipefail
 
 ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
 
-CREW_ROOT="$ROOT/packages/crew"
+CREW_ROOT_DEFAULT="__PIXL_CREW_ROOT__"
+CREW_ROOT="${PIXL_CREW_ROOT:-}"
+
+if [ -z "$CREW_ROOT" ] && [ -n "$CREW_ROOT_DEFAULT" ] && [ "$CREW_ROOT_DEFAULT" != "__PIXL_CREW_ROOT__" ] && [ -d "$CREW_ROOT_DEFAULT" ]; then
+  CREW_ROOT="$CREW_ROOT_DEFAULT"
+fi
+
+if [ -z "$CREW_ROOT" ]; then
+  CREW_ROOT="$ROOT/packages/crew"
+fi
+
 if [ ! -d "$CREW_ROOT" ]; then
   if command -v python3 >/dev/null 2>&1; then
     CREW_ROOT="$(python3 - <<'PY'

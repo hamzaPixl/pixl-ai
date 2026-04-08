@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/bin/bash \"$(git rev-parse --show-toplevel)/.codex/hooks/session-start.sh\"",
+            "command": "/bin/bash .codex/hooks/session-start.sh",
             "statusMessage": "Loading pixl context"
           }
         ]
@@ -17,7 +17,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/bin/bash \"$(git rev-parse --show-toplevel)/.codex/hooks/user-prompt-submit.sh\""
+            "command": "/bin/bash .codex/hooks/user-prompt-submit.sh"
           }
         ]
       }
@@ -28,7 +28,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/bin/bash \"$(git rev-parse --show-toplevel)/.codex/hooks/pre-tool-use.sh\"",
+            "command": "/bin/bash .codex/hooks/pre-tool-use.sh",
             "statusMessage": "Checking command"
           }
         ]
@@ -39,7 +39,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/bin/bash \"$(git rev-parse --show-toplevel)/.codex/hooks/stop.sh\"",
+            "command": "/bin/bash .codex/hooks/stop.sh",
             "timeout": 30
           }
         ]

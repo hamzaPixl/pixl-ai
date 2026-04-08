@@ -1,5 +1,14 @@
 # Changelog
 
+## v11.2.3 — Codex Scaffold Root Fix
+
+> Fix the remaining root causes behind hook failures in fresh non-git Codex projects.
+
+### Codex
+- **fix(codex)**: Generate `hooks.json` with project-local `.codex/hooks/...` paths instead of `git rev-parse --show-toplevel`
+- **fix(codex)**: Inject the resolved crew root into generated `_env.sh` so hooks can load without importing `pixl_cli` from system `python3`
+- **fix(codex)**: Add regression coverage for `_env.sh` template substitution during Codex scaffold generation
+
 ## v11.2.2 — Codex Hook Portability Fix
 
 > Fix Codex scaffold hook portability on macOS and align fresh project wrappers with the current permission-check flow.

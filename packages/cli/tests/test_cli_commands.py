@@ -16,7 +16,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from click.testing import CliRunner
 from pixl_cli.main import cli
-from pixl_cli.commands.project import _write_codex_agent_toml
+from pixl_cli.commands.project import _copy_codex_template_file, _write_codex_agent_toml
 
 # ---------------------------------------------------------------------------
 # Shared fixtures
@@ -288,6 +288,15 @@ You are an architect.
         assert 'assistant: "I\'ll use the architect agent."' in data["description"]
         assert data["sandbox_mode"] == "read-only"
         assert "You are an architect." in data["developer_instructions"]
+
+    def test_copy_codex_template_file_injects_crew_root(self, tmp_path: Path) -> None:
+        src = tmp_path / "_env.sh"
+        dst = tmp_path / "out.sh"
+        src.write_text('CREW_ROOT_DEFAULT="__PIXL_CREW_ROOT__"\n')
+
+        _copy_codex_template_file(src, dst, Path("/tmp/pixl-crew"))
+
+        assert dst.read_text() == 'CREW_ROOT_DEFAULT="/tmp/pixl-crew"\n'
 
 
 # ---------------------------------------------------------------------------

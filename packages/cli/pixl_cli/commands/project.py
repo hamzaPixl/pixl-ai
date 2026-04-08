@@ -36,6 +36,15 @@ def _toml_basic_string(value: str) -> str:
     return json.dumps(value, ensure_ascii=False)
 
 
+def _copy_codex_template_file(src: Path, dst: Path, crew_root: Path) -> None:
+    """Copy a Codex template file, applying small substitutions when needed."""
+    if src.name == "_env.sh":
+        content = src.read_text().replace("__PIXL_CREW_ROOT__", str(crew_root))
+        dst.write_text(content)
+    else:
+        shutil.copy2(str(src), str(dst))
+
+
 def _init_project(
     project_path: Path,
     *,
@@ -149,7 +158,7 @@ def _install_codex_scaffold(
         dst = codex_dir / rel
         if src.is_file() and not dst.exists():
             dst.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(str(src), str(dst))
+            _copy_codex_template_file(src, dst, crew_root)
             if dst.suffix == ".sh":
                 try:
                     dst.chmod(0o755)
