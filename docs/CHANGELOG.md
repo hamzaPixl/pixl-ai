@@ -1,5 +1,41 @@
 # Changelog
 
+## v11.3.0 — gstack-Inspired Crew Expansion
+
+> 8 new skills, expanded code review (8 specialist reviewers), confidence scoring standard, and sprint workflow methodology — inspired by patterns from [gstack](https://github.com/garrytan/gstack).
+
+### New Skills (8)
+
+- **feat(crew)**: `/investigate` — Root cause debugging with enforced 4-phase methodology: reproduce → diagnose → hypothesize → fix. Prevents jumping to solutions; requires regression test on every fix
+- **feat(crew)**: `/health` — Code quality dashboard wrapping project toolchain (types, lint, tests, dead code) into a composite 0-10 score with trend tracking via `--trend` and auto-fix via `--fix`
+- **feat(crew)**: `/retro` — Engineering retrospective from git history: commit distribution, code churn hotspots, shipping velocity, per-contributor breakdown. Time-windowed (24h/7d/14d/30d/compare)
+- **feat(crew)**: `/cross-review` — Multi-tier code review running Sonnet + Haiku independently on the same diff, producing a consensus table that flags agreements, single-model findings, and taste decisions
+- **feat(crew)**: `/deploy-verify` — Post-merge release verification: waits for deploy, runs canary checks (page load, content, API health, SSL), supports `--revert` for auto-rollback on critical failure
+- **feat(crew)**: `/checkpoint` — Save and restore full working context (branch, stash, task state, decisions, remaining work) for seamless task switching and session resumption
+- **feat(crew)**: `/design-variants` — Generate N distinct visual design variants (minimal, bold, editorial, brutalist, organic, tech) as self-contained HTML files with a comparison board
+- **feat(crew)**: `/guard` — Session-scoped file protection: declare protected paths (`/guard protect .env`) or restrict edits to a scope (`/guard scope src/api/`), enforced via guard file checks
+
+### Enhanced Code Review
+
+- **feat(crew)**: `/code-review` expanded from 3 to 8 specialist reviewer dimensions — adds Performance (D), API Contracts (E), Data Migration Safety (F), Maintainability (G), and Red Team/adversarial (H)
+- **feat(crew)**: Quick mode (3 reviewers, default) vs Full mode (`--full`, 8 reviewers) for cost-appropriate review depth
+- **feat(crew)**: AUTO-FIX / ASK classification on every finding — low-risk mechanical fixes (unused imports, missing types) vs judgment-required changes. `--auto-fix` flag applies AUTO-FIX findings directly
+- **feat(crew)**: 5-tier confidence scoring aligned with new standard (90-100 near certain → 1-39 speculative)
+
+### Standards & Methodology
+
+- **feat(crew)**: Confidence Scoring Standard in `references/standards/code-review.md` — 5-tier scale with boosters (+10 consensus, +5 critical path) and penalties (-15 incomplete context), fix classification (AUTO-FIX vs ASK). Applies across `/code-review`, `/cto-review`, `/security-scan`, `/api-audit`, `/schema-audit`, `/dependency-review`
+- **feat(crew)**: Sprint Workflow Reference in `references/methodology/sprint-workflow.md` — Think → Plan → Build → Review → Test → Ship → Reflect with pixl skill mappings per phase
+- **feat(crew)**: Completeness Principle added to orchestrator and architect agents — prefer full implementations over stubs, finish what you start, avoid TODO-driven development
+- **feat(crew)**: Cross-reference between `/cross-review` and `multi-model-arbitration.md` to distinguish proactive review from stuck-state arbitration
+
+### Registry Updates
+
+- **chore(crew)**: Skill count updated 75 → 84 across all CLAUDE.md files and structure trees
+- **chore(crew)**: `skills/ROUTING.md` — 8 new routing entries, removed duplicate `/session-wrap` entry
+- **chore(crew)**: `references/INDEX.md` — added `sprint-workflow.md` and `multi-model-arbitration.md` entries
+- **chore(crew)**: `plugin.json` description updated to reflect 84 skills
+
 ## v11.2.3 — Codex Scaffold Root Fix
 
 > Fix the remaining root causes behind hook failures in fresh non-git Codex projects.

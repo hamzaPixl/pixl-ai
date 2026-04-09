@@ -8,7 +8,7 @@ Claude Code plugin — AI dev crew with agents, skills, and studio templates.
 .claude-plugin/plugin.json   # manifest
 Makefile                     # setup, release, check
 agents/                      # 14 agents
-skills/                      # 75 skills (see skills/ROUTING.md for decision tree)
+skills/                      # 84 skills (see skills/ROUTING.md for decision tree)
 hooks/hooks.json             # event hooks (routed via run-with-flags.sh orchestrator)
 references/                  # shared domain knowledge (see references/INDEX.md, AGENT-REGISTRY.md)
 contexts/                    # dynamic context overlays (dev, research, review)
@@ -55,13 +55,14 @@ make scaffold STACK=nextjs   # interactive project scaffold
 **Frontend**: `/website`, `/design-extraction`, `/shadcn-ui`, `/svg-icon-creation`, `/i18n-setup`
 **Website mods**: `/website-theme`, `/website-layout`
 **Backend**: `/ddd-pattern`, `/fastapi-service`, `/pydantic-api-endpoint`
-**Quality**: `/self-review-fix-loop`, `/code-reduction`, `/agent-browser`, `/react-doctor`, `/seo-audit`, `/cto-review`, `/cartographer`, `/test-runner`, `/test-writer`, `/benchmark`, `/schema-audit`, `/error-catalog`, `/api-audit`, `/dependency-review`, `/eval-harness`, `/security-scan`, `/spec-review`, `/code-review`, `/runbook`
+**Quality**: `/self-review-fix-loop`, `/code-reduction`, `/agent-browser`, `/react-doctor`, `/seo-audit`, `/cto-review`, `/cartographer`, `/test-runner`, `/test-writer`, `/benchmark`, `/schema-audit`, `/error-catalog`, `/api-audit`, `/dependency-review`, `/eval-harness`, `/security-scan`, `/spec-review`, `/code-review`, `/cross-review`, `/runbook`, `/investigate`, `/health`, `/deploy-verify`
 **Utilities**: `/file-parser`
 **Marketing**: `/content-marketing`
 **Video**: `/intro-video-brief` (create or enhance Remotion product intro videos)
 **DevOps**: `/docker-cloudrun`, `/pm2`, `/makefile`, `/docker-prisma-setup`
 **Planning**: `/prd-analysis`, `/task-plan`, `/content-pipeline`, `/sprint-planning`, `/task-persist`, `/migration-plan`, `/prd-pipeline`
-**Workflow**: `/pr-creation`, `/claude-md`, `/skill-factory`, `/multi-agent-pipeline`, `/ralph-loop-crew`, `/context-packet-template`, `/crew-init`, `/studio-guide`, `/session-wrap`, `/client-project-setup`, `/strategic-compact`, `/continuous-learning`, `/batch`, `/changelog`, `/ship-milestone`
+**Workflow**: `/pr-creation`, `/claude-md`, `/skill-factory`, `/multi-agent-pipeline`, `/ralph-loop-crew`, `/context-packet-template`, `/crew-init`, `/studio-guide`, `/session-wrap`, `/client-project-setup`, `/strategic-compact`, `/continuous-learning`, `/batch`, `/changelog`, `/ship-milestone`, `/checkpoint`, `/guard`, `/retro`
+**Design**: `/design-variants`
 **Swift**: `/swift-patterns`
 **Scripts**: `download-assets.sh` (asset downloading), `visual-diff.mjs` (pixelmatch visual regression)
 **Project types**: `/website-project`, `/saas-microservice`, `/fullstack-app`, `/admin-dashboard`, `/blog`, `/fastapi-api`

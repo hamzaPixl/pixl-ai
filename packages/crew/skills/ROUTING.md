@@ -62,6 +62,7 @@ Decision tree: "I want to build X" → use skill Y.
 | Run Python tests with smart discovery         | `/test-runner`          |
 | Verify a running app in the browser           | `/agent-browser`        |
 | Review a PR before merge                      | `/code-review`          |
+| Review a PR with multi-model consensus        | `/cross-review`         |
 | Compare code against open-source examples     | `/benchmark`            |
 | Audit database schema                         | `/schema-audit`         |
 | Catalog and standardize error handling         | `/error-catalog`        |
@@ -69,6 +70,10 @@ Decision tree: "I want to build X" → use skill Y.
 | Review dependencies for CVEs/outdated/licenses | `/dependency-review`    |
 | Eliminate dead code with static analysis       | `/code-reduction` (quick mode) |
 | Investigate production incident or generate runbook | `/runbook`          |
+| Debug a bug with structured investigation      | `/investigate`          |
+| Get a project health score (types, lint, tests) | `/health`             |
+| Check quality trends over time                 | `/health --trend`       |
+| Verify a deploy after merge                    | `/deploy-verify`        |
 
 ## Plan & Strategize
 
@@ -109,11 +114,14 @@ Decision tree: "I want to build X" → use skill Y.
 | Explore the studio stacks        | `/studio-guide`            |
 | Wrap up a session (decisions + handoff) | `/session-wrap`     |
 | Persist tasks across sessions    | `/task-persist`            |
+| Save/restore full working context | `/checkpoint`             |
 | Create a context packet          | `/context-packet-template` |
-| Capture session decisions        | `/session-wrap`            |
 | Generate release notes from commits | `/changelog`            |
 | Ship a milestone end-to-end      | `/ship-milestone`          |
 | Onboard a new client project     | `/client-project-setup`    |
+| Run an engineering retrospective  | `/retro`                  |
+| Protect files from accidental edits | `/guard`                |
+| Explore design variant directions | `/design-variants`        |
 
 ## Swift / iOS
 

@@ -63,12 +63,45 @@
 | **Minor** | Style improvements, documentation gaps, naming suggestions | Nice to have |
 | **Nitpick** | Personal preference, optional polish | Optional |
 
+## Confidence Scoring Standard
+
+Every finding across all audit and review skills must include a confidence score (1-100).
+
+| Score | Level | Behavior |
+|-------|-------|----------|
+| 90-100 | **Near certain** | Always surface. Evidence is concrete (stack trace, test failure, provable logic error). |
+| 80-89 | **High confidence** | Surface by default. Strong evidence but not provable without execution. |
+| 60-79 | **Moderate** | Filtered by default. Add caveat: "likely" or "potential". Surface with `--threshold 60`. |
+| 40-59 | **Low confidence** | Suppress to appendix. Only flag if P0-severity (security, data loss). |
+| 1-39 | **Speculative** | Never surface unless explicitly asked. Speculation wastes reviewer attention. |
+
+**Confidence boosters** (add to base score):
+- Multiple reviewers flag same issue: +10
+- Issue matches known anti-pattern from this checklist: +5
+- Issue is in a critical path (auth, payments, data integrity): +5
+- Code pattern has caused bugs before (from instincts/memory): +5
+
+**Confidence penalties** (subtract from base score):
+- Finding is based on naming alone (no logic analysis): -10
+- Code context is incomplete (can't see full function): -15
+- Issue depends on runtime behavior not visible in static review: -10
+
+**Fix classification** (applies to `/code-review`, `/self-review-fix-loop`, `/cto-review`):
+
+| Class | Criteria | Examples |
+|-------|----------|----------|
+| **AUTO-FIX** | Mechanical, unambiguous, no design decisions | Unused imports, missing `await`, formatting, type annotations |
+| **ASK** | Requires judgment, multiple valid approaches | Architecture changes, new abstractions, performance trade-offs |
+
+This standard applies to: `/code-review`, `/cto-review`, `/security-scan`, `/api-audit`, `/schema-audit`, `/dependency-review`.
+
 ## Feedback Format
 
 - Be specific — quote code, reference line numbers
 - Explain why — not just "don't do this" but why it matters
 - Suggest alternatives with rationale
 - Use severity prefixes: `[Critical]`, `[Important]`, `[Minor]`, `[Nit]`
+- Include confidence score: `[95%]` or `[High]`
 
 ## Review Output
 

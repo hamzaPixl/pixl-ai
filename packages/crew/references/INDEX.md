@@ -59,6 +59,8 @@ Shared domain knowledge auto-loaded by agents and skills via `references/` in CL
 | `methodology/vertical-slice.md`     | Vertical slice architecture for feature delivery |
 | `methodology/client-onboarding.md`  | Client project onboarding checklist and CLAUDE.md template |
 | `methodology/worktrees.md`          | Git worktree best practices for parallel work and subagent isolation |
+| `methodology/sprint-workflow.md`    | Think → Plan → Build → Review → Test → Ship → Reflect with skill mappings |
+| `methodology/multi-model-arbitration.md` | Cross-model arbitration for stuck decisions: spawn opposite model tier, compare, arbitrate |
 
 ## Orchestration
 

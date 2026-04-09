@@ -46,7 +46,7 @@ packages/
 ├── crew/                       # pixl-crew (bash/md) — NOT a Python package
 │   ├── .claude-plugin/
 │   ├── agents/                 # 14 agents
-│   ├── skills/                 # 75 skills (see skills/ROUTING.md)
+│   ├── skills/                 # 84 skills (see skills/ROUTING.md)
 │   ├── hooks/                  # event hooks
 │   ├── references/             # shared domain knowledge
 │   ├── studio/stacks/          # nextjs, saas scaffolds
@@ -138,7 +138,7 @@ Global options: `--json` (JSON output, NDJSON streaming for workflow run), `--pr
 
 ## Crew Plugin
 
-14 agents, 75 skills, 2 studio stacks (nextjs, saas) — see `packages/crew/CLAUDE.md` for full reference.
+14 agents, 84 skills, 2 studio stacks (nextjs, saas) — see `packages/crew/CLAUDE.md` for full reference.
 
 Hooks use `.pixl/pixl.db` (SQLite) when CLI is installed, falling back to `.claude/memory/` (file-based).
 

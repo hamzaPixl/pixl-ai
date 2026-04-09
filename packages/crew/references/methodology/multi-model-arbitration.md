@@ -29,6 +29,8 @@ Agent(
 - When the problem is clearly a bug, not a design question
 - When you haven't tried the obvious approach first
 
+**Note**: For proactive cross-model PR review (not stuck-state arbitration), see the `/cross-review` skill.
+
 ## Cost Consideration
 
 Cross-checking doubles the token cost for that decision. Reserve for architectural choices, not line-level edits. The pixl engine already handles this for workflow stages via ContractValidator — this pattern is for interactive sessions only.
