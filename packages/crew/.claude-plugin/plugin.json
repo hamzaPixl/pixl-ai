@@ -1,7 +1,7 @@
 {
   "name": "pixl-crew",
-  "version": "12.0.0",
-  "description": "Multi-agent development crew: 14 specialized agents, 84 skills, studio templates, and companion plugins (LSP, Trail of Bits security, playground). Full-stack TypeScript, Python, and Swift with DDD patterns, CI/CD pipelines, design extraction, and cross-session memory.",
+  "version": "12.1.0",
+  "description": "Multi-agent development crew: 14 specialized agents, 93 skills (including caveman token-compression suite), studio templates, and companion plugins (LSP, Trail of Bits security, playground). Full-stack TypeScript, Python, and Swift with DDD patterns, CI/CD pipelines, design extraction, and cross-session memory.",
   "homepage": "https://github.com/hamzaPixl/pixl-ai",
   "repository": "https://github.com/hamzaPixl/pixl-ai",
   "license": "MIT",
@@ -21,6 +21,8 @@
     "typescript",
     "shadcn",
     "swift",
-    "ios"
+    "ios",
+    "token-optimization",
+    "caveman"
   ]
 }

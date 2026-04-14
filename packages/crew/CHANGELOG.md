@@ -4,6 +4,45 @@ All notable changes to the pixl-crew plugin.
 
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: [SemVer](https://semver.org/).
 
+## [12.1.0] - 2026-04-15
+
+Minor: vendor the [caveman](https://github.com/JuliusBrussee/caveman) token-compression plugin into the crew. Cuts output tokens ~30% on every response at the default lite level while preserving full technical accuracy. Auto-activates via a new project rule; opt-out via `/caveman off`.
+
+### Added
+
+- **5 new skills** under `skills/` (vendored from caveman, MIT; frontmatter rewritten for pixl-crew semantic routing):
+  - `/caveman` — switch response style to token-compressed mode. Levels: `lite` (default), `full`, `ultra`, `wenyan-lite`, `wenyan-full`, `wenyan-ultra`
+  - `/caveman-commit` — generate ultra-terse Conventional Commits messages (≤50 char subject, body only when "why" is non-obvious). Style override for commit messages; does NOT replace `/commit-commands:commit`
+  - `/caveman-review` — one-line PR review comments (`L42: 🔴 bug: user null. Add guard.`). Style override; does NOT replace `/code-review`
+  - `/caveman-compress` — Python CLI that rewrites `.md` memory files in caveman-speak, auto-saves `FILE.original.md` backup. Validates code blocks, URLs, headings, file paths preserved exactly; retries up to 2 times; restores original on final failure
+  - `/caveman-help` — quick-reference card for all caveman modes and skills
+- **Project rule** `.claude/rules/caveman-activate.md` — auto-activates caveman-lite as the default response style with safety carve-outs (security warnings, irreversible-action confirmations, commit/PR messages stay verbose)
+- **Routing** — new "Output Style / Token Optimization" section in `skills/ROUTING.md` with disambiguation notes (`/caveman-commit` vs `/commit-commands:commit`, `/caveman-compress` vs `/strategic-compact`)
+- **Skill count**: 88 → 93
+
+### Changed
+
+- `packages/crew/CLAUDE.md` — added "Token optimization" entry to skills list
+- `packages/crew/.claude-plugin/plugin.json` — `token-optimization`, `caveman` added to keywords
+- Description updated to reflect caveman suite inclusion
+
+### Safety
+
+- Vendored `caveman-compress` Python scripts audited: no network exfiltration (only calls Claude API via `ANTHROPIC_API_KEY` env or `claude --print` CLI fallback), writes only to target file + sibling `.original.md` backup, 500KB file-size cap, aborts if backup already exists
+- Frontmatter `description:` fields rewritten in normal English to protect semantic routing from being hijacked by caveman-speak
+- Agent and skill BODIES not touched — caveman changes response STYLE, not stored instructions. Zero risk to existing workflows, templates, or command strings
+- Lite mode keeps sentence structure, so downstream parsers (`/cartographer`, `/spec-review`, `/pr-creation`) and the `pixl knowledge` FTS5 BM25 index stay unaffected
+
+### Migration notes
+
+This release is **additive only**. To disable caveman per session: `/caveman off`. To disable globally: remove or rename `.claude/rules/caveman-activate.md`. To roll back entirely:
+
+```bash
+rm -rf packages/crew/skills/caveman*/
+rm .claude/rules/caveman-activate.md
+git checkout packages/crew/skills/ROUTING.md packages/crew/CLAUDE.md packages/crew/.claude-plugin/plugin.json
+```
+
 ## [12.0.0] - 2026-04-15
 
 Major: design vocabulary overhaul. Adopts impeccable's anti-pattern catalog and AI Slop Test, plus taste-skill aesthetic packs, so the crew produces meaningfully better UI by default.

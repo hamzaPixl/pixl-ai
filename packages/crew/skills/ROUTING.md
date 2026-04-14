@@ -154,3 +154,20 @@ Decision tree: "I want to build X" → use skill Y.
 | --------------------- | ----------------------------------- |
 | Stripe integration    | `/stripe-best-practices`            |
 | Postgres optimization | `/supabase-postgres-best-practices` |
+
+## Output Style / Token Optimization
+
+Response-compression skills that cut output tokens while preserving technical accuracy. Layered on top of other skills — they change the STYLE of responses, not routing.
+
+| I want to...                                     | Use                    |
+| ------------------------------------------------ | ---------------------- |
+| Save tokens on every response (default in pixl)  | `/caveman lite`        |
+| Aggressive compression (fragments OK)            | `/caveman full`        |
+| Extreme compression (telegraph style)            | `/caveman ultra`       |
+| Terse Conventional Commit message                | `/caveman-commit`      |
+| One-line PR review comments                      | `/caveman-review`      |
+| Rewrite a .md memory file in caveman-speak       | `/caveman-compress`    |
+| Show caveman cheatsheet                          | `/caveman-help`        |
+| Reset to normal responses                        | `/caveman off`         |
+
+**Note:** `/caveman-commit` and `/caveman-review` are **style overrides** — they generate terse output in the caveman format but do NOT replace `/commit-commands:commit` or `/code-review`. `/caveman-compress` rewrites FILES on disk (auto-saves `FILE.original.md` backup); it is different from `/strategic-compact`, which manages in-conversation context only.

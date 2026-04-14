@@ -69,6 +69,7 @@ make scaffold STACK=nextjs   # interactive project scaffold
 **Plugin dev**: `/agent-development`, `/command-development`, `/hook-development`, `/plugin-settings`, `/plugin-structure`, `/skill-factory`
 **Database/Payments**: `/supabase-postgres-best-practices`, `/stripe-best-practices`
 **Intelligence**: `/intel`, `/strategic-intel`, `/vision-advisory`
+**Token optimization**: `/caveman` (lite/full/ultra/wenyan), `/caveman-commit`, `/caveman-review`, `/caveman-help`, `/caveman-compress`
 
 ## Rules (`.claude/rules/`)
 
