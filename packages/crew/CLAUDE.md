@@ -8,7 +8,7 @@ Claude Code plugin — AI dev crew with agents, skills, and studio templates.
 .claude-plugin/plugin.json   # manifest
 Makefile                     # setup, release, check
 agents/                      # 14 agents
-skills/                      # 84 skills (see skills/ROUTING.md for decision tree)
+skills/                      # 88 skills (see skills/ROUTING.md for decision tree)
 hooks/hooks.json             # event hooks (routed via run-with-flags.sh orchestrator)
 references/                  # shared domain knowledge (see references/INDEX.md, AGENT-REGISTRY.md)
 contexts/                    # dynamic context overlays (dev, research, review)
@@ -62,7 +62,7 @@ make scaffold STACK=nextjs   # interactive project scaffold
 **DevOps**: `/docker-cloudrun`, `/pm2`, `/makefile`, `/docker-prisma-setup`
 **Planning**: `/prd-analysis`, `/task-plan`, `/content-pipeline`, `/sprint-planning`, `/task-persist`, `/migration-plan`, `/prd-pipeline`
 **Workflow**: `/pr-creation`, `/claude-md`, `/skill-factory`, `/multi-agent-pipeline`, `/ralph-loop-crew`, `/context-packet-template`, `/crew-init`, `/studio-guide`, `/session-wrap`, `/client-project-setup`, `/strategic-compact`, `/continuous-learning`, `/batch`, `/changelog`, `/ship-milestone`, `/checkpoint`, `/guard`, `/retro`
-**Design**: `/design-variants`
+**Design**: `/design-variants`, `/design-critique`, `/design-polish`, `/design-distill`, `/design-context`
 **Swift**: `/swift-patterns`
 **Scripts**: `download-assets.sh` (asset downloading), `visual-diff.mjs` (pixelmatch visual regression)
 **Project types**: `/website-project`, `/saas-microservice`, `/fullstack-app`, `/admin-dashboard`, `/blog`, `/fastapi-api`

@@ -467,3 +467,208 @@ Pick one as **primary** (60%) and one as **modifier** (40%). Use primary's struc
 | Glassmorphism + Aurora | Premium AI product          |
 | Neubrutalism + Bold    | High-energy design tool     |
 | Cyberpunk + Minimal    | Technical dark SaaS         |
+
+---
+
+# Extended Archetypes (Taste Pack)
+
+The following archetypes extend the core 12 with deeper personality packs imported from the taste-skill reference library. They are richer on motion, anti-patterns, and typographic intent — use them when the default 12 archetypes feel too generic for the brief.
+
+> Note: `Brutalist` (core #7) is a minimal "raw, typography-first" variant. The `Industrial Brutalist` below is a heavier, more opinionated pack that adds terminal/telemetry modes. Treat them as distinct variants — pick one per project.
+
+---
+
+## 13. Industrial Brutalist (Telemetry / Swiss-Print)
+
+**Personality:** Raw mechanical interfaces fusing Swiss typographic print with military terminal aesthetics. Rigid grids, extreme type scale contrast, utilitarian color, analog degradation effects.
+
+```yaml
+BORDER_RADIUS: "0px"
+SHADOW_SM: "none"
+SHADOW_MD: "none"
+SHADOW_LG: "none"
+DURATION_MICRO: "80ms"
+DURATION_PAGE: "180ms"
+ANIM_EASE: "[0, 0, 1, 1]"
+ANIM_DISTANCE: "0"
+ANIM_STAGGER: "0.02"
+HEADING_FONT: "sans"
+NAV_CLASSES: "bg-background border-b border-foreground"
+FOOTER_CLASSES: "bg-foreground text-background"
+SECTION_PADDING: "py-10 sm:py-14"
+LAYOUT_MAX_WIDTH: "full"
+```
+
+**Color palette:**
+- Light (Swiss-Print): newsprint/off-white `#F5F2EA`, ink `#0A0A0A`, hazard red accent `#E61919`.
+- Dark (Tactical Telemetry): deactivated CRT `#0A0A0A` / `#121212`, white phosphor foreground `#EAEAEA`, aviation red `#E61919`, optional terminal green `#4AF626` (single-purpose only).
+- Never pure `#000000` or `#FFFFFF`. Commit to ONE mode per project — do not mix Swiss-Print and Telemetry.
+
+**Typography:**
+- Macro headings: Neue Haas Grotesk Black, Archivo Black, Monument Extended, Inter Black — `clamp(4rem, 10vw, 15rem)`.
+- Monospace for metadata, tables, labels: IBM Plex Mono, JetBrains Mono, Berkeley Mono.
+- Extreme scale contrast (huge / tiny), ALL-CAPS labels with wide tracking, no mid-range sizes.
+
+**Radius / Shadow / Spacing:**
+- Radius: absolute zero (`border-radius: 0`). 90-degree corners are mandatory.
+- Shadows: none — use visible borders (`1px`/`2px solid`) to delineate zones instead.
+- Spacing: bimodal — tight data clusters adjacent to vast negative space around macro numerals.
+
+**Motion personality:** Instant, linear, mechanical. No easing curves, no entry fades. State changes are snaps, not transitions.
+
+**Signature devices:** ASCII framing brackets `[ REV 2.6 ]`, crosshairs at grid intersections, registration marks as structural elements, CRT scanline overlays, halftone/1-bit dithering on imagery, horizontal warning stripes.
+
+**When to use:** Data dashboards, editorial/news, security/infosec landing pages, developer portfolios, declassified-blueprint aesthetics.
+
+**Anti-patterns:** Rounded corners. Diffuse shadows. Easing curves on transitions. Mixing Swiss-Print + Telemetry modes. Pure black `#000000`. Mid-range type sizes.
+
+**Real-world references:** Bloomberg Terminal, Palantir marketing, Arc Raiders site, Teenage Engineering, Craigslist.
+
+---
+
+## 14. Minimalist (Editorial Utility)
+
+**Personality:** Clean editorial-style interfaces. Warm monochrome palette, typographic contrast, flat bento grids, muted pastels. Document-like, gallery-airy, Notion-tier refinement.
+
+```yaml
+BORDER_RADIUS: "4px"
+SHADOW_SM: "0 1px 2px rgba(0,0,0,0.02)"
+SHADOW_MD: "0 2px 8px rgba(0,0,0,0.04)"
+SHADOW_LG: "0 4px 16px rgba(0,0,0,0.05)"
+DURATION_MICRO: "200ms"
+DURATION_PAGE: "600ms"
+ANIM_EASE: "[0.16, 1, 0.3, 1]"
+ANIM_DISTANCE: "12"
+ANIM_STAGGER: "0.08"
+HEADING_FONT: "serif"
+NAV_CLASSES: "bg-background/80 backdrop-blur-md border-b border-border"
+FOOTER_CLASSES: "bg-background border-t border-border"
+SECTION_PADDING: "py-24 sm:py-32"
+LAYOUT_MAX_WIDTH: "5xl"
+```
+
+**Color palette:**
+- Warm monochrome base: cream `#F7F6F3`, off-white surface `#FFFFFF`, charcoal text `#111111` (never `#000`), muted secondary `#787774`, hairline border `#EAEAEA`.
+- Accents: muted pastels only (dusty rose, sage, butter, sky) — applied sparingly as badge fills or illustration accents. Never large colored sections.
+
+**Typography:**
+- UI sans: SF Pro Display, Geist Sans, Switzer, Helvetica Neue. Never Inter / Roboto / Open Sans.
+- Editorial serif for headings & pull-quotes: Lyon Text, Newsreader, Instrument Serif, Playfair Display. Tight tracking (`-0.02em` to `-0.04em`), `line-height: 1.1`.
+- Mono for meta/keystrokes: Geist Mono, SF Mono, JetBrains Mono.
+
+**Radius / Shadow / Spacing:**
+- Radius: small (4-6px). No `rounded-full` on large containers.
+- Shadow: ultra-diffuse, opacity < 0.05. Effectively invisible but present for micro-elevation.
+- Spacing: macro-whitespace. Section padding `py-24`/`py-32`. Content constrained to `max-w-4xl` or `max-w-5xl`.
+
+**Motion personality:** Invisible sophistication. 600ms fades with `cubic-bezier(0.16, 1, 0.3, 1)`. 12px translateY on entry. Staggered cascades at `80ms` per index. No spectacle.
+
+**Signature devices:** Pill-shaped badges with ALL-CAPS tracked text. `<kbd>` keystroke chips. Faux-OS window chrome for app mocks. Monochromatic line illustrations with one pastel shape offset. Ambient drifting radial gradient at `opacity: 0.02-0.04`.
+
+**When to use:** SaaS dashboards, productivity tools, editorial blogs, consulting/advisory sites, documentation sites, portfolios that prioritize content.
+
+**Anti-patterns:** Inter / Roboto / Open Sans. Heavy shadows (`shadow-md`+). Primary-colored hero sections. Gradients. Neon. 3D glassmorphism (except subtle nav blur). `rounded-full` on large cards/buttons. Emojis. "Lorem ipsum" / "John Doe" / "Acme Corp". AI cliches ("Elevate", "Seamless", "Unleash").
+
+**Real-world references:** Notion, Linear docs, Vercel blog, Stripe marketing pages, Read.cv.
+
+---
+
+## 15. Soft (High-End Visual / Awwwards-Tier)
+
+**Personality:** $150k+ agency-level experiences. Haptic depth, cinematic spatial rhythm, obsessive micro-interactions, fluid spring motion. Soft structuralism with exaggerated squircles and double-bezel layering.
+
+```yaml
+BORDER_RADIUS: "32px"
+SHADOW_SM: "0 4px 12px rgba(0,0,0,0.04)"
+SHADOW_MD: "0 20px 40px -15px rgba(0,0,0,0.08)"
+SHADOW_LG: "0 40px 80px -20px rgba(0,0,0,0.12)"
+DURATION_MICRO: "400ms"
+DURATION_PAGE: "800ms"
+ANIM_EASE: "[0.32, 0.72, 0, 1]"
+ANIM_DISTANCE: "64"
+ANIM_STAGGER: "0.12"
+HEADING_FONT: "sans"
+NAV_CLASSES: "bg-background/70 backdrop-blur-2xl border border-white/10 rounded-full mx-auto mt-6 w-max"
+FOOTER_CLASSES: "bg-foreground text-background rounded-t-[32px]"
+SECTION_PADDING: "py-32 sm:py-40"
+LAYOUT_MAX_WIDTH: "7xl"
+```
+
+**Color palette (pick ONE vibe per project):**
+- Ethereal Glass: OLED black `#050505`, radial purple/emerald orb glows, vantablack cards with `backdrop-blur-2xl`, white/10 hairlines.
+- Editorial Luxury: warm cream `#FDFBF7`, muted sage, deep espresso, film-grain noise overlay at `opacity-[0.03]`.
+- Soft Structuralism: silver-grey or pure white, bold Grotesk headings, diffused ambient shadows, floating components.
+
+**Typography:**
+- Display: Geist, Clash Display, PP Editorial New, Plus Jakarta Sans. Banned: Inter, Roboto, Arial, Helvetica, Open Sans.
+- Icons: ultra-light stroke only (Phosphor Light, Remix Line). No Lucide / FontAwesome defaults.
+
+**Radius / Shadow / Spacing:**
+- Radius: exaggerated squircle (`rounded-[2rem]` / 32px). Pills on floating nav.
+- Shadow: diffused, low-opacity ambient (`0 20px 40px -15px rgba(0,0,0,0.05)`). Never harsh drops.
+- Spacing: `py-24` minimum, often `py-40`. Heavy breathing room. Double-bezel nesting (outer shell + inner core) on all major cards.
+
+**Motion personality:** Spring physics (`stiffness: 100, damping: 20`). Custom cubic-bezier `[0.32, 0.72, 0, 1]` — never linear or ease-in-out. Fluid Island nav. Magnetic button hover (scale 0.98 on press, inner icon translates diagonally). 800ms+ entry fades with blur-md → blur-0. Staggered mask reveals.
+
+**Signature devices:** Floating pill nav detached from top. Hamburger → X morph. Button-in-button trailing icon. Perpetual micro-loops (pulse, float, shimmer). Asymmetric bento grids. Eyebrow tags (`text-[10px] uppercase tracking-[0.2em]`).
+
+**When to use:** Premium SaaS launches, AI product marketing, agency portfolios, luxury consumer apps, any brief where "Awwwards SOTD" is the bar.
+
+**Anti-patterns:** Inter / Roboto. Harsh dark shadows. Edge-to-edge sticky navbars glued to top. Symmetric 3-column Bootstrap grids. Linear / ease-in-out transitions. Instant state changes. Animating `top`/`left`/`width`/`height` (only `transform` + `opacity`). Arbitrary `z-[9999]`. `h-screen` (use `min-h-[100dvh]`).
+
+**Real-world references:** Arc Browser, Rauno Freiberg sites, Family agency, recent Linear/Anthropic landing work, Mercury.com.
+
+---
+
+## 16. Stitch (Taste Standard)
+
+**Personality:** Restrained, gallery-airy interface with confident asymmetric layouts and fluid spring-physics motion. Clinical yet warm — a well-lit architecture studio where every element earns its place through function. Tuned via four dials: Creativity, Density, Variance, Motion Intent.
+
+```yaml
+BORDER_RADIUS: "40px"
+SHADOW_SM: "0 2px 6px rgba(0,0,0,0.03)"
+SHADOW_MD: "0 20px 40px -15px rgba(0,0,0,0.05)"
+SHADOW_LG: "0 40px 80px -20px rgba(0,0,0,0.08)"
+DURATION_MICRO: "300ms"
+DURATION_PAGE: "700ms"
+ANIM_EASE: "spring(100, 20)"
+ANIM_DISTANCE: "48"
+ANIM_STAGGER: "0.10"
+HEADING_FONT: "sans"
+NAV_CLASSES: "bg-background/80 backdrop-blur-xl border-b border-[rgba(226,232,240,0.5)]"
+FOOTER_CLASSES: "bg-background border-t border-[rgba(226,232,240,0.5)]"
+SECTION_PADDING: "py-24 sm:py-32"
+LAYOUT_MAX_WIDTH: "[1400px]"
+```
+
+**Color palette:**
+- Canvas White `#F9FAFB` (warm-neutral, never clinical blue-white).
+- Pure Surface `#FFFFFF` with whisper border `rgba(226,232,240,0.5)`.
+- Charcoal Ink `#18181B` (zinc-950, never pure black).
+- Steel Secondary `#71717A`, Muted Slate `#94A3B8`.
+- Diffused shadow: `rgba(0,0,0,0.05)` at 40px blur, -15px offset.
+
+**Typography:**
+- Display: Geist, Satoshi, Cabinet Grotesk, Outfit. Tracking `-0.025em`, weight 700-900, leading `1.1`. Inter is BANNED.
+- Body: same family at 400, leading `1.65`, max 65ch, Steel Secondary color.
+- Mono: Geist Mono, JetBrains Mono for metadata/timestamps. At Density ≥7, all numbers switch to mono.
+- Scale: display `clamp(2.25rem, 5vw, 3.75rem)`, body `1rem/1.125rem`.
+
+**Radius / Shadow / Spacing:**
+- Radius: generously rounded (`2.5rem` / 40px) on cards. Never `rounded-full` on large containers.
+- Shadow: diffused whisper (`0 20px 40px -15px rgba(0,0,0,0.05)`). Internal card padding `2rem-2.5rem`.
+- Spacing: max-width `1400px` centered. Horizontal padding `1rem` mobile / `2rem` tablet / `4rem` desktop. Section gaps `clamp(3rem, 8vw, 6rem)`.
+
+**Motion personality:** Spring-based exclusively (`stiffness: 100, damping: 20`). No linear easing anywhere. Perpetual micro-loops on active components: pulse dots, typewriter search, float icons, shimmer loaders. Staggered orchestration at `100ms * index`. Hardware-accelerated `transform`/`opacity` only.
+
+**Signature devices:** Inline image typography (small photos between words in headlines). No overlapping elements — every element has its own spatial zone. Bento architecture (Row 1: 3 cols / Row 2: 2 cols 70/30 split). Skeletal shimmer loaders (never circular spinners). Composed illustrations for empty states.
+
+**Dial configuration:** Creativity `1-10`, Density `1-10`, Variance `1-10`, Motion Intent `1-10`. Defaults: `8/4/8/6` (expressive, balanced-density, high-variance, moderate-motion). Adjust per-project brief.
+
+**When to use:** Products generated through Google Stitch (or Stitch-adjacent tooling). AI-first companies that want anti-generic output by default. Projects that need a tunable taste baseline rather than a single fixed archetype.
+
+**Anti-patterns:** Emojis anywhere. Inter font. Generic serifs (Times/Georgia/Garamond). Pure `#000000`. Neon outer glows. Oversaturated accents (>80% sat). Gradient text on large headers. Overlapping text and images. 3-column equal feature cards. Centered heroes at high Variance. Filler UI ("Scroll to explore", bouncing chevrons). Generic names ("John Doe", "Acme", "Nexus"). Round numbers (`99.99%`, `50%`). AI cliches. `h-screen` (use `min-h-[100dvh]`). Circular spinners.
+
+**Real-world references:** Linear, Vercel Ship pages, Mercury, Arc Browser, Raycast marketing, Family.co work.
+
+---

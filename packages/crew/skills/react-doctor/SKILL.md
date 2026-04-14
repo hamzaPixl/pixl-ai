@@ -50,6 +50,22 @@ Scan for accessibility gaps:
 4. **Color contrast** — Hardcoded colors that may have insufficient contrast
 5. **Keyboard navigation** — Interactive elements not reachable via Tab
 
+## Step 4.5: Design anti-patterns
+
+Scan for "AI slop" visual anti-patterns. These are banned by `references/frontend/design/anti-patterns.md` — flag each hit with the file:line reference and the corrective token/pattern.
+
+Run these greps across `components/`, `app/`, and any JSX/TSX:
+
+| Pattern (regex) | Violation | Fix |
+|---|---|---|
+| `bg-gradient-to-.*bg-clip-text\|text-transparent.*bg-clip-text` | Gradient text on headings — banned everywhere | Use solid text color from the design tokens |
+| `border-l-[2-9]\|border-r-[2-9]` with a color class (`border-(blue\|red\|green\|primary)-\d+`) | Side-stripe accent borders (classic AI "callout" cliche) | Replace with full border + token color, or remove border and use indent |
+| `font-mono` occurrences > 3 across non-code contexts | Monospace as "technical shorthand" | Restrict mono to actual code / metadata / timestamps. Body and UI must use the display/body font |
+| `#000\b\|#fff\b\|text-black\b\|bg-white\b` (hardcoded) | Pure black/white — banned | Use OKLCH near-extremes via design tokens (e.g. `#111` / `#F9FAFB` or `var(--background)` / `var(--foreground)`) |
+| `text-gray-\d+` inside a JSX element whose class also contains `bg-(blue\|red\|green\|purple\|orange)-\d+` | Gray text on colored background — banned contrast pattern | Use `text-white` / `text-foreground` or re-pick the background |
+
+For each hit, report: file:line, the matched snippet, the violated rule, and the recommended replacement. Reference `references/frontend/design/anti-patterns.md` for the full rationale and the complete AI Slop Test.
+
 ## Step 5: Report
 
 Generate a health report:

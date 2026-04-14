@@ -18,10 +18,12 @@ If the user provides a Figma URL or live website URL, follow the routing in `ref
 ## Required References
 
 **Always read these files before generating:**
-- `references/frontend/design-archetypes.md` — 12 archetypes with complete token sets
+- `references/frontend/design-archetypes.md` — 12 core archetypes + **4 new extended archetypes** now available: `Industrial Brutalist`, `Minimalist` (editorial utility), `Soft` (Awwwards-tier), `Stitch` (tunable taste standard). These carry deeper motion, typographic, and anti-pattern guidance than the core 12 — use them when the core archetypes feel generic for the brief.
 - `references/frontend/sector-design-intelligence.md` — sector mappings, color psychology, layout patterns
 - `references/frontend/design-resources.md` — color formulas, typography scales, font catalog
 - `references/frontend/block-sources.md` — animated components that match archetype personalities
+
+> **Anti-Slop Guard:** Theme propositions MUST avoid every font, pattern, and device banned in `references/frontend/design/anti-patterns.md`. Before presenting the 3 propositions, cross-check each against the anti-pattern list — if any proposition relies on a banned font (Inter/Roboto/Arial) or banned pattern (gradient text, pure black/white, side-stripe borders, generic thin-stroke icons), replace it.
 
 ## Step 1: Audit Current Theme
 

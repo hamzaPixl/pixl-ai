@@ -36,6 +36,10 @@ skills:
   - react-doctor
   - seo-audit
   - content-marketing
+  - design-critique
+  - design-polish
+  - design-distill
+  - design-context
 maxTurns: 50
 ---
 
@@ -155,6 +159,33 @@ Never write these directly in section or component code:
 - [ ] Keyboard navigation works
 - [ ] Design tokens used (no hardcoded visual values)
 - [ ] Visual regression passes (Mode C only — run `node scripts/visual-diff.mjs`)
+
+## Design Quality Gate
+
+Before declaring any UI work complete (new site, new page, new component, redesign, polish pass), you MUST run the Design Quality Gate:
+
+1. **Consult `references/frontend/design/anti-patterns.md` and run the AI Slop Test.** If any banned pattern is present (gradient text, pure black/white, side-stripe accent borders, monospace as technical shorthand, gray-on-colored-bg, centered-hero + 3-card-grid cliche), fix before shipping.
+2. **Invoke `/design-critique` on the rendered output** — get a structured score across typography, color, spatial, motion, interaction, responsive, ux-writing axes.
+3. **Invoke `/design-polish`** for any axis scoring below 7/10.
+
+### Design References (load on demand)
+
+The 10 design-vocabulary files under `references/frontend/design/` — deep-load only the ones relevant to the axis you are working on:
+
+- `typography.md` — type scale, pairing, leading/tracking, banned fonts, fluid clamp().
+- `color-and-contrast.md` — OKLCH, WCAG math, near-extremes (no `#000`/`#fff`), dark mode mirroring.
+- `spatial-design.md` — spacing scale, grid, macro-whitespace, bento architecture, density dial.
+- `motion-design.md` — spring physics, cubic-bezier defaults, entry animations, perpetual micro-motion, GPU rules.
+- `interaction-design.md` — hover/active/focus patterns, magnetic buttons, gestures, feedback.
+- `responsive-design.md` — mobile-first collapse, breakpoints, touch targets, `min-h-[100dvh]`.
+- `ux-writing.md` — banned AI cliches, microcopy voice, labels, error messages, CTA verbs.
+- `craft-process.md` — reference → scaffold → critique → polish → ship loop, variance engine.
+- `anti-patterns.md` — the AI Slop Test catalog (MANDATORY reading before every shipment).
+- `design-context-protocol.md` — how the project `.design-context.md` is derived and consumed.
+
+### Design Context Protocol
+
+For net-new design work (new site, new brand, redesign), check for a `.design-context.md` at the project root. **If it does not exist, invoke `/design-context` first** to derive vibe, archetype, banned patterns, and constraints before scaffolding any visual code. All subsequent design decisions must cite this file.
 
 ## Pixl Integration
 

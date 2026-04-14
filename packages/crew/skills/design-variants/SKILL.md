@@ -76,6 +76,12 @@ Write each variant:
 - Spacing must be consistent: use a scale (4, 8, 12, 16, 24, 32, 48, 64, 96)
 - Every variant must be production-plausible, not a rough sketch
 
+### Archetype & Anti-Slop Requirements
+
+- **Distinct archetype per variant.** Each generated variant MUST map to a distinct named archetype from `references/frontend/design-archetypes.md` (the 12 core + 4 extended: Industrial Brutalist, Minimalist, Soft, Stitch). Two variants mapping to the same archetype is a failure.
+- **Anti-pattern check.** Every variant MUST pass the anti-patterns check in `references/frontend/design/anti-patterns.md`. Before writing the HTML, grep your own tokens for banned fonts (Inter, Roboto, Arial), banned patterns (gradient text, pure `#000`/`#fff`, side-stripe accent borders, centered-hero + 3-card-grid), and banned copy ("Elevate", "Seamless", "Unleash", "John Doe", "Acme Corp").
+- **Variant labels call out archetype.** Each variant's report header must name its archetype, e.g. `Variant A — Industrial Brutalist (Telemetry)`, `Variant B — Soft (Editorial Luxury)`, `Variant C — Stitch (Creativity 9 / Density 3)`.
+
 ## Step 4: Generate Comparison Board
 
 Create an index page that shows all variants side-by-side:

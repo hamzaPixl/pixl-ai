@@ -48,6 +48,23 @@ Shared domain knowledge auto-loaded by agents and skills via `references/` in CL
 | `frontend/visual-regression.md`          | Visual regression testing with pixelmatch                          |
 | `frontend/website-design-system.md`      | Website design system conventions                                  |
 
+## Design Vocabulary
+
+Deep design-craft references under `frontend/design/`. Load on demand when doing net-new design work, design polish, or design critique. Together they form the vocabulary behind the `/design-critique`, `/design-polish`, `/design-distill`, and `/design-context` skills.
+
+| File                                        | Purpose                                                                              |
+| ------------------------------------------- | ------------------------------------------------------------------------------------ |
+| `frontend/design/typography.md`             | Type systems, scale, pairing, leading/tracking, banned fonts, fluid type               |
+| `frontend/design/color-and-contrast.md`     | OKLCH palettes, WCAG contrast math, near-extremes (no pure black/white), dark mode rules |
+| `frontend/design/spatial-design.md`         | Spacing scale, grid systems, macro-whitespace, density levels, bento architecture      |
+| `frontend/design/motion-design.md`          | Spring physics, easing curves, entry animations, perpetual micro-motion, perf rules   |
+| `frontend/design/interaction-design.md`     | Hover/active/focus patterns, magnetic buttons, gestures, feedback loops               |
+| `frontend/design/responsive-design.md`      | Mobile-first collapse, breakpoint strategy, touch targets, fluid clamp() patterns     |
+| `frontend/design/ux-writing.md`             | Banned AI clichés, microcopy voice, labels, error messages, button verbs              |
+| `frontend/design/craft-process.md`          | Design loop: reference → scaffold → critique → polish → ship. Variance engine.        |
+| `frontend/design/anti-patterns.md`          | AI Slop Test: gradient text, pure black/white, side-stripe borders, mono overuse, etc. |
+| `frontend/design/design-context-protocol.md` | How to derive and persist a `.design-context.md` per project (vibe + constraints)     |
+
 ## Methodology
 
 | File                                | Purpose                                          |

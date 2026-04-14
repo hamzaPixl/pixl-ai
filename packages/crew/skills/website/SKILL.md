@@ -130,10 +130,16 @@ Generate a unique, sector-appropriate design system. **Read the design reference
 
 ##### Required References
 
-- `references/frontend/design-archetypes.md` — 12 archetypes with complete token sets
+- `references/frontend/design-archetypes.md` — 12 core archetypes + 4 extended taste-pack archetypes (Industrial Brutalist, Minimalist, Soft, Stitch) with complete token sets
 - `references/frontend/sector-design-intelligence.md` — sector mappings, color psychology, layout patterns
 - `references/frontend/design-resources.md` — color formulas, typography scales, font catalog
 - `references/frontend/component-variants.md` — named structural variants per component category
+
+> **Required design-vocabulary reading (before scaffolding):**
+> - `references/frontend/design/typography.md` — type scale, pairing, banned fonts
+> - `references/frontend/design/color-and-contrast.md` — OKLCH, WCAG math, near-extremes
+> - `references/frontend/design/spatial-design.md` — spacing scale, grid, macro-whitespace, bento
+> - `references/frontend/design/anti-patterns.md` — **MANDATORY**: run the AI Slop Test from this file before scaffolding. If any banned pattern would appear in the proposed design, pick different tokens.
 
 ##### Procedure
 
