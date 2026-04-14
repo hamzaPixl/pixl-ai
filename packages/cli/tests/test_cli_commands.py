@@ -15,8 +15,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from click.testing import CliRunner
-from pixl_cli.main import cli
 from pixl_cli.commands.project import _copy_codex_template_file, _write_codex_agent_toml
+from pixl_cli.main import cli
 
 # ---------------------------------------------------------------------------
 # Shared fixtures

@@ -35,6 +35,7 @@ markers = [
 pythonVersion = "3.12"
 typeCheckingMode = "standard"
 include = ["packages/engine/pixl", "packages/cli/pixl_cli", "packages/api/pixl_api"]
+exclude = ["**/_crew/**", "packages/crew/skills/caveman-compress/scripts"]
 reportMissingTypeStubs = false
 reportMissingImports = "warning"
 reportIncompatibleVariableOverride = false
